@@ -12,7 +12,7 @@ httpClient.interceptors.response.use(
   (error: unknown) => Promise.reject(toApiError(error)),
 )
 
-function toApiError(error: unknown): ApiError {
+export function toApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) {
     return new ApiError('알 수 없는 오류가 발생했습니다.', { status: null, cause: error })
   }
