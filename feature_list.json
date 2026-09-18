@@ -54,5 +54,12 @@
     "description": "Vitest + Testing Library 등 테스트 러너를 도입하고, RequirePermission/PermissionGate 등 권한 컴포넌트에 대한 최초 테스트를 작성한다.",
     "status": "pending",
     "dependencies": []
+  },
+  {
+    "id": "github-issue-pr-templates",
+    "name": "GitHub 이슈/PR 템플릿 도입",
+    "description": ".github/ISSUE_TEMPLATE(feature/bug/refactor), .github/PULL_REQUEST_TEMPLATE.md를 원격에 반영하고, 이후 이슈/PR 작성 시 템플릿 구조·라벨·GitHub 네이티브 Issue Type을 맞춰 붙이는 규칙을 docs/git-workflow.md에 명문화한다.",
+    "status": "completed",
+    "dependencies": []
   }
 ]

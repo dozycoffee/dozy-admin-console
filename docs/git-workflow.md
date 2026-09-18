@@ -16,6 +16,18 @@
 - `feature_list.json`에 없는 새로운 작업이 필요해지면(버그 발견, 범위 밖 개선 등) 이슈를 만들면서
   `feature_list.json`에도 항목을 추가한다.
 
+## 이슈/PR 템플릿·라벨·타입
+
+- 이슈는 `.github/ISSUE_TEMPLATE/`의 `feature.md`/`bug.md`/`refactor.md` 중 성격에 맞는 템플릿
+  구조(섹션 구성)를 그대로 따라 작성하고, 템플릿에 지정된 라벨(`feature`/`bug`/`refactor`)을 붙인다.
+  세 템플릿 중 어디에도 맞지 않는 사소한 변경(오타 수정 등)은 이슈 없이 진행할 수 있다(위 "작업
+  단위" 절 참고).
+- `gh issue create --type`으로 GitHub 네이티브 Issue Type도 함께 지정한다. 매핑은 다음과 같다:
+  `feature` 템플릿 → `Feature`, `bug` 템플릿 → `Bug`, `refactor` 템플릿 → 대응 네이티브 타입이
+  없으므로 `Task`.
+- PR은 `.github/PULL_REQUEST_TEMPLATE.md` 형식(연관된 이슈 / 작업 내용 / 스크린샷(선택) / 리뷰
+  요구사항(선택))을 따르고, 연관 이슈와 같은 라벨을 붙인다.
+
 ## Branch Strategy
 
 - `main` → 기준 브랜치. 모든 작업 브랜치는 `main`에서 분기하고, 완료되면 PR로 `main`에 병합한다.
