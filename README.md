@@ -51,3 +51,12 @@ npm run build
 npm run lint
 npm run preview
 ```
+
+## 문서
+
+- [AGENT.md](AGENT.md) — 아키텍처 원칙, 폴더 구조, 권한 모델, 컨벤션
+- [docs/architecture-checklist.md](docs/architecture-checklist.md) — 구조 체크리스트
+- [docs/permission-policy-checklist.md](docs/permission-policy-checklist.md) — 권한 정책 체크리스트
+- [docs/adr/](docs/adr/README.md) — 아키텍처 결정 기록
+- [docs/git-workflow.md](docs/git-workflow.md) — 브랜치·이슈·PR 규칙
+- [feature_list.json](feature_list.json) / [PROGRESS.md](PROGRESS.md) — 작업 현황
