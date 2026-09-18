@@ -3,7 +3,8 @@
 ## 현재 상태
 
 문서 체계(AGENT.md/CLAUDE.md/docs/ADR)와 작업 관리 파일(feature_list.json/PROGRESS.md)에 이어
-`httpClient` 공통 에러 처리(`http-client-error-handling`)까지 완료했다. 남은 상태:
+`httpClient` 공통 에러 처리(`http-client-error-handling`), GitHub 이슈/PR 템플릿
+(`github-issue-pr-templates`)까지 완료했다. 남은 상태:
 
 - 인증은 `AuthProvider`의 mock 사용자로 동작하며 실제 로그인 API 연동 전
 - `httpClient`는 응답/에러 인터셉터로 네트워크 에러·4xx·5xx를 `ApiError`로 통일해 변환하지만,
@@ -11,12 +12,24 @@
 - Catalog/Inventory/Dashboard 페이지는 모두 정적 목업 데이터를 보여주는 화면만 구현됨
 - `AppLayout`의 `/users` 메뉴는 대응 라우트/화면이 아직 없음
 - 테스트 러너 미도입
+- 이슈/PR은 `.github/ISSUE_TEMPLATE`(feature/bug/refactor)·`.github/PULL_REQUEST_TEMPLATE.md`
+  구조를 따르고, 라벨과 GitHub 네이티브 Issue Type(Feature/Bug/Task)을 맞춰 붙인다
+  (`docs/git-workflow.md` "이슈/PR 템플릿·라벨·타입" 절 참고)
 
 다음에 손댈 것은 `feature_list.json`의 `pending` 항목 중 의존성이 없는 `testing-setup`이거나,
 `http-client-error-handling`이 열어준 `zod-response-validation`/`auth-real-login`/`catalog-crud`/
 `inventory-dashboard-data` 중 하나다.
 
 ## 세션 로그
+
+### 2026-09-18 (GitHub 이슈/PR 템플릿)
+
+- `.github/ISSUE_TEMPLATE/{feature,bug,refactor}.md`, `config.yml`, `.github/PULL_REQUEST_TEMPLATE.md`,
+  `.github/assets/dozycoffee_banner.png`를 원격에 반영
+- 저장소에 `feature`, `refactor` 라벨 추가(`bug`는 기존 라벨 재사용)
+- `docs/git-workflow.md`에 "이슈/PR 템플릿·라벨·타입" 절 추가 — 템플릿 구조·라벨·GitHub 네이티브
+  Issue Type(Feature/Bug/Task) 매핑 규칙 명문화
+- `feature_list.json`에 `github-issue-pr-templates` 항목 추가 후 바로 `completed`로 전환
 
 ### 2026-09-18 (httpClient 에러 처리)
 
@@ -44,8 +57,9 @@
 
 ## 다음 세션에서 할 일
 
-- `http-client-error-handling` PR 정리 후, `testing-setup`이거나 `zod-response-validation` /
+- `github-issue-pr-templates` PR 정리 후, `testing-setup`이거나 `zod-response-validation` /
   `auth-real-login` / `catalog-crud` / `inventory-dashboard-data` 중 하나를 골라 이슈를 먼저
   만들고 `feat/`(또는 `chore/`) 브랜치로 착수
 - 새 작업을 시작하기 전 `docs/git-workflow.md`를 다시 읽고 이슈 → 브랜치 → PR 순서를 지킬 것
+  (이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성)
 - `feature_list.json`에서 해당 항목을 `in_progress`로 전환하고, 완료 시 `completed` + PROGRESS.md 갱신
