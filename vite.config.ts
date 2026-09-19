@@ -17,7 +17,7 @@ export default defineConfig({
         'src/app/**',
         'src/pages/catalog/**',
         'src/pages/access-denied/**',
-        'src/shared/ui/**',
+        'src/mocks/**',
         'src/**/*.test.{ts,tsx}',
         'src/vite-env.d.ts',
       ],

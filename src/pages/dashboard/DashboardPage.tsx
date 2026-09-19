@@ -1,4 +1,4 @@
-import { useAuth } from '../../features/auth/model/useAuth'
+import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { useZoneInventorySummary } from '../../features/inventory/model/useZoneInventorySummary'
 import { useActiveProducts } from '../../features/product/model/useActiveProducts'
 import { useWarehouses } from '../../features/warehouse/model/useWarehouses'
@@ -9,7 +9,7 @@ function averageUsageRate(usageRates: number[]) {
 }
 
 export function DashboardPage() {
-  const { user } = useAuth()
+  const user = useCurrentUser()
   const warehouseIds = user.scope.warehouseIds
   const activeProductsQuery = useActiveProducts()
   const warehousesQuery = useWarehouses(warehouseIds)

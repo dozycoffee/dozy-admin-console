@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../features/auth/model/useAuth'
+import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 
 const navigation: Array<{ label: string; to: string; permission: Permission }> = [
@@ -10,7 +11,8 @@ const navigation: Array<{ label: string; to: string; permission: Permission }> =
 ]
 
 export function AppLayout() {
-  const { user, can } = useAuth()
+  const user = useCurrentUser()
+  const { can, logout } = useAuth()
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -32,7 +34,11 @@ export function AppLayout() {
             )
           })}
         </nav>
-        <div className="user-card"><strong>{user.name}</strong><span>접근 범위 · 서울 중앙 창고</span></div>
+        <div className="user-card">
+          <strong>{user.name}</strong>
+          <span>접근 가능 창고 {user.scope.warehouseIds.length}곳</span>
+          <button type="button" className="logout-button" onClick={logout}>로그아웃</button>
+        </div>
       </aside>
       <main className="content"><Outlet /></main>
     </div>

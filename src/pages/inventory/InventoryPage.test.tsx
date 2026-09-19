@@ -14,7 +14,7 @@ const mockedUseWarehouses = vi.mocked(useWarehouses)
 function renderWithUser(warehouseIds: number[]) {
   const user: AuthContextValue['user'] = { id: 'user-test', name: '테스트 사용자', permissions: [], scope: { warehouseIds } }
   return render(
-    <AuthContext.Provider value={{ user, can: () => true }}>
+    <AuthContext.Provider value={{ user, isLoading: false, can: () => true, login: vi.fn(), logout: vi.fn() }}>
       <InventoryPage />
     </AuthContext.Provider>,
   )
