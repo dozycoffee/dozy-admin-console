@@ -8,7 +8,7 @@ export const permissions = {
 } as const
 
 export type Permission = (typeof permissions)[keyof typeof permissions]
-export type AccessScope = { warehouseIds: string[] }
+export type AccessScope = { warehouseIds: number[] }
 export type CurrentUser = {
   id: string
   name: string

@@ -3,31 +3,63 @@
 ## 현재 상태
 
 문서 체계(AGENT.md/CLAUDE.md/docs/ADR), `httpClient` 공통 에러 처리
-(`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`)에 이어
-Vitest 테스트 러너(`testing-setup`)와 GitHub Actions CI(`ci-pipeline`)까지 완료했다. 남은 상태:
+(`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
+러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`)에 이어 `inventory-dashboard-data`와
+`zod-response-validation`까지 완료했다. 남은 상태:
 
-- 인증은 `AuthProvider`의 mock 사용자로 동작하며 실제 로그인 API 연동 전
-- `httpClient`는 응답/에러 인터셉터로 네트워크 에러·4xx·5xx를 `ApiError`로 통일해 변환하지만,
-  Zod 응답 검증 파이프라인은 아직 미연결
-- Catalog/Inventory/Dashboard 페이지는 모두 정적 목업 데이터를 보여주는 화면만 구현됨
-- `AppLayout`의 `/users` 메뉴는 대응 라우트/화면이 아직 없음
+- 인증은 여전히 `AuthProvider`의 mock 사용자로 동작. **의도적 보류** — 인증은 별도 MSA로 분리될
+  예정이며 우선순위가 가장 낮아, 해당 서비스가 준비되기 전까지 `auth-real-login`/
+  `users-permission-management-page`는 착수하지 않는다 (`feature_list.json` 참고)
+- Catalog는 여전히 정적 목업. **의도적 보류** — CatalogPage가 가리키는 완제품(아메리카노 등) 상품
+  마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른 별도 catalog MSA에서 처리될 예정이며
+  아직 미구현이라 연동할 API가 없다
+- Inventory/Dashboard는 dozy-wms-api 실 API(zone-summary/warehouses/products)로 연동 완료.
+  `AccessScope.warehouseIds`를 `string[]`(슬러그) → `number[]`(dozy-wms-api Long id)로 변경했고,
+  mock 값은 로컬 dev DB에 실제 등록한 창고 id를 가리킨다 — 다른 개발 DB에서는 이 값을 맞춰야 함
+- `AppLayout`의 `/users` 메뉴는 대응 라우트/화면이 아직 없음 (위 인증 보류와 연결됨)
 - 이슈/PR은 `.github/ISSUE_TEMPLATE`(feature/bug/refactor)·`.github/PULL_REQUEST_TEMPLATE.md`
   구조를 따르고, 라벨과 GitHub 네이티브 Issue Type(Feature/Bug/Task)을 맞춰 붙인다
   (`docs/git-workflow.md` "이슈/PR 템플릿·라벨·타입" 절 참고)
-- 테스트는 Vitest + Testing Library, 소스 파일 옆에 co-location(`*.test.ts(x)`)하는 컨벤션으로
-  RequirePermission/PermissionGate/AuthProvider/httpClient(toApiError)에만 우선 작성됨.
-  Catalog/Inventory/Dashboard 등 목업 페이지, `AppLayout`, `app/**`는 아직 로직이 없거나
-  API 연동 작업과 함께 테스트하기로 미뤄서 커버리지 집계 대상에서 제외(`vite.config.ts`
-  `test.coverage.exclude`)
+- 테스트는 Vitest + Testing Library, 소스 파일 옆에 co-location(`*.test.ts(x)`)하는 컨벤션.
+  `vite.config.ts`의 `test.coverage.exclude`에서 `pages/catalog`, `pages/access-denied`만 제외
+  (로직 없는 정적 화면) — `pages/inventory`, `pages/dashboard`는 실 API 연동으로 로직이 생겨
+  커버리지 집계 대상에 포함시킴
 - `.github/workflows/ci.yml`에서 PR/main push마다 lint·typecheck·build·commitlint·
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목 중 `http-client-error-handling`이 열어준
-`zod-response-validation`/`auth-real-login`/`catalog-crud`/
-`inventory-dashboard-data` 중 하나다.
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목 중 의존성 없는 게 더 이상 없다 —
+`catalog-crud`/`auth-real-login`/`users-permission-management-page`는 모두 외부 서비스(별도 MSA)
+준비를 기다려야 하는 보류 상태다. 백엔드 쪽 진행 상황을 확인해서 보류가 풀리면 그때 착수한다.
 
 ## 세션 로그
+
+### 2026-09-19 (재고·대시보드 실데이터 연동)
+
+- 이슈 #10(inventory-dashboard-data), #11(zod-response-validation) 생성,
+  `feat/inventory-dashboard-data` 브랜치에서 작업
+- 착수 전 `catalog-crud`가 가리키는 완제품 카탈로그와 dozy-wms-api의 `/api/products`(원부자재)가
+  서로 다른 서비스임을 확인 — catalog는 별도 MSA 미구현이라 이번 작업에서 제외, auth-real-login도
+  인증 MSA 후순위 방침에 따라 mock 유지로 보류. 범위를 inventory/dashboard로 좁힘
+- dozy-wms-api에 창고 단위 필터링이 없던 문제(zone-summary에 warehouseId 미노출, warehouseIds
+  쿼리 파라미터 없음)를 발견해 백엔드에 필요한 API 변경을 요청 → 사용자가 b8ad90c(warehouseId 노출
+  + warehouseIds 필터), a3b62bf(CurrentAccessScopeProvider 포트, ADR-0010)로 구현
+  - ADR-0010에 따라 `warehouseIds` 필터는 아직 서버 인가 경계가 아니라 클라이언트가 보낸 값을
+    그대로 신뢰하는 조회 편의 기능 — 실제 인가는 auth-real-login 이후 과제로 남음
+- `permissions.ts`의 `AccessScope.warehouseIds`를 `string[]` → `number[]`로 변경
+- `features/inventory`, `features/warehouse`, `features/product`에 각각 zod 스키마 + TanStack
+  Query 훅(`useZoneInventorySummary`/`useWarehouses`/`useActiveProducts`) 추가. 창고 목록 API가
+  없어 `useWarehouses`는 `useQueries`로 병렬 단건 조회
+- `InventoryPage`를 창고별 zone 카드 그룹핑 실 API 연동으로, `DashboardPage`를 운영 상품 수/정상
+  가동 창고/평균 창고 가동률(재고 부족 카드는 임계치 API가 없어 계산 가능한 지표로 교체) 실 API
+  연동으로 재작성
+- `.claude/launch.json` 신규 생성(`npm run dev`, autoPort). 브라우저 도구가 세션 셸에서 띄운
+  localhost에 접근 불가능한 구조라 시각적 확인은 못 했고, 대신 dozy-wms-api를 로컬에 직접 띄워
+  창고/zone/상품/lot/재고를 시딩한 뒤 실제 API 응답이 zod 스키마와 정확히 일치하는지 curl로
+  검증함
+- `vite.config.ts` 커버리지 제외 목록에서 `pages/inventory`, `pages/dashboard` 제거(로직 생김)
+- `feature_list.json`: `inventory-dashboard-data`, `zod-response-validation` → `completed`,
+  `catalog-crud`/`auth-real-login`/`users-permission-management-page`에 보류 사유 기록
 
 ### 2026-09-18 (테스트 러너 + CI 파이프라인)
 
@@ -80,10 +112,17 @@ Vitest 테스트 러너(`testing-setup`)와 GitHub Actions CI(`ci-pipeline`)까�
 
 ## 다음 세션에서 할 일
 
-- `ci-pipeline` PR 정리 후, `zod-response-validation` / `auth-real-login` / `catalog-crud` /
-  `inventory-dashboard-data` 중 하나를 골라 이슈를 먼저 만들고 `feat/`(또는 `chore/`) 브랜치로 착수
+- `feature_list.json`의 `pending` 3건(`catalog-crud`/`auth-real-login`/
+  `users-permission-management-page`)은 모두 별도 MSA(카탈로그/인증) 준비를 기다리는 보류 상태 —
+  해당 서비스 쪽 진행 상황을 먼저 확인한 뒤 보류가 풀리면 착수
+- dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
+  ProductService.DELETED_BY_SYSTEM의 CurrentAccessScopeProvider 교체, warehouseIds 필터와
+  AccessScope의 교차검증)은 실제 인증이 붙는 시점에 auth-real-login과 함께 처리해야 함을 기억할 것
 - 새 작업을 시작하기 전 `docs/git-workflow.md`를 다시 읽고 이슈 → 브랜치 → PR 순서를 지킬 것
   (이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성)
 - `feature_list.json`에서 해당 항목을 `in_progress`로 전환하고, 완료 시 `completed` + PROGRESS.md 갱신
 - 새 API 연동 작업에서 로직이 생기면 그 파일 옆에 co-location으로 테스트를 같이 추가하고,
   필요하면 `vite.config.ts`의 `test.coverage.exclude`에서 해당 경로를 빼서 커버리지 집계에 포함
+- 이 세션에서는 Claude Browser 도구가 세션 셸의 localhost에 접근하지 못해 UI를 눈으로 직접 보지
+  못했다(대신 실 백엔드에 curl로 응답 스키마만 검증) — 다음 세션에서 브라우저로 실제 렌더링을
+  확인할 방법이 있는지 확인하거나, 사용자에게 직접 `npm run dev`로 확인을 요청할 것
