@@ -38,6 +38,16 @@ a { color: inherit; text-decoration: none; }
 .panel { margin-top: 18px; padding: 26px; min-height: 180px; }
 .panel h2 { margin: 0 0 8px; font-size: 17px; }
 .panel p { margin: 0; color: #807570; font-size: 14px; }
+.zone-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.zone-card { padding: 16px; border: 1px solid #e4ddd9; border-radius: 12px; background: #fbf9f8; display: grid; gap: 10px; }
+.zone-card header { display: flex; justify-content: space-between; align-items: baseline; }
+.zone-card header strong { font-size: 15px; color: #2c211d; }
+.zone-card header span { font-size: 13px; color: #7f746e; }
+.zone-card > p { margin: 0; color: #7f746e; font-size: 13px; }
+.usage-bar { height: 6px; border-radius: 4px; background: #ece7e4; overflow: hidden; }
+.usage-bar-fill { height: 100%; background: #4b2f25; border-radius: 4px; }
+.quality-breakdown { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.quality-breakdown li { padding: 3px 8px; border-radius: 6px; background: #ece7e4; color: #5a4d47; font-size: 12px; }
 .button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: #4b2f25; color: #fff; cursor: pointer; }
 .button.locked { background: #ece7e4; color: #897d77; cursor: not-allowed; }
 .access-denied { min-height: calc(100vh - 96px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
