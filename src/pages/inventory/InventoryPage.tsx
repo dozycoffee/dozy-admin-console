@@ -1,4 +1,4 @@
-import { useAuth } from '../../features/auth/model/useAuth'
+import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { qualityStatusLabels, zoneCodeLabels, type ZoneInventorySummary } from '../../features/inventory/model/inventorySchemas'
 import { useZoneInventorySummary } from '../../features/inventory/model/useZoneInventorySummary'
 import { useWarehouses } from '../../features/warehouse/model/useWarehouses'
@@ -14,7 +14,7 @@ function groupByWarehouseId(summaries: ZoneInventorySummary[]) {
 }
 
 export function InventoryPage() {
-  const { user } = useAuth()
+  const user = useCurrentUser()
   const warehouseIds = user.scope.warehouseIds
   const zoneSummaryQuery = useZoneInventorySummary(warehouseIds)
   const warehousesQuery = useWarehouses(warehouseIds)

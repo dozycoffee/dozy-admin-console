@@ -24,6 +24,18 @@ a { color: inherit; text-decoration: none; }
 .user-card { margin-top: auto; padding: 16px 12px 0; border-top: 1px solid #423029; display: grid; gap: 5px; }
 .user-card strong { color: #fff; font-size: 14px; }
 .user-card span { color: #9f8d85; font-size: 12px; }
+.logout-button { margin-top: 6px; padding: 0; border: 0; background: none; color: #cfbbb1; font-size: 12px; text-align: left; cursor: pointer; }
+.logout-button:hover { color: #fff; text-decoration: underline; }
+.auth-loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #786d68; }
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f6f3f1; }
+.login-card { width: 320px; padding: 32px 28px; border: 1px solid #e4ddd9; border-radius: 14px; background: #fff; box-shadow: 0 8px 25px rgb(63 42 32 / 4%); display: grid; gap: 14px; }
+.login-card .brand { color: #241914; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.login-card .brand span { color: #8f7b72; font-weight: 400; }
+.login-card > p { margin: -8px 0 4px; color: #786d68; font-size: 13px; }
+.login-card label { display: grid; gap: 6px; font-size: 13px; color: #5a4d47; }
+.login-card input { min-height: 40px; padding: 0 12px; border: 1px solid #e4ddd9; border-radius: 9px; }
+.login-error { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fbecea; color: #9c3b2e; font-size: 13px; }
+.login-hint { color: #9b918c; font-size: 12px; text-align: center; }
 .content { padding: 48px; max-width: 1440px; width: 100%; }
 .page-header { min-height: 92px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: end; gap: 24px; }
 .page-header p { margin: 0 0 8px; color: #a19590; font-size: 12px; letter-spacing: .04em; }

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../model/authContext'
 import { permissions } from '../model/permissions'
 import { PermissionGate } from './PermissionGate'
@@ -14,7 +14,7 @@ const stubUser: AuthContextValue['user'] = {
 
 function renderGate(can: AuthContextValue['can'], fallback?: ReactNode) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, can }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, can, login: vi.fn(), logout: vi.fn() }}>
       <PermissionGate permission={permissions.catalogWrite} fallback={fallback}>
         <div>gated content</div>
       </PermissionGate>

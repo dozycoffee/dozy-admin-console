@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../model/authContext'
 import { permissions } from '../model/permissions'
 import { RequirePermission } from './RequirePermission'
@@ -14,7 +14,7 @@ const stubUser: AuthContextValue['user'] = {
 
 function renderProtectedRoute(can: AuthContextValue['can']) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, can }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, can, login: vi.fn(), logout: vi.fn() }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route

@@ -1,19 +1,54 @@
-import type { PropsWithChildren } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState, type PropsWithChildren } from 'react'
+import { clearAccessToken, getAccessToken, setAccessToken } from '../../../shared/api/authToken'
+import { fetchCurrentUser, loginRequest } from './authApi'
 import { AuthContext } from './authContext'
-import { permissions, type CurrentUser, type Permission } from './permissions'
-
-// warehouseIds는 dozy-wms-api가 실제로 등록해둔 창고 id를 가리켜야 한다.
-// 창고 테이블은 마이그레이션 시드 데이터가 없어(런타임에 POST /api/warehouses로 등록) 값이
-// 개발 DB마다 다를 수 있다 — 로컬에서 다른 값이 필요하면 이 배열만 바꾸면 된다. 실제 로그인 연동
-// (auth-real-login) 전까지는 이 mock이 유일한 창고 접근 범위 소스다.
-const mockUser: CurrentUser = {
-  id: 'user-001',
-  name: '김도윤',
-  permissions: [permissions.dashboardRead, permissions.catalogRead, permissions.inventoryRead],
-  scope: { warehouseIds: [1481] },
-}
+import type { Permission } from './permissions'
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const can = (permission: Permission) => mockUser.permissions.includes(permission)
-  return <AuthContext.Provider value={{ user: mockUser, can }}>{children}</AuthContext.Provider>
+  const [hasToken, setHasToken] = useState(() => getAccessToken() !== null)
+  const queryClient = useQueryClient()
+
+  const meQuery = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: fetchCurrentUser,
+    enabled: hasToken,
+    retry: false,
+  })
+
+  const loginMutation = useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) => loginRequest(username, password),
+    onSuccess: (data) => {
+      setAccessToken(data.accessToken)
+      setHasToken(true)
+    },
+  })
+
+  async function login(username: string, password: string) {
+    await loginMutation.mutateAsync({ username, password })
+    await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+  }
+
+  function logout() {
+    clearAccessToken()
+    setHasToken(false)
+    queryClient.removeQueries({ queryKey: ['auth', 'me'] })
+  }
+
+  // accessToken이 만료/무효화되어 /api/auth/me가 실패하면 로그아웃 상태로 되돌린다.
+  // meQuery는 서버(외부 시스템)의 인가 판정 결과이고, 이 effect는 그 결과를 로컬 저장소(accessToken)에
+  // 동기화하는 것이라 setState-in-effect 경고는 여기선 의도된 패턴이다.
+  useEffect(() => {
+    if (meQuery.isError) {
+      clearAccessToken()
+      // oxlint-disable-next-line react/set-state-in-effect
+      setHasToken(false)
+    }
+  }, [meQuery.isError])
+
+  const user = meQuery.data ?? null
+  const isLoading = hasToken && meQuery.isPending
+  const can = (permission: Permission) => user?.permissions.includes(permission) ?? false
+
+  return <AuthContext.Provider value={{ user, isLoading, can, login, logout }}>{children}</AuthContext.Provider>
 }
