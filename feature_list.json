@@ -16,36 +16,36 @@
   {
     "id": "zod-response-validation",
     "name": "API 응답 Zod 스키마 검증 도입",
-    "description": "ADR-0003에 따라 httpClient 레벨 또는 공통 query 함수 레벨에서 Zod 스키마 파싱을 연결하고, 최소 1개 도메인(catalog 등)에 적용 예시를 만든다.",
-    "status": "pending",
+    "description": "ADR-0003에 따라 httpClient 레벨 또는 공통 query 함수 레벨에서 Zod 스키마 파싱을 연결한다. catalog 서비스는 별도 MSA로 아직 API가 없어 예시 도메인을 inventory(dozy-wms-api /api/inventories/zone-summary)로 변경, inventory-dashboard-data와 함께 진행한다.",
+    "status": "in_progress",
     "dependencies": ["http-client-error-handling"]
   },
   {
     "id": "auth-real-login",
     "name": "실제 로그인 API 연동",
-    "description": "features/auth/model/AuthProvider.tsx의 mockUser를 제거하고 실제 로그인 API 및 세션/토큰 처리로 교체한다.",
+    "description": "features/auth/model/AuthProvider.tsx의 mockUser를 제거하고 실제 로그인 API 및 세션/토큰 처리로 교체한다. 보류: 인증은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮다. 해당 서비스가 구현되기 전까지 mock을 유지한다.",
     "status": "pending",
     "dependencies": ["http-client-error-handling"]
   },
   {
     "id": "users-permission-management-page",
     "name": "사용자·권한 관리 화면(/users) 구현",
-    "description": "AppLayout에 이미 존재하는 /users 메뉴에 대응하는 라우트와 화면을 구현한다. users.manage Permission 기반으로 사용자 목록 조회 및 권한 변경 UI를 제공한다.",
+    "description": "AppLayout에 이미 존재하는 /users 메뉴에 대응하는 라우트와 화면을 구현한다. users.manage Permission 기반으로 사용자 목록 조회 및 권한 변경 UI를 제공한다. 보류: auth-real-login이 후순위로 밀려 선행 조건이 충족되지 않는 동안 착수하지 않는다.",
     "status": "pending",
     "dependencies": ["auth-real-login"]
   },
   {
     "id": "catalog-crud",
     "name": "상품 관리(Catalog) API 연동",
-    "description": "CatalogPage의 상품 목록 조회, 상품 등록(catalog.write) 폼을 실제 API와 연동한다.",
+    "description": "CatalogPage의 상품 목록 조회, 상품 등록(catalog.write) 폼을 실제 API와 연동한다. 보류: CatalogPage가 가리키는 완제품(아메리카노 등) 상품 마스터는 dozy-wms-api의 /api/products(원부자재)와 다른 별도 catalog MSA에서 처리될 예정이며 아직 구현 전이라 연동할 API가 없다.",
     "status": "pending",
     "dependencies": ["http-client-error-handling"]
   },
   {
     "id": "inventory-dashboard-data",
     "name": "재고·대시보드 화면 실데이터 연동",
-    "description": "InventoryPage와 DashboardPage의 정적 목업 데이터를 AccessScope(warehouseIds) 기반 실제 API 조회로 교체한다.",
-    "status": "pending",
+    "description": "InventoryPage와 DashboardPage의 정적 목업 데이터를 AccessScope(warehouseIds) 기반 dozy-wms-api 실제 API(zone-summary, products, warehouses) 조회로 교체한다.",
+    "status": "in_progress",
     "dependencies": ["http-client-error-handling"]
   },
   {
