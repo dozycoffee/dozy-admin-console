@@ -17,7 +17,7 @@
     "id": "zod-response-validation",
     "name": "API 응답 Zod 스키마 검증 도입",
     "description": "ADR-0003에 따라 httpClient 레벨 또는 공통 query 함수 레벨에서 Zod 스키마 파싱을 연결한다. catalog 서비스는 별도 MSA로 아직 API가 없어 예시 도메인을 inventory(dozy-wms-api /api/inventories/zone-summary)로 변경, inventory-dashboard-data와 함께 진행한다.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["http-client-error-handling"]
   },
   {
@@ -45,7 +45,7 @@
     "id": "inventory-dashboard-data",
     "name": "재고·대시보드 화면 실데이터 연동",
     "description": "InventoryPage와 DashboardPage의 정적 목업 데이터를 AccessScope(warehouseIds) 기반 dozy-wms-api 실제 API(zone-summary, products, warehouses) 조회로 교체한다.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["http-client-error-handling"]
   },
   {
