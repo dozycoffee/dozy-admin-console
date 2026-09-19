@@ -1,8 +1,9 @@
 import { AxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { ApiError } from './ApiError'
-import { toApiError } from './httpClient'
+import { clearAccessToken, setAccessToken } from './authToken'
+import { httpClient, toApiError } from './httpClient'
 
 function buildResponseError(data: unknown, status: number): AxiosError {
   const response = { status, data, statusText: '', headers: {}, config: {} } as unknown as AxiosResponse
@@ -48,5 +49,29 @@ describe('toApiError', () => {
     expect(result).toBeInstanceOf(ApiError)
     expect(result.status).toBeNull()
     expect(result.cause).toBe(original)
+  })
+})
+
+describe('httpClient 요청 인터셉터', () => {
+  afterEach(() => clearAccessToken())
+
+  function requestWithEchoedHeaders() {
+    return httpClient.get('/ping', {
+      adapter: async (config) => ({ data: config.headers, status: 200, statusText: 'OK', headers: {}, config }),
+    })
+  }
+
+  it('accessToken이 있으면 Authorization 헤더를 붙인다', async () => {
+    setAccessToken('test-token')
+
+    const response = await requestWithEchoedHeaders()
+
+    expect(response.data.Authorization).toBe('Bearer test-token')
+  })
+
+  it('accessToken이 없으면 Authorization 헤더를 붙이지 않는다', async () => {
+    const response = await requestWithEchoedHeaders()
+
+    expect(response.data.Authorization).toBeUndefined()
   })
 })

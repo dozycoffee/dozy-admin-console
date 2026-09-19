@@ -1,10 +1,19 @@
 import axios from 'axios'
 import { ApiError } from './ApiError'
+import { getAccessToken } from './authToken'
 
 export const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
+})
+
+httpClient.interceptors.request.use((config) => {
+  const accessToken = getAccessToken()
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`
+  }
+  return config
 })
 
 httpClient.interceptors.response.use(
