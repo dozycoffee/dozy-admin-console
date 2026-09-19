@@ -4,12 +4,23 @@
 
 문서 체계(AGENT.md/CLAUDE.md/docs/ADR), `httpClient` 공통 에러 처리
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
-러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`)에 이어 `inventory-dashboard-data`와
-`zod-response-validation`까지 완료했다. 남은 상태:
+러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
+`zod-response-validation`에 이어 `auth-login-ui-mock-backend`까지 완료했다. 남은 상태:
 
-- 인증은 여전히 `AuthProvider`의 mock 사용자로 동작. **의도적 보류** — 인증은 별도 MSA로 분리될
-  예정이며 우선순위가 가장 낮아, 해당 서비스가 준비되기 전까지 `auth-real-login`/
-  `users-permission-management-page`는 착수하지 않는다 (`feature_list.json` 참고)
+- **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
+  띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
+  실제 요청이 전부 CORS로 막혀 `net::ERR_FAILED`가 난다(`OPTIONS` 프리플라이트 응답에
+  `Access-Control-Allow-Origin` 자체가 없음을 확인). `inventory-dashboard-data`도 이 문제 때문에
+  실제로는 브라우저에서 정상 동작하지 않는 상태 — 그동안 curl 기반 검증만으로 "완료"라고
+  판단한 게 이 결함을 놓친 원인이다. dozy-wms-api에 Spring WebFlux CORS 설정(프런트 origin 허용)
+  추가가 필요하며, 프런트 쪽 수정 사항은 없다
+- 로그인은 MSW로 `POST /api/auth/login`/`GET /api/auth/me`를 목킹해 실제 로그인
+  UI(`LoginPage`)·세션 상태(`AuthProvider`)·인증 가드(`RequireAuth`)·로그아웃까지 완성했다.
+  데모 계정은 `dozy`/`dozy1234`. dozy-wms-api ADR-0010과 동일하게 "포트 + mock 어댑터" 패턴이라,
+  실제 인증 서비스가 준비되면 `authApi.ts`의 두 함수만 실제 API로 교체하면 된다. **의도적 보류** —
+  인증(JWT/JWKS 등 실제 연동)은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮아, 해당 서비스가
+  준비되기 전까지 `auth-real-login`(mock 어댑터 교체)/`users-permission-management-page`는
+  착수하지 않는다 (`feature_list.json` 참고)
 - Catalog는 여전히 정적 목업. **의도적 보류** — CatalogPage가 가리키는 완제품(아메리카노 등) 상품
   마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른 별도 catalog MSA에서 처리될 예정이며
   아직 미구현이라 연동할 API가 없다
@@ -31,8 +42,38 @@
 다음에 손댈 것은 `feature_list.json`의 `pending` 항목 중 의존성 없는 게 더 이상 없다 —
 `catalog-crud`/`auth-real-login`/`users-permission-management-page`는 모두 외부 서비스(별도 MSA)
 준비를 기다려야 하는 보류 상태다. 백엔드 쪽 진행 상황을 확인해서 보류가 풀리면 그때 착수한다.
+그 전에 **dozy-wms-api CORS 설정 추가가 선행되어야** `inventory-dashboard-data`를 포함한 모든
+실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-19 (로그인 UI/세션 아키텍처 — MSW mock 백엔드)
+
+- 이슈 #13(auth-login-ui-mock-backend) 생성, `feat/auth-login-ui-mock-backend` 브랜치에서 작업
+- dozy-wms-api ADR-0010("포트 + mock 어댑터")과 같은 발상을 프런트에도 적용: 실제 인증 서비스
+  없이도 로그인 UI/세션 아키텍처 자체는 먼저 완성할 수 있다는 게 이번 작업의 핵심 결정
+- MSW 도입 — `src/mocks/handlers.ts`에 `POST /api/auth/login`(데모 계정 dozy/dozy1234),
+  `GET /api/auth/me` 목킹. `main.tsx`에서 dev 모드에서만 워커 시작(`onUnhandledRequest: 'bypass'`로
+  실 백엔드 요청은 그대로 통과)
+- `shared/api/authToken.ts` + `httpClient` 요청 인터셉터로 accessToken을 Authorization 헤더에 자동
+  첨부
+- `AuthContext`/`AuthProvider` 재작성 — `user: CurrentUser | null`, `isLoading`, `login`, `logout`.
+  `/api/auth/me` 실패(토큰 만료/무효) 시 자동 로그아웃 처리
+- `useCurrentUser` 추가 — `RequireAuth` 하위(인증 보장된 라우트)에서만 쓰는, user가 non-null임을
+  보장하는 훅. `InventoryPage`/`DashboardPage`/`AppLayout`이 이걸로 전환
+- `RequireAuth`(미인증 시 `/login` 리다이렉트) + `LoginPage` 추가, `AppRouter`에 `/login`을 공개
+  라우트로, 나머지를 `RequireAuth`로 감싸도록 재구성. `AppLayout`에 로그아웃 버튼 추가
+- **중요 발견**: 이번에 처음으로 이 세션의 브라우저 도구가 실제로 dev 서버(5173)에 접근 가능했다
+  (이전 세션들은 접근 자체가 안 돼 curl로만 검증). 로그인/로그아웃/인증 가드는 모두 정상 동작을
+  화면으로 확인했지만, 실 백엔드(dozy-wms-api, 8080) 호출은 전부 CORS로 막혀 있음을 발견 —
+  `inventory-dashboard-data`가 curl 검증만으로 "완료" 처리됐던 게 이 결함을 놓친 원인. 백엔드에
+  CORS 설정 추가가 필요함을 확인하고 사용자에게 전달(위 "현재 상태" 참고)
+- 로컬 `.env`가 없어 `VITE_API_BASE_URL`이 비어있던 문제도 함께 발견 — `.env` 생성(미커밋),
+  `.gitignore`에 `.env` 추가
+- `.claude/launch.json`에 `dozy-wms-api`를 `url`만으로 attach하는 설정 추가 — 브라우저 도구가
+  `preview_start`로 등록되지 않은 포트(백엔드)에는 접근하지 못한다는 것도 이번에 확인함
+- `feature_list.json`의 `auth-login-ui-mock-backend`를 `completed`로, `auth-real-login`
+  description을 "mock 어댑터를 실제 서비스로 교체"로 좁힘
 
 ### 2026-09-19 (재고·대시보드 실데이터 연동)
 
@@ -112,6 +153,9 @@
 
 ## 다음 세션에서 할 일
 
+- **dozy-wms-api에 CORS 설정 추가가 최우선** — 이게 없으면 `inventory-dashboard-data`를 포함해
+  실 API를 부르는 모든 화면이 브라우저에서 동작하지 않는다. 프런트 쪽에서 할 일은 없고, 백엔드에
+  Spring WebFlux CORS 설정(프런트 origin 허용)만 추가하면 됨
 - `feature_list.json`의 `pending` 3건(`catalog-crud`/`auth-real-login`/
   `users-permission-management-page`)은 모두 별도 MSA(카탈로그/인증) 준비를 기다리는 보류 상태 —
   해당 서비스 쪽 진행 상황을 먼저 확인한 뒤 보류가 풀리면 착수
@@ -123,6 +167,6 @@
 - `feature_list.json`에서 해당 항목을 `in_progress`로 전환하고, 완료 시 `completed` + PROGRESS.md 갱신
 - 새 API 연동 작업에서 로직이 생기면 그 파일 옆에 co-location으로 테스트를 같이 추가하고,
   필요하면 `vite.config.ts`의 `test.coverage.exclude`에서 해당 경로를 빼서 커버리지 집계에 포함
-- 이 세션에서는 Claude Browser 도구가 세션 셸의 localhost에 접근하지 못해 UI를 눈으로 직접 보지
-  못했다(대신 실 백엔드에 curl로 응답 스키마만 검증) — 다음 세션에서 브라우저로 실제 렌더링을
-  확인할 방법이 있는지 확인하거나, 사용자에게 직접 `npm run dev`로 확인을 요청할 것
+- UI를 브라우저로 검증하려면 `.claude/launch.json`의 `dozy-wms-api` 항목으로 백엔드를 먼저
+  `preview_start` attach해야 한다(등록 안 된 포트는 브라우저 도구가 접근 못 함). 로컬 `.env`도
+  있어야 `VITE_API_BASE_URL`이 올바르게 잡힌다

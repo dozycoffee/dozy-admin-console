@@ -21,11 +21,18 @@
     "dependencies": ["http-client-error-handling"]
   },
   {
+    "id": "auth-login-ui-mock-backend",
+    "name": "로그인 UI/세션 아키텍처 구현 (MSW mock 백엔드)",
+    "description": "dozy-wms-api ADR-0010의 '포트 + mock 어댑터' 패턴을 프런트에도 동일하게 적용한다. MSW로 POST /api/auth/login, GET /api/auth/me를 목킹하고, 로그인 페이지·accessToken 저장(httpClient 요청 인터셉터)·로그아웃·인증 가드(RequireAuth, 미인증 시 /login으로 리다이렉트)를 구현해 실제 인증 서비스 연동 전에 로그인 플로우 아키텍처를 완성한다. AuthProvider의 하드코딩된 mockUser는 이 MSW 목 API 호출로 교체된다.",
+    "status": "completed",
+    "dependencies": ["http-client-error-handling"]
+  },
+  {
     "id": "auth-real-login",
     "name": "실제 로그인 API 연동",
-    "description": "features/auth/model/AuthProvider.tsx의 mockUser를 제거하고 실제 로그인 API 및 세션/토큰 처리로 교체한다. 보류: 인증은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮다. 해당 서비스가 구현되기 전까지 mock을 유지한다.",
+    "description": "auth-login-ui-mock-backend에서 만든 MSW mock 어댑터(POST /api/auth/login, GET /api/auth/me)를 실제 인증 서비스(JWT/JWKS 등)로 교체한다. 로그인 페이지/RequireAuth 등 UI·라우팅 구조는 이미 완성되어 있으므로 이 작업은 API 연동에만 집중한다. 보류: 인증은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮다. 해당 서비스가 구현되기 전까지 MSW mock을 유지한다.",
     "status": "pending",
-    "dependencies": ["http-client-error-handling"]
+    "dependencies": ["auth-login-ui-mock-backend"]
   },
   {
     "id": "users-permission-management-page",
