@@ -5,9 +5,7 @@ import { permissions, type Permission } from '../../features/auth/model/permissi
 
 const navigation: Array<{ label: string; to: string; permission: Permission }> = [
   { label: '대시보드', to: '/', permission: permissions.dashboardRead },
-  { label: '상품 관리', to: '/catalog', permission: permissions.catalogRead },
   { label: '재고·창고', to: '/inventory', permission: permissions.inventoryRead },
-  { label: '사용자·권한', to: '/users', permission: permissions.usersManage },
 ]
 
 export function AppLayout() {

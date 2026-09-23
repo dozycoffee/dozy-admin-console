@@ -17,7 +17,7 @@ describe('currentUserSchema', () => {
   const validUser = {
     id: 'user-001',
     name: '김도윤',
-    permissions: ['dashboard.read', 'catalog.write'],
+    permissions: ['dashboard.read', 'inventory.write'],
     scope: { warehouseIds: [1, 2] },
   }
 
@@ -25,7 +25,7 @@ describe('currentUserSchema', () => {
     const result = currentUserSchema.parse(validUser)
 
     expect(result.name).toBe('김도윤')
-    expect(result.permissions).toEqual(['dashboard.read', 'catalog.write'])
+    expect(result.permissions).toEqual(['dashboard.read', 'inventory.write'])
   })
 
   it('알 수 없는 permission 값이면 파싱에 실패한다', () => {

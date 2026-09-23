@@ -10,7 +10,7 @@ const MOCK_ACCESS_TOKEN = 'mock-access-token'
 const mockUser: CurrentUser = {
   id: 'user-001',
   name: '김도윤',
-  permissions: [permissions.dashboardRead, permissions.catalogRead, permissions.inventoryRead],
+  permissions: [permissions.dashboardRead, permissions.inventoryRead],
   scope: { warehouseIds: [1481] },
 }
 

@@ -20,7 +20,7 @@ function renderProtectedRoute(can: AuthContextValue['can']) {
           <Route
             path="/"
             element={
-              <RequirePermission permission={permissions.catalogRead}>
+              <RequirePermission permission={permissions.inventoryRead}>
                 <div>protected content</div>
               </RequirePermission>
             }
