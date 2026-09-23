@@ -6,8 +6,8 @@
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
 `zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
-`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`까지
-완료했다. 남은 상태:
+`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`,
+`inventory-location-table-alignment`까지 완료했다. 남은 상태:
 
 - 창고 평면도(`WarehouseFloorPlan.tsx`)와 Dashboard의 Zone별 재고 현황 카드는 아직 전용 mock
   데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
@@ -57,6 +57,18 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (재고 현황 Location 테이블 정렬 버그 수정)
+
+- 이슈(inventory-location-table-alignment) 생성,
+  `fix/inventory-location-table-alignment` 브랜치에서 작업 (inventory-location-panel-cleanup 위에서 진행)
+- Location을 펼쳤을 때 하위 상품 행의 컬럼(재고/적재율/품질/최종 변경)이 상위 Location 행 컬럼과
+  가로로 어긋나 보이던 버그 수정 — `.location-products`가 상위 셀 padding을 흉내 내려고 쓰던
+  `margin: -13px` / `padding: 13px` 상쇄 트릭과 좌측 인덴트(`padding-left: 36px`)가 원인이었음.
+  각 컬럼에 상위 헤더와 동일한 `padding: 0 13px`을 직접 줘서 정렬 맞춤
+  - 품질 뱃지(`.quality-status`)가 그리드 아이템 기본 stretch 때문에 컬럼 폭 전체로 늘어져 길게
+    보이던 것도 `justify-self: start`로 함께 수정
+- `npm run build`/`npm run lint`/`vitest run`(49개) 통과 확인
 
 ### 2026-09-23 (재고 현황 Location 패널 정리 - 적재 현황 탭 통합)
 
