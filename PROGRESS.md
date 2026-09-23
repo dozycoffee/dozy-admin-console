@@ -7,7 +7,8 @@
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
 `zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
 `generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`,
-`inventory-location-table-alignment`, `warehouse-capacity-md-zone-mock`까지 완료했다. 남은 상태:
+`inventory-location-table-alignment`, `warehouse-capacity-md-zone-mock`,
+`warehouse-location-pillar`까지 완료했다. 남은 상태:
 
 - **새 F Zone(MD 상품)은 아직 프런트 mock 레이어에만 존재한다.** `inventorySchemas`의
   `zoneCodeSchema`/`zoneCodeLabels`는 F를 인식하지만, 실제 dozy-wms-api
@@ -65,6 +66,19 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (창고 평면도 Location 박스에 기둥 추가)
+
+- 이슈(warehouse-location-pillar) 생성, `feat/warehouse-location-pillar` 브랜치에서 작업
+  (warehouse-capacity-md-zone 위에서 진행)
+- 요청이 "기둥 추가"로 짧아서, 박스 자체를 열린 랙 구조로 재설계할지 지금의 컵+물 이중 레이어는
+  그대로 두고 네 모서리에 기둥만 얹을지 사용자에게 먼저 확인 — 후자로 결정
+- `WarehouseFloorPlan.tsx`: `pillarsFor` 헬퍼 추가 — 박스 네 모서리(back/right/front/left)에서
+  땅(z=0)부터 컵 높이(`containerHeightFor`)까지 이어지는 선분 좌표를 계산. 박스 벽(반투명
+  rightFace/leftFace)보다 먼저 그려서, 벽 뒤에 있는 기둥처럼 살짝 비쳐 보이게 함. 색은 zone별
+  `colors.edge`를 그대로 재사용해 기존 배색과 통일
+- `npm run build`/`npm run lint`/`vitest run`(49개) 통과 확인. 브라우저 도구가 없어 시각적 확인은
+  못 함 — dev 서버에서 확인 필요
 
 ### 2026-09-23 (창고 총 용량 확대 + MD 상품 F Zone 신설 — 프런트 mock)
 
