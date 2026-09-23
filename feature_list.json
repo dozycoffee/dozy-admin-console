@@ -75,5 +75,12 @@
     "description": "CatalogPage와 이를 가리키던 permissions(catalogRead/catalogWrite), 아직 실 API가 없던 product 모델(productSchemas/useActiveProducts)을 완전히 제거한다. catalog-crud가 가리키던 완제품 카탈로그는 별도 catalog MSA가 아직 구현되지 않아 무기한 보류 상태였는데, 화면에 미완성 placeholder를 계속 노출하는 대신 API가 준비되면 그때 다시 화면부터 새로 만들기로 함. AppRouter/AppLayout에서 /catalog 라우트·메뉴, /users 메뉴(대응 화면 없음)도 함께 정리.",
     "status": "completed",
     "dependencies": []
+  },
+  {
+    "id": "generalize-msw-mocks",
+    "name": "MSW mock 구조 일반화",
+    "description": "auth-login-ui-mock-backend에서 인증 전용으로 만든 mocks/handlers.ts(authHandlers)를 mockHandlers로 일반화하고, 창고 단건 조회(/api/warehouses/:warehouseId)와 zone-summary(/api/inventories/zone-summary) mock 핸들러를 추가한다. main.tsx의 MSW 워커 시작 옵션도 onUnhandledRequest: 'bypass'(인증 요청 외에는 통과)에서 'error'(BFF 계약이 확정되기 전까지 정의되지 않은 /api/* 요청은 실패시켜 누락을 바로 드러냄)로 변경.",
+    "status": "completed",
+    "dependencies": ["remove-catalog-feature"]
   }
 ]
