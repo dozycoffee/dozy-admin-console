@@ -15,7 +15,7 @@ export type ActorMode = {
 }
 
 /**
- * 선택 화면과 콘솔에서 함께 사용하는 액터 모드 레지스트리다.
+ * 선택 모달과 콘솔에서 함께 사용하는 액터 모드 레지스트리다.
  * 새 모드는 이 목록과 서버의 허용 모드 응답에 추가한다.
  */
 export const actorModes: readonly ActorMode[] = [

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import type { ActorModeId } from '../model/actorModes'
 import { useAuth } from '../model/useAuth'
 
@@ -10,10 +10,8 @@ type RequireActorModeProps = {
 
 export function RequireActorMode({ allowedModes, children }: RequireActorModeProps) {
   const { user, activeActorMode } = useAuth()
-  const location = useLocation()
-
   if (!activeActorMode || !user?.actorModes.includes(activeActorMode)) {
-    return <Navigate to="/select-mode" replace state={{ from: location }} />
+    return <Navigate to="/" replace />
   }
 
   if (allowedModes && !allowedModes.includes(activeActorMode)) {

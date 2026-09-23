@@ -127,15 +127,15 @@
   },
   {
     "id": "actor-mode-selector",
-    "name": "액터 모드 선택 화면과 잠금 상태 구현",
-    "description": "로그인 후 전체 액터 모드를 표시하는 선택 화면을 구현한다. 허용되지 않은 모드는 숨기지 않고 잠금 아이콘과 접근 불가 설명을 표시하며 선택을 차단한다.",
+    "name": "액터 모드 선택 모달과 잠금 상태 구현",
+    "description": "로그인 후 콘솔 중앙에 전체 액터 모드를 표시하는 필수 선택 모달을 구현한다. 허용되지 않은 모드는 숨기지 않고 잠금 아이콘과 접근 불가 설명을 표시하며 선택을 차단한다.",
     "status": "completed",
     "dependencies": ["actor-mode-domain-session"]
   },
   {
     "id": "actor-mode-routing-switch",
     "name": "액터 모드 라우팅 가드 및 모드 전환 구현",
-    "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 콘솔 안에서 모드 선택 화면으로 돌아가 다른 허용 모드로 전환할 수 있게 한다.",
+    "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 사이드바의 CURRENT MODE 카드에서 선택 모달을 다시 열어 다른 허용 모드로 전환할 수 있게 한다.",
     "status": "completed",
     "dependencies": ["actor-mode-selector"]
   }

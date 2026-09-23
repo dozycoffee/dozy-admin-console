@@ -14,15 +14,14 @@ const stubUser: AuthContextValue['user'] = {
   scope: { warehouseIds: [1, 2] },
 }
 
-function renderAppLayout(logout: () => void, clearActorMode = vi.fn()) {
+function renderAppLayout(logout: () => void) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.warehouseManager, can: () => true, selectActorMode: vi.fn(), clearActorMode, login: vi.fn(), logout }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.warehouseManager, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<AppLayout />}>
             <Route index element={<div>page content</div>} />
           </Route>
-          <Route path="/select-mode" element={<div>mode selection</div>} />
         </Routes>
       </MemoryRouter>
     </AuthContext.Provider>,
@@ -49,16 +48,14 @@ describe('AppLayout', () => {
     expect(logout).not.toHaveBeenCalled()
   })
 
-  it('현재 모드를 표시하고 모드 선택 화면으로 전환한다', async () => {
-    const clearActorMode = vi.fn()
+  it('CURRENT MODE 카드를 누르면 모드 선택 모달을 연다', async () => {
     const user = userEvent.setup()
-    renderAppLayout(vi.fn(), clearActorMode)
+    renderAppLayout(vi.fn())
 
     expect(screen.getByText('창고 관리')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /모드 전환/ }))
+    await user.click(screen.getByRole('button', { name: '업무 모드 변경' }))
 
-    expect(clearActorMode).toHaveBeenCalled()
-    expect(screen.getByText('mode selection')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: '업무 모드 선택' })).toBeInTheDocument()
   })
 
   it('확인 모달에서 로그아웃을 확정하면 logout을 호출한다', async () => {

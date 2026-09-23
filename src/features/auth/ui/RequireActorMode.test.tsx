@@ -24,7 +24,7 @@ function renderGuard(activeActorMode: ActorModeId | null, allowedModes: ActorMod
           <Route element={<RequireActorMode />}>
             <Route path="/inventory" element={<div>mode console</div>} />
           </Route>
-          <Route path="/select-mode" element={<div>mode selection</div>} />
+          <Route path="/" element={<div>mode home</div>} />
         </Routes>
       </MemoryRouter>
     </AuthContext.Provider>,
@@ -62,16 +62,16 @@ describe('RequireActorMode', () => {
     expect(screen.getByText('mode console')).toBeInTheDocument()
   })
 
-  it('선택한 모드가 없으면 모드 선택 화면으로 이동한다', () => {
+  it('선택한 모드가 없으면 모달이 열리는 콘솔 홈으로 이동한다', () => {
     renderGuard(null, [actorModeIds.warehouseManager])
 
-    expect(screen.getByText('mode selection')).toBeInTheDocument()
+    expect(screen.getByText('mode home')).toBeInTheDocument()
   })
 
-  it('활성 모드가 최신 허용 목록에 없으면 모드 선택 화면으로 이동한다', () => {
+  it('활성 모드가 최신 허용 목록에 없으면 콘솔 홈으로 이동한다', () => {
     renderGuard(actorModeIds.accountAdministrator, [actorModeIds.warehouseManager])
 
-    expect(screen.getByText('mode selection')).toBeInTheDocument()
+    expect(screen.getByText('mode home')).toBeInTheDocument()
   })
 
   it('현재 모드에 허용되지 않은 하위 화면 직접 접근을 모드 홈으로 돌려보낸다', () => {

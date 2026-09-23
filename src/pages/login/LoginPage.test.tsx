@@ -16,7 +16,6 @@ function renderLoginPage() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<div>home page</div>} />
-        <Route path="/select-mode" element={<div>mode selection page</div>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -37,7 +36,7 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    expect(screen.getByText('mode selection page')).toBeInTheDocument()
+    expect(screen.getByText('home page')).toBeInTheDocument()
   })
 
   it('로그인 폼을 보여준다', () => {
@@ -50,7 +49,7 @@ describe('LoginPage', () => {
     expect(screen.getByText('데모 계정: dozy / dozy1234')).toBeInTheDocument()
   })
 
-  it('로그인 성공 시 모드 선택 화면으로 이동한다', async () => {
+  it('로그인 성공 시 콘솔 홈으로 이동한다', async () => {
     const login = vi.fn().mockResolvedValue(undefined)
     mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login, logout: vi.fn() })
     const user = userEvent.setup()
@@ -61,7 +60,7 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: '로그인' }))
 
     expect(login).toHaveBeenCalledWith('dozy', 'dozy1234')
-    expect(await screen.findByText('mode selection page')).toBeInTheDocument()
+    expect(await screen.findByText('home page')).toBeInTheDocument()
   })
 
   it('로그인 실패 시 에러 메시지를 보여준다', async () => {

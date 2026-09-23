@@ -11,7 +11,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (user) {
-    return <Navigate to="/select-mode" replace />
+    return <Navigate to="/" replace />
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -20,7 +20,7 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       await login(username, password)
-      navigate('/select-mode', { replace: true })
+      navigate('/', { replace: true })
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : '로그인에 실패했습니다.')
     } finally {

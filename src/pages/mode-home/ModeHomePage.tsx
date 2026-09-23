@@ -24,7 +24,7 @@ export function ModeHomePage() {
     return <DashboardPage />
   }
 
-  if (!activeActorMode) return null
+  if (!activeActorMode) return <div className="mode-required-placeholder" aria-hidden="true" />
   const mode = getActorMode(activeActorMode)
   const content = modeHomeContent[activeActorMode]
 
