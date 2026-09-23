@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-882.4 75.7 2222.1 1135.2" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif">
+<title>창고 아이소뷰 — Zone/Location 재고 입체도 (예시 데이터)</title>
+<rect x="-882.4" y="75.7" width="2222.1" height="1135.2" fill="#050B1A"/>
+<polygon points="-342.7,121.7 1305.7,671.2 800.0,1176.9 -848.4,627.4" fill="#0F1F3E" stroke="#3E6CA8" stroke-width="1.5" stroke-opacity="0.55"/>
+<line x1="-365.4" y1="144.4" x2="1283.1" y2="693.9" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-448.6" y1="227.7" x2="1199.8" y2="777.1" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-531.9" y1="310.9" x2="1116.5" y2="860.4" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-615.2" y1="394.2" x2="1033.2" y2="943.7" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-698.5" y1="477.5" x2="949.9" y2="1027.0" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-781.8" y1="560.8" x2="866.6" y2="1110.3" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-274.1" y1="144.5" x2="-779.9" y2="650.3" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="-129.9" y1="192.6" x2="-635.6" y2="698.3" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="14.4" y1="240.7" x2="-491.4" y2="746.4" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="158.6" y1="288.8" x2="-347.1" y2="794.5" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="302.9" y1="336.9" x2="-202.9" y2="842.6" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="447.1" y1="384.9" x2="-58.6" y2="890.7" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="591.4" y1="433.0" x2="85.6" y2="938.8" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="735.6" y1="481.1" x2="229.9" y2="986.8" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="879.9" y1="529.2" x2="374.1" y2="1034.9" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="1024.1" y1="577.3" x2="518.4" y2="1083.0" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<line x1="1168.4" y1="625.4" x2="662.6" y2="1131.1" stroke="#20406E" stroke-width="1" stroke-opacity="0.55"/>
+<polygon points="-47.0,285.7 100.1,334.8 -19.4,454.3 -166.6,405.3" fill="#79F0E0" fill-opacity="0.13" stroke="#79F0E0" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="6 5"/>
+<polygon points="194.9,327.5 493.5,427.0 288.6,631.9 -10.0,532.4" fill="#5FC8FF" fill-opacity="0.13" stroke="#5FC8FF" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="6 5"/>
+<polygon points="632.7,473.4 908.2,565.3 801.4,672.1 525.9,580.3" fill="#8FD8FF" fill-opacity="0.13" stroke="#8FD8FF" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="6 5"/>
+<polygon points="1017.1,601.6 1251.1,679.6 1060.2,870.5 826.2,792.5" fill="#9FB4FF" fill-opacity="0.13" stroke="#9FB4FF" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="6 5"/>
+<polygon points="-304.0,523.5 110.0,661.5 -84.1,855.5 -498.1,717.5" fill="#B7F09A" fill-opacity="0.13" stroke="#B7F09A" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="6 5"/>
+<polygon points="-583.1,362.2 1065.3,911.6 1022.0,954.9 -626.5,405.5" fill="#5FC8FF" fill-opacity="0.11" stroke="#5FC8FF" stroke-opacity="0.4" stroke-width="1"/>
+<polygon points="-72.2,203.2 -8.8,224.4 -283.6,499.2 -347.1,478.1" fill="#5FC8FF" fill-opacity="0.11" stroke="#5FC8FF" stroke-opacity="0.4" stroke-width="1"/>
+<line x1="-604.8" y1="383.8" x2="1043.6" y2="933.3" stroke="#5FC8FF" stroke-opacity="0.85" stroke-width="1.4" stroke-dasharray="3 7" stroke-linecap="round"/>
+<line x1="-40.5" y1="213.8" x2="-315.3" y2="488.6" stroke="#5FC8FF" stroke-opacity="0.85" stroke-width="1.4" stroke-dasharray="3 7" stroke-linecap="round"/>
+<text x="884.9" y="870.4" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10.5" font-weight="500" text-anchor="middle" letter-spacing="0.02em" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">주통로 (MAIN AISLE) →</text><text x="884.9" y="870.4" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10.5" font-weight="500" text-anchor="middle" letter-spacing="0.02em" fill="#5E86B8">주통로 (MAIN AISLE) →</text><g transform="translate(-178.3,334.6) rotate(-90)"><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" letter-spacing="0.02em" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">교차통로</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" letter-spacing="0.02em" fill="#5E86B8">교차통로</text></g>
+<g transform="translate(-462.8,442.8)"><circle r="3" fill="#5E86B8"/><text x="8.0" y="4.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10.5" font-weight="500" text-anchor="start" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">입구 · ENTRY HALL</text><text x="8.0" y="4.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10.5" font-weight="500" text-anchor="start" fill="#5E86B8">입구 · ENTRY HALL</text></g>
+<g>
+<polygon points="-424.3,289.9 -258.4,345.2 -258.4,327.0 -424.3,271.7" fill="#374B70" fill-opacity="0.16" stroke="#556E9C" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="-156.4,243.2 -258.4,345.2 -258.4,327.0 -156.4,224.9" fill="#556E9C" fill-opacity="0.20" stroke="#7E97C6" stroke-opacity="0.8" stroke-width="1"/>
+<polygon points="-322.3,169.6 -156.4,224.9 -258.4,327.0 -424.3,271.7" fill="#7E97C6" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="-322.3" cy="169.6" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-156.4" cy="224.9" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-258.4" cy="327.0" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-424.3" cy="271.7" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="-290.4" y="248.3" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">입고처리장</text><text x="-290.4" y="248.3" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">입고처리장</text></g>
+<g>
+<polygon points="-505.6,371.6 -377.9,414.2 -377.9,401.7 -505.6,359.1" fill="#374B70" fill-opacity="0.16" stroke="#556E9C" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="-304.2,340.5 -377.9,414.2 -377.9,401.7 -304.2,328.0" fill="#556E9C" fill-opacity="0.20" stroke="#7E97C6" stroke-opacity="0.8" stroke-width="1"/>
+<polygon points="-431.9,285.4 -304.2,328.0 -377.9,401.7 -505.6,359.1" fill="#7E97C6" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="-431.9" cy="285.4" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-304.2" cy="328.0" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-377.9" cy="401.7" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-505.6" cy="359.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="-404.9" y="343.6" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">반품처리장</text><text x="-404.9" y="343.6" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">반품처리장</text></g>
+<g>
+<polygon points="-118.8,397.9 -82.7,409.9 -82.7,359.8 -118.8,347.8" fill="#2C8078" fill-opacity="0.16" stroke="#4FBAAE" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="1.8,325.4 -82.7,409.9 -82.7,359.8 1.8,275.3" fill="#4FBAAE" fill-opacity="0.20" stroke="#79F0E0" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="1.8" y1="307.3" x2="-82.7" y2="391.9" stroke="#79F0E0" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="1.8" y1="291.3" x2="-82.7" y2="375.8" stroke="#79F0E0" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-118.8" y1="379.8" x2="-82.7" y2="391.9" stroke="#4FBAAE" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-118.8" y1="363.8" x2="-82.7" y2="375.8" stroke="#4FBAAE" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="-34.2,263.3 1.8,275.3 -82.7,359.8 -118.8,347.8" fill="#79F0E0" fill-opacity="0.24" stroke="#FF7A6B" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="-34.2" cy="263.3" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="1.8" cy="275.3" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="-82.7" cy="359.8" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="-118.8" cy="347.8" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<text x="-58.5" y="311.6" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">D-01</text><text x="-58.5" y="311.6" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">D-01</text></g>
+<g>
+<polygon points="-68.3,414.7 -32.2,426.7 -32.2,398.1 -68.3,386.1" fill="#2C8078" fill-opacity="0.16" stroke="#4FBAAE" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="52.3,342.2 -32.2,426.7 -32.2,398.1 52.3,313.6" fill="#4FBAAE" fill-opacity="0.20" stroke="#79F0E0" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="52.3" y1="331.9" x2="-32.2" y2="416.4" stroke="#79F0E0" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="52.3" y1="322.7" x2="-32.2" y2="407.3" stroke="#79F0E0" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-68.3" y1="404.4" x2="-32.2" y2="416.4" stroke="#4FBAAE" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-68.3" y1="395.2" x2="-32.2" y2="407.3" stroke="#4FBAAE" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="16.2,301.6 52.3,313.6 -32.2,398.1 -68.3,386.1" fill="#79F0E0" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="16.2" cy="301.6" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="52.3" cy="313.6" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-32.2" cy="398.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-68.3" cy="386.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="-8.0" y="349.8" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">D-02</text><text x="-8.0" y="349.8" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">D-02</text></g>
+<g>
+<polygon points="183.9,378.8 422.0,458.2 422.0,410.1 183.9,330.7" fill="#245F86" fill-opacity="0.16" stroke="#3E93C4" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="445.7,434.4 422.0,458.2 422.0,410.1 445.7,386.3" fill="#3E93C4" fill-opacity="0.20" stroke="#5FC8FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="445.7" y1="417.1" x2="422.0" y2="440.9" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="445.7" y1="401.7" x2="422.0" y2="425.5" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="183.9" y1="361.5" x2="422.0" y2="440.9" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="183.9" y1="346.1" x2="422.0" y2="425.5" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="207.7,307.0 445.7,386.3 422.0,410.1 183.9,330.7" fill="#5FC8FF" fill-opacity="0.24" stroke="#FFC15C" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="207.7" cy="307.0" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="445.7" cy="386.3" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="422.0" cy="410.1" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="183.9" cy="330.7" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<text x="314.8" y="358.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">A-01</text><text x="314.8" y="358.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">A-01</text></g>
+<g>
+<polygon points="200.8,448.6 373.9,506.3 373.9,454.3 200.8,396.6" fill="#245F86" fill-opacity="0.16" stroke="#3E93C4" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="398.0,482.1 373.9,506.3 373.9,454.3 398.0,430.1" fill="#3E93C4" fill-opacity="0.20" stroke="#5FC8FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="398.0" y1="463.4" x2="373.9" y2="487.6" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="398.0" y1="446.8" x2="373.9" y2="470.9" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="200.8" y1="429.9" x2="373.9" y2="487.6" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="200.8" y1="413.2" x2="373.9" y2="470.9" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="224.9,372.4 398.0,430.1 373.9,454.3 200.8,396.6" fill="#5FC8FF" fill-opacity="0.24" stroke="#FF7A6B" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="224.9" cy="372.4" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="398.0" cy="430.1" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="373.9" cy="454.3" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="200.8" cy="396.6" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<text x="299.4" y="413.3" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">A-03</text><text x="299.4" y="413.3" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">A-03</text></g>
+<g>
+<polygon points="38.1,525.1 63.4,533.5 63.4,504.9 38.1,496.5" fill="#245F86" fill-opacity="0.16" stroke="#3E93C4" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="184.6,412.4 63.4,533.5 63.4,504.9 184.6,383.8" fill="#3E93C4" fill-opacity="0.20" stroke="#5FC8FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="184.6" y1="402.1" x2="63.4" y2="523.2" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="184.6" y1="392.9" x2="63.4" y2="514.1" stroke="#5FC8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="38.1" y1="514.8" x2="63.4" y2="523.2" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="38.1" y1="505.7" x2="63.4" y2="514.1" stroke="#3E93C4" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="159.3,375.3 184.6,383.8 63.4,504.9 38.1,496.5" fill="#5FC8FF" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="159.3" cy="375.3" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="184.6" cy="383.8" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="63.4" cy="504.9" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="38.1" cy="496.5" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="111.3" y="440.1" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">A-02</text><text x="111.3" y="440.1" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">A-02</text></g>
+<g>
+<polygon points="621.7,524.8 836.7,596.4 836.7,571.7 621.7,500.1" fill="#356E96" fill-opacity="0.16" stroke="#5FA6D6" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="860.4,572.7 836.7,596.4 836.7,571.7 860.4,548.0" fill="#5FA6D6" fill-opacity="0.20" stroke="#8FD8FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="860.4" y1="560.3" x2="836.7" y2="584.1" stroke="#8FD8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="621.7" y1="512.4" x2="836.7" y2="584.1" stroke="#5FA6D6" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="645.5,476.3 860.4,548.0 836.7,571.7 621.7,500.1" fill="#8FD8FF" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="645.5" cy="476.3" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="860.4" cy="548.0" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="836.7" cy="571.7" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="621.7" cy="500.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="741.1" y="524.0" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">B-01</text><text x="741.1" y="524.0" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">B-01</text></g>
+<g>
+<polygon points="573.6,572.9 788.6,644.5 788.6,594.5 573.6,522.8" fill="#356E96" fill-opacity="0.16" stroke="#5FA6D6" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="812.7,620.4 788.6,644.5 788.6,594.5 812.7,570.3" fill="#5FA6D6" fill-opacity="0.20" stroke="#8FD8FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="812.7" y1="602.3" x2="788.6" y2="626.5" stroke="#8FD8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="812.7" y1="586.3" x2="788.6" y2="610.5" stroke="#8FD8FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="573.6" y1="554.8" x2="788.6" y2="626.5" stroke="#5FA6D6" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="573.6" y1="538.8" x2="788.6" y2="610.5" stroke="#5FA6D6" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="597.8,498.7 812.7,570.3 788.6,594.5 573.6,522.8" fill="#8FD8FF" fill-opacity="0.24" stroke="#FF7A6B" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="597.8" cy="498.7" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="812.7" cy="570.3" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="788.6" cy="594.5" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="573.6" cy="522.8" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<text x="693.2" y="546.6" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">B-02</text><text x="693.2" y="546.6" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">B-02</text></g>
+<g>
+<polygon points="-316.2,576.1 37.2,693.9 37.2,648.9 -316.2,531.1" fill="#548340" fill-opacity="0.16" stroke="#82BE68" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="62.2,668.9 37.2,693.9 37.2,648.9 62.2,623.9" fill="#82BE68" fill-opacity="0.20" stroke="#B7F09A" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="62.2" y1="652.7" x2="37.2" y2="677.7" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="62.2" y1="638.3" x2="37.2" y2="663.3" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-316.2" y1="559.9" x2="37.2" y2="677.7" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-316.2" y1="545.5" x2="37.2" y2="663.3" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="-291.2,506.1 62.2,623.9 37.2,648.9 -316.2,531.1" fill="#B7F09A" fill-opacity="0.24" stroke="#FFC15C" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="-291.2" cy="506.1" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="62.2" cy="623.9" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="37.2" cy="648.9" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="-316.2" cy="531.1" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<text x="-127.0" y="577.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">E-01</text><text x="-127.0" y="577.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">E-01</text></g>
+<g>
+<polygon points="-360.8,620.6 -7.4,738.4 -7.4,713.7 -360.8,595.9" fill="#548340" fill-opacity="0.16" stroke="#82BE68" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="17.6,713.4 -7.4,738.4 -7.4,713.7 17.6,688.7" fill="#82BE68" fill-opacity="0.20" stroke="#B7F09A" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="17.6" y1="701.1" x2="-7.4" y2="726.1" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-360.8" y1="608.3" x2="-7.4" y2="726.1" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="-335.8,570.9 17.6,688.7 -7.4,713.7 -360.8,595.9" fill="#B7F09A" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="-335.8" cy="570.9" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="17.6" cy="688.7" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-7.4" cy="713.7" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-360.8" cy="595.9" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="-171.6" y="642.3" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">E-02</text><text x="-171.6" y="642.3" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">E-02</text></g>
+<g>
+<polygon points="1006.2,652.9 1179.3,710.6 1179.3,688.3 1006.2,630.6" fill="#42539A" fill-opacity="0.16" stroke="#6D82CC" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="1203.0,686.9 1179.3,710.6 1179.3,688.3 1203.0,664.5" fill="#6D82CC" fill-opacity="0.20" stroke="#9FB4FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="1203.0" y1="675.7" x2="1179.3" y2="699.4" stroke="#9FB4FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="1006.2" y1="641.7" x2="1179.3" y2="699.4" stroke="#6D82CC" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="1029.9,606.8 1203.0,664.5 1179.3,688.3 1006.2,630.6" fill="#9FB4FF" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="1029.9" cy="606.8" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="1203.0" cy="664.5" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="1179.3" cy="688.3" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="1006.2" cy="630.6" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="1104.6" y="647.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">C-01</text><text x="1104.6" y="647.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">C-01</text></g>
+<g>
+<polygon points="-406.2,666.0 -52.7,783.8 -52.7,731.8 -406.2,614.0" fill="#548340" fill-opacity="0.16" stroke="#82BE68" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="-27.8,758.8 -52.7,783.8 -52.7,731.8 -27.8,706.8" fill="#82BE68" fill-opacity="0.20" stroke="#B7F09A" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="-27.8" y1="740.1" x2="-52.7" y2="765.1" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-27.8" y1="723.5" x2="-52.7" y2="748.5" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-406.2" y1="647.3" x2="-52.7" y2="765.1" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-406.2" y1="630.7" x2="-52.7" y2="748.5" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="-381.2,589.0 -27.8,706.8 -52.7,731.8 -406.2,614.0" fill="#B7F09A" fill-opacity="0.24" stroke="#FF7A6B" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="-381.2" cy="589.0" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="-27.8" cy="706.8" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="-52.7" cy="731.8" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<circle cx="-406.2" cy="614.0" r="1.6" fill="#FF7A6B" opacity="0.9"/>
+<text x="-217.0" y="660.4" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">E-03</text><text x="-217.0" y="660.4" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">E-03</text></g>
+<g>
+<polygon points="-450.3,710.2 -96.9,828.0 -96.9,809.1 -450.3,691.3" fill="#548340" fill-opacity="0.16" stroke="#82BE68" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="-71.9,803.0 -96.9,828.0 -96.9,809.1 -71.9,784.1" fill="#82BE68" fill-opacity="0.20" stroke="#B7F09A" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="-71.9" y1="793.5" x2="-96.9" y2="818.5" stroke="#B7F09A" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="-450.3" y1="700.7" x2="-96.9" y2="818.5" stroke="#82BE68" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="-425.3,666.3 -71.9,784.1 -96.9,809.1 -450.3,691.3" fill="#B7F09A" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="-425.3" cy="666.3" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-71.9" cy="784.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-96.9" cy="809.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="-450.3" cy="691.3" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="-261.1" y="737.7" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">E-04</text><text x="-261.1" y="737.7" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">E-04</text></g>
+<g>
+<polygon points="1007.7,829.7 1047.4,842.9 1047.4,794.8 1007.7,781.6" fill="#42539A" fill-opacity="0.16" stroke="#6D82CC" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="1154.8,735.5 1047.4,842.9 1047.4,794.8 1154.8,687.4" fill="#6D82CC" fill-opacity="0.20" stroke="#9FB4FF" stroke-opacity="0.8" stroke-width="1"/>
+<line x1="1154.8" y1="718.2" x2="1047.4" y2="825.6" stroke="#9FB4FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="1154.8" y1="702.8" x2="1047.4" y2="810.2" stroke="#9FB4FF" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="1007.7" y1="812.4" x2="1047.4" y2="825.6" stroke="#6D82CC" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="1007.7" y1="797.0" x2="1047.4" y2="810.2" stroke="#6D82CC" stroke-opacity="0.5" stroke-width="0.75"/>
+<polygon points="1115.2,674.2 1154.8,687.4 1047.4,794.8 1007.7,781.6" fill="#9FB4FF" fill-opacity="0.24" stroke="#FFC15C" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="1115.2" cy="674.2" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="1154.8" cy="687.4" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="1047.4" cy="794.8" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="1007.7" cy="781.6" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<text x="1081.3" y="734.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">C-02</text><text x="1081.3" y="734.5" dy="0.32em" font-family="'IBM Plex Mono','Roboto Mono',monospace" font-size="12.5" font-weight="600" text-anchor="middle" fill="#DCEBFF">C-02</text></g>
+<g>
+<polygon points="24.3,832.3 179.4,884.0 179.4,871.6 24.3,819.9" fill="#374B70" fill-opacity="0.16" stroke="#556E9C" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="275.1,788.2 179.4,884.0 179.4,871.6 275.1,775.8" fill="#556E9C" fill-opacity="0.20" stroke="#7E97C6" stroke-opacity="0.8" stroke-width="1"/>
+<polygon points="120.1,724.1 275.1,775.8 179.4,871.6 24.3,819.9" fill="#7E97C6" fill-opacity="0.24" stroke="#5FE3B0" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="120.1" cy="724.1" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="275.1" cy="775.8" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="179.4" cy="871.6" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<circle cx="24.3" cy="819.9" r="1.6" fill="#5FE3B0" opacity="0.9"/>
+<text x="149.7" y="797.9" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">출고장</text><text x="149.7" y="797.9" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">출고장</text></g>
+<g>
+<polygon points="272.9,915.4 376.1,949.8 376.1,921.9 272.9,887.5" fill="#374B70" fill-opacity="0.16" stroke="#556E9C" stroke-opacity="0.75" stroke-width="1"/>
+<polygon points="437.3,888.6 376.1,949.8 376.1,921.9 437.3,860.7" fill="#556E9C" fill-opacity="0.20" stroke="#7E97C6" stroke-opacity="0.8" stroke-width="1"/>
+<polygon points="334.1,826.3 437.3,860.7 376.1,921.9 272.9,887.5" fill="#7E97C6" fill-opacity="0.24" stroke="#FFC15C" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="334.1" cy="826.3" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="437.3" cy="860.7" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="376.1" cy="921.9" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<circle cx="272.9" cy="887.5" r="1.6" fill="#FFC15C" opacity="0.9"/>
+<text x="355.1" y="874.1" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">폐기처리장</text><text x="355.1" y="874.1" dy="0.32em" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="11.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">폐기처리장</text></g>
+<g transform="translate(35.7,301.1)"><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">D · 유제품 Zone</text><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">D · 유제품 Zone</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">2개 · 총 80</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="#5E86B8">2개 · 총 80</text></g>
+<g transform="translate(353.3,368.1)"><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">A · 원두 Zone</text><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">A · 원두 Zone</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">3개 · 총 180</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="#5E86B8">3개 · 총 180</text></g>
+<g transform="translate(779.6,510.2)"><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">B · 시럽 Zone</text><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">B · 시럽 Zone</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">2개 · 총 120</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="#5E86B8">2개 · 총 120</text></g>
+<g transform="translate(1143.3,631.4)"><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">C · 분말/파우더 Zone</text><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">C · 분말/파우더 Zone</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">2개 · 총 100</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="#5E86B8">2개 · 총 100</text></g>
+<g transform="translate(-87.9,583.3)"><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">E · 컵/소모품 Zone</text><text x="0.0" y="-13.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#DCEBFF">E · 컵/소모품 Zone</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="none" stroke="#050B1A" stroke-width="4" stroke-linejoin="round" paint-order="stroke">4개 · 총 370</text><text x="0.0" y="0.0" font-family="'IBM Plex Sans KR','Noto Sans KR',sans-serif" font-size="10" font-weight="500" text-anchor="middle" fill="#5E86B8">4개 · 총 370</text></g>
+</svg>
