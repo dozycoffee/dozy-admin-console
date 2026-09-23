@@ -5,7 +5,8 @@
 문서 체계(AGENT.md/CLAUDE.md/docs/ADR), `httpClient` 공통 에러 처리
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
-`zod-response-validation`에 이어 `auth-login-ui-mock-backend`까지 완료했다. 남은 상태:
+`zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`까지
+완료했다. 남은 상태:
 
 - **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
   띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
@@ -21,9 +22,14 @@
   인증(JWT/JWKS 등 실제 연동)은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮아, 해당 서비스가
   준비되기 전까지 `auth-real-login`(mock 어댑터 교체)/`users-permission-management-page`는
   착수하지 않는다 (`feature_list.json` 참고)
-- Catalog는 여전히 정적 목업. **의도적 보류** — CatalogPage가 가리키는 완제품(아메리카노 등) 상품
-  마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른 별도 catalog MSA에서 처리될 예정이며
-  아직 미구현이라 연동할 API가 없다
+- Catalog 화면은 완전히 제거했다. **`catalog-crud`도 그에 따라 목록에서 제거** — CatalogPage가
+  가리키던 완제품(아메리카노 등) 상품 마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른
+  별도 catalog MSA에서 처리될 예정이며 아직 미구현 상태라, 연동할 API가 없는 미완성 화면을 계속
+  띄워두는 대신 지우고 나중에 API가 준비되면 화면부터 새로 만들기로 했다. `permissions.ts`의
+  `catalogRead`/`catalogWrite`, `AppLayout`의 "상품 관리" 메뉴, `product` 모델
+  (`productSchemas`/`useActiveProducts`)도 함께 제거. 같은 맥락에서 대응 화면이 없던
+  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(실제 화면은 `users-permission-management-page`
+  착수 시 다시 추가 필요)
 - Inventory/Dashboard는 dozy-wms-api 실 API(zone-summary/warehouses/products)로 연동 완료.
   `AccessScope.warehouseIds`를 `string[]`(슬러그) → `number[]`(dozy-wms-api Long id)로 변경했고,
   mock 값은 로컬 dev DB에 실제 등록한 창고 id를 가리킨다 — 다른 개발 DB에서는 이 값을 맞춰야 함
@@ -46,6 +52,20 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (Catalog 기능 제거)
+
+- 이슈(remove-catalog-feature) 생성, `chore/remove-catalog-feature` 브랜치에서 작업
+- `CatalogPage.tsx`, `features/product`(productSchemas/useActiveProducts, 실 API가 아직 없어
+  단 한 번도 실제로 연동된 적 없는 모델) 삭제
+- `permissions.ts`에서 `catalogRead`/`catalogWrite`/`usersManage` 제거 — 대응 화면이 없거나
+  (usersManage) API가 없는(catalog) permission을 남겨두지 않기로 함
+- `AppRouter.tsx`에서 `/catalog` 라우트, `AppLayout.tsx`에서 "상품 관리"·"사용자·권한" 메뉴 제거
+- `mocks/handlers.ts`의 데모 계정(`mockUser`) permissions 목록에서도 `catalogRead` 제거
+- 관련 테스트(`authSchemas.test.ts`, `PermissionGate.test.tsx`, `RequirePermission.test.tsx`)를
+  남아있는 `inventory.read`/`inventory.write` permission 기준으로 갱신
+- `feature_list.json`: `catalog-crud`(보류 중이던 항목) 제거, `remove-catalog-feature` 추가 후
+  `completed`로 전환. `users-permission-management-page` 설명에 메뉴가 없어졌다는 점 반영
 
 ### 2026-09-19 (로그인 UI/세션 아키텍처 — MSW mock 백엔드)
 

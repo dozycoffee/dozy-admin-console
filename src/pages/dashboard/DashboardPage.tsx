@@ -1,6 +1,5 @@
 import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { useZoneInventorySummary } from '../../features/inventory/model/useZoneInventorySummary'
-import { useActiveProducts } from '../../features/product/model/useActiveProducts'
 import { useWarehouses } from '../../features/warehouse/model/useWarehouses'
 
 function averageUsageRate(usageRates: number[]) {
@@ -11,7 +10,6 @@ function averageUsageRate(usageRates: number[]) {
 export function DashboardPage() {
   const user = useCurrentUser()
   const warehouseIds = user.scope.warehouseIds
-  const activeProductsQuery = useActiveProducts()
   const warehousesQuery = useWarehouses(warehouseIds)
   const zoneSummaryQuery = useZoneInventorySummary(warehouseIds)
 
@@ -29,11 +27,6 @@ export function DashboardPage() {
       </header>
       <section className="stat-grid">
         <article>
-          <span>운영 상품</span>
-          <strong>{activeProductsQuery.isSuccess ? activeProductsQuery.data.length : '-'}</strong>
-          <small>{activeProductsQuery.isError ? '조회 실패' : '활성 상품 수'}</small>
-        </article>
-        <article>
           <span>정상 가동 창고</span>
           <strong>
             {warehousesQuery.isLoading ? '-' : `${availableWarehouseCount} / ${warehouseIds.length}`}
@@ -48,7 +41,7 @@ export function DashboardPage() {
       </section>
       <section className="panel">
         <h2>프로젝트 기본 구조</h2>
-        <p>카탈로그와 재고 도메인을 하나의 콘솔 안에서 권한 기반으로 연결합니다.</p>
+        <p>창고 재고 도메인을 권한 기반으로 관리하는 콘솔입니다.</p>
       </section>
     </>
   )

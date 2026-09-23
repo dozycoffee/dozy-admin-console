@@ -15,7 +15,6 @@ export default defineConfig({
         'src/main.tsx',
         'src/App.tsx',
         'src/app/**',
-        'src/pages/catalog/**',
         'src/pages/access-denied/**',
         'src/mocks/**',
         'src/**/*.test.{ts,tsx}',

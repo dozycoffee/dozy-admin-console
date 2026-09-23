@@ -15,7 +15,7 @@ const stubUser: AuthContextValue['user'] = {
 function renderGate(can: AuthContextValue['can'], fallback?: ReactNode) {
   return render(
     <AuthContext.Provider value={{ user: stubUser, isLoading: false, can, login: vi.fn(), logout: vi.fn() }}>
-      <PermissionGate permission={permissions.catalogWrite} fallback={fallback}>
+      <PermissionGate permission={permissions.inventoryWrite} fallback={fallback}>
         <div>gated content</div>
       </PermissionGate>
     </AuthContext.Provider>,
