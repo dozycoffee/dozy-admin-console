@@ -7,7 +7,15 @@
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
 `zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
 `generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`,
-`inventory-location-table-alignment`까지 완료했다. 남은 상태:
+`inventory-location-table-alignment`, `warehouse-capacity-md-zone-mock`까지 완료했다. 남은 상태:
+
+- **새 F Zone(MD 상품)은 아직 프런트 mock 레이어에만 존재한다.** `inventorySchemas`의
+  `zoneCodeSchema`/`zoneCodeLabels`는 F를 인식하지만, 실제 dozy-wms-api
+  `/api/inventories/zone-summary`는 여전히 A~E(합계 850)만 반환한다 — `InventoryPage`의 "Zone별
+  요약" 카드(실 API 연동)는 F를 보여주지 않고, Dashboard/평면도/Location별 재고(전부 mock)만
+  F Zone·확대된 총 용량(5,000)을 보여준다. 실제로 F Zone을 운영하려면 dozy-wms-api DB에 Zone(F)
+  생성 + API 응답 반영이 먼저 필요함 — 사용자가 이미 이 결정을 알고 "프런트 mock만 우선 갱신"으로
+  범위를 좁힌 상태라 지금 당장 막힌 건 아님
 
 - 창고 평면도(`WarehouseFloorPlan.tsx`)와 Dashboard의 Zone별 재고 현황 카드는 아직 전용 mock
   데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
@@ -57,6 +65,78 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (창고 총 용량 확대 + MD 상품 F Zone 신설 — 프런트 mock)
+
+- 사용자가 창고 랙 배치 평면도 참고 이미지(TOTAL CAPACITY 5,000 · ZONE 6 · 작업구역 4, F Zone: MD
+  상품 신설)를 주고 반영을 요청. 착수 전 이미지 숫자를 전부 분석해 자체 정합성(Zone 합계
+  4,320 + 작업구역 680 = 5,000, Location 합계 15) 확인 후 계획을 먼저 세우고 사용자 확인을 받음
+- 착수 전 확인한 핵심 사실: 이 레포의 창고 데이터는 두 층으로 나뉨 — (1) `useZoneInventorySummary`가
+  부르는 실 API(zone-summary, 현재 A~E/850)와 (2) 아직 백엔드 미연동 상태인 프런트 전용
+  mock(`warehouseMockData.ts`, `WarehouseFloorPlan.tsx`의 `hotspots`, `InventoryPage.tsx`의
+  `mockLocations`). 사용자에게 확인받아 이번 작업은 (2)만 갱신하기로 결정 — 실 API에 F Zone을
+  반영하려면 dozy-wms-api에 Zone 신설이 먼저 필요해 별도 후속 논의로 미룸
+- 비주얼도 확인 — 참고 이미지는 밝은 배경의 2D 평면도 스타일인데, 현재 앱의 `WarehouseFloorPlan.tsx`는
+  어두운 네이비 배경의 아이소메트릭 3D 뷰. 사용자 확인 결과 스타일 교체 없이 숫자/구조만
+  반영하기로 결정
+- `inventorySchemas.ts`: `zoneCodeSchema`/`zoneCodeLabels`에 `F: 'MD 상품'` 추가
+- `warehouseMockData.ts`: A~E maxCapacity를 이미지 수치(820/550/460/360/1710)로 확대, F Zone(420)
+  신규 추가. usedCapacity는 기존 사용률(A 71%, C 91% 등)을 새 capacity에 비례 적용해 재산정 —
+  `DashboardPage`의 하드코딩된 "C Zone 사용률 91%" 알림 문구, `DashboardPage.test.tsx`의 "71%"
+  단언이 우연이 아니라 의도적으로 그대로 통과하도록 비율을 맞춤(잔여 칸 수 문구는 41칸으로 수정)
+- `WarehouseFloorPlan.tsx`: `hotspots`에 F-01(230)/F-02(190) 추가 + 기존 A~E 랙 capacity를 이미지의
+  랙별 수치(A-01 320 등)로 확대, `zoneNames`/`boxColors`/`layoutById`/`zonePatches`에 F 반영. F-01/F-02
+  아이소메트릭 좌표는 기존 격자에서 겹치는 구간이 없는지 node 스크립트로 bounding box 계산해 검증
+  (좌표계산 방식은 기존 폐기처리장 hotspot 좌표를 `iso()` 공식으로 역산해 검증한 방식을 그대로 적용).
+  상단 통계 "총 Capacity/전체 가동률/냉장 가동률"이 하드코딩값이라 이번에 용량을 바꾸면 바로 깨질
+  상황이었음 — `items` 기반 동적 계산으로 같이 고침
+- `InventoryPage.tsx`: 기존 A~E `mockLocations`/상품 수량을 새 capacity에 맞춰 스케일(약 4.5~4.8배,
+  이미지 자체가 기존 대비 일괄 스케일업된 수치라 확인됨), F-01/F-02 신규 Location과 MD 상품 mock
+  품목(드립백 선물세트/머그컵/텀블러/에코백) 추가. `workAreas`도 이미지 수치(입고230/출고240/
+  반품130/폐기80)로 갱신
+- `index.css`: `.zone-pill.zone-f` 색상 규칙 추가
+- 브라우저 도구가 이 세션에 없어 시각적 확인은 못 함 — 대신 zone/work area 용량 합계가 정확히
+  5,000이 되는지, iso 좌표가 기존 랙과 겹치지 않는지를 node 스크립트로 별도 검증. `npm run
+  build`/`npm run lint`/`vitest run`(47개) 전체 통과 확인. 사용자에게 dev 서버로 육안 확인 요청함
+  (특히 F-01/F-02 아이소메트릭 박스 위치)
+- **위 검증에서 놓친 버그를 사용자가 스크린샷으로 발견**: `WarehouseFloorPlan.tsx`의 `layoutFor`가
+  E Zone 박스 너비를 `4.9 * (capacity / 100)`로 계산하고 있었는데, 이건 기존 E 랙 capacity가
+  80~100대였을 때 "100을 만빵 기준"으로 잡은 하드코딩이었다. 이번에 E capacity를 360~480으로
+  올리면서 이 나눗셈 기준을 안 바꿔 너비가 17~23(원래 의도 3.7~4.9)까지 부풀어 올라 E Zone 박스와
+  점선 경계가 메인 통로를 가로질러 F Zone까지 뒤덮는 렌더링 버그로 나타남. bounding box 겹침만
+  스크립트로 검증하고 이 스케일 공식 자체는 안 봤던 게 원인 — 좌표 겹침 여부만으로는 이런 "면적이
+  잘못된 배율로 커지는" 버그는 못 잡는다는 교훈. 1차로는 `100`을 `hotspots`의 E Zone capacity
+  최댓값으로 나누도록 고쳤다가, 곧이어 사용자가 E Zone 배치 자체를 바꿔달라고 해서 최종적으로는
+  아래 항목에서 이 특례 로직을 통째로 제거함
+- **후속 요청**: E Zone의 Location 배치를 일렬 스택("ㅣ" 모양, E-01~04가 같은 col에서 row만
+  증가) 대신 "ㅁ"(사각 링) 모양으로 재배치해달라는 요청. 가장 용량이 작은 E-04를 주 통로에 면한
+  입구 쪽(윗변)에, 가장 큰 E-01을 안쪽(아랫변)에, E-02/E-03을 좌우 변에 배치해 가운데가 빈
+  사각형 구조로 만듦 — `layoutById`의 E-01~04 좌표를 고정값으로 재정의. 이 참에 E Zone 전용
+  특례였던 "capacity에 비례해 폭을 늘리는" `layoutFor` 로직(바로 위 렌더링 버그의 근본 원인)을
+  완전히 제거하고 다른 Zone처럼 고정 좌표만 쓰도록 단순화 — 같은 종류의 버그가 재발할 여지 자체를
+  없앰. 네 변의 bounding box가 서로 안 겹치는지(경계가 딱 맞닿는 코너는 부동소수점 오차로 오탐이
+  나서 0.05 정도 여유를 둠), 다른 Zone(D/A/B/C/F)·출고장·폐기처리장과도 안 겹치는지 node
+  스크립트로 검증 완료. hotspot의 2D 오버레이 % 좌표도 `iso()` 공식으로 새 위치를 역산해 갱신
+- **추가 요청 1**: E Zone 배치를 일렬 스택 대신 "ㅁ"(사각 링) 모양으로 재배치. 가장 작은 E-04를
+  주 통로 쪽 윗변(입구처럼), 가장 큰 E-01을 안쪽 아랫변에, E-02/E-03을 좌우 변에 배치. 이후
+  피드백을 받아 가로세로 비율을 더 정사각형에 가깝게 좁히고, 네 변 사이 간격을 명확히 벌리고,
+  E-04 길이를 줄여 가운데로 들어가는 입구처럼 보이게, 마지막으로 E-04를 E-02 쪽으로 살짝
+  치우치게 반복 조정 — 매번 node 스크립트로 bounding box 겹침 여부를 검증
+- **추가 요청 2**: 사용률을 박스 테두리 색(정상/주의/포화임박)으로 표현하던 방식을 버리고, 물컵에
+  물이 차는 방식(용기 자체 높이는 capacity 비례, 그 안을 채우는 물 높이는 used/capacity 비율)으로
+  바꿈. 사전에 트레이드오프(컵 높이를 전부 동일하게 할지 capacity 비례로 할지)를 사용자에게
+  확인받고 "capacity 비례" 쪽으로 결정. `heightFor`(usage 비율 기반 단일 높이)를
+  `containerHeightFor`(capacity를 그룹별 min/max로 스케일)와 `fillHeightFor`(컨테이너 높이 ×
+  usage 비율)로 분리하고, 박스 하나당 컵(반투명 테두리, capacity 높이)과 물(불투명 파란색,
+  fill 높이) 두 겹을 각각 `boxFaces` 헬퍼로 그리도록 `DynamicWarehouseSvg`를 재작성. 상태 기반
+  테두리 색(`statusEdge`)은 완전히 제거 — `statusOf`/`statusLabel`은 툴팁·통계·hover 마커에는
+  계속 쓰이므로 그대로 둠. 그룹별(보관 Location vs 작업 구역) capacity min/max를 하드코딩하지
+  않고 `hotspots`에서 직접 계산하도록 해서, 지난 E Zone 폭 버그와 같은 종류의 재발을 원천 차단
+- **피드백**: 물(파란색) 표현이 안 예쁘고, 예전 초록/노랑/빨강 상태색이 더 직관적이었다는 피드백을
+  받음. 컵/물 이중 레이어 구조(용기 높이 = capacity, 물 높이 = 사용률)는 그대로 두고, 물의 색만
+  파란색 고정값에서 `statusOf` 기반 상태색(`statusWaterColor`: ok/warning/critical)으로 교체 —
+  "얼마나 큰 곳인지"(높이)와 "얼마나 위험한지"(색)를 동시에 보여주는 절충안으로 확정
+- `feature_list.json`에 `warehouse-capacity-md-zone-mock` 추가 후 바로 `completed`로 전환
 
 ### 2026-09-23 (재고 현황 Location 테이블 정렬 버그 수정)
 

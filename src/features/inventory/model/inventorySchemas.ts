@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const zoneCodeSchema = z.enum(['A', 'B', 'C', 'D', 'E'])
+export const zoneCodeSchema = z.enum(['A', 'B', 'C', 'D', 'E', 'F'])
 export type ZoneCode = z.infer<typeof zoneCodeSchema>
 
 export const zoneCodeLabels: Record<ZoneCode, string> = {
@@ -9,6 +9,7 @@ export const zoneCodeLabels: Record<ZoneCode, string> = {
   C: '분말/파우더',
   D: '유제품',
   E: '컵/소모품/포장재',
+  F: 'MD 상품',
 }
 
 export const qualityStatusSchema = z.enum(['NORMAL', 'DEFECTIVE', 'DISPOSAL_SCHEDULED'])

@@ -12,7 +12,7 @@ const pendingWork = [
 
 const alerts = [
   { title: '유통기한 임박 재고', detail: '원두 블렌드 외 4개 품목 · 7일 이내', tone: 'warning', to: '/quality?status=EXPIRING' },
-  { title: '용량 주의 Zone', detail: 'C Zone 사용률 91% · 잔여 9칸', tone: 'danger', to: '/inventory?zone=C' },
+  { title: '용량 주의 Zone', detail: 'C Zone 사용률 91% · 잔여 41칸', tone: 'danger', to: '/inventory?zone=C' },
   { title: '반품 검수 대기', detail: '오늘 도착한 반품 2건', tone: 'neutral', to: '/returns?status=WAITING' },
 ]
 
