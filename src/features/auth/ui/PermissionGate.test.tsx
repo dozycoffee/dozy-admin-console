@@ -8,13 +8,14 @@ import { PermissionGate } from './PermissionGate'
 const stubUser: AuthContextValue['user'] = {
   id: 'user-test',
   name: '테스트 사용자',
+  actorModes: [],
   permissions: [],
   scope: { warehouseIds: [] },
 }
 
 function renderGate(can: AuthContextValue['can'], fallback?: ReactNode) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, can, login: vi.fn(), logout: vi.fn() }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: null, can, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
       <PermissionGate permission={permissions.inventoryWrite} fallback={fallback}>
         <div>gated content</div>
       </PermissionGate>

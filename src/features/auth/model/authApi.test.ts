@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { httpClient } from '../../../shared/api/httpClient'
 import { fetchCurrentUser, loginRequest } from './authApi'
+import { actorModeIds } from './actorModes'
 
 describe('loginRequest', () => {
   it('username/password로 로그인 요청을 보내고 응답을 zod로 검증해 반환한다', async () => {
@@ -15,7 +16,7 @@ describe('loginRequest', () => {
 
 describe('fetchCurrentUser', () => {
   it('현재 사용자 정보를 조회하고 응답을 zod로 검증해 반환한다', async () => {
-    const user = { id: 'user-001', name: '김도윤', permissions: ['dashboard.read'], scope: { warehouseIds: [1] } }
+    const user = { id: 'user-001', name: '김도윤', actorModes: [actorModeIds.warehouseManager], permissions: ['dashboard.read'], scope: { warehouseIds: [1] } }
     const getSpy = vi.spyOn(httpClient, 'get').mockResolvedValue({ data: user })
 
     const result = await fetchCurrentUser()

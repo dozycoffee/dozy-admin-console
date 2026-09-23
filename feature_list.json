@@ -117,5 +117,26 @@
     "description": "WarehouseFloorPlan.tsx의 아이소메트릭 Location 박스(컵+물 이중 레이어)에 실제 랙처럼 보이도록 네 모서리에 수직 기둥을 추가한다. 기둥은 컵(용기)의 capacity 비례 높이만큼 올라가며, 박스 벽(반투명)보다 먼저 그려 은은하게 벽 뒤에 있는 것처럼 보이게 한다.",
     "status": "completed",
     "dependencies": ["warehouse-capacity-md-zone-mock"]
+  },
+  {
+    "id": "actor-mode-domain-session",
+    "name": "액터 모드 도메인 및 선택 세션 구현",
+    "description": "계정 관리자, MD, 창고 관리자, 본사 재고 담당자 액터 모드와 확장 가능한 메타데이터 레지스트리를 정의한다. 사용자 응답에 허용 모드를 추가하고 현재 선택한 모드를 탭 세션에 안전하게 저장·복원하며 서버의 최신 허용 목록과 일치하지 않는 선택은 제거한다.",
+    "status": "completed",
+    "dependencies": ["auth-login-ui-mock-backend"]
+  },
+  {
+    "id": "actor-mode-selector",
+    "name": "액터 모드 선택 화면과 잠금 상태 구현",
+    "description": "로그인 후 전체 액터 모드를 표시하는 선택 화면을 구현한다. 허용되지 않은 모드는 숨기지 않고 잠금 아이콘과 접근 불가 설명을 표시하며 선택을 차단한다.",
+    "status": "pending",
+    "dependencies": ["actor-mode-domain-session"]
+  },
+  {
+    "id": "actor-mode-routing-switch",
+    "name": "액터 모드 라우팅 가드 및 모드 전환 구현",
+    "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 콘솔 안에서 모드 선택 화면으로 돌아가 다른 허용 모드로 전환할 수 있게 한다.",
+    "status": "pending",
+    "dependencies": ["actor-mode-selector"]
   }
 ]

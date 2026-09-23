@@ -1,3 +1,5 @@
+import type { ActorModeId } from './actorModes'
+
 export const permissions = {
   dashboardRead: 'dashboard.read',
   inventoryRead: 'inventory.read',
@@ -9,6 +11,7 @@ export type AccessScope = { warehouseIds: number[] }
 export type CurrentUser = {
   id: string
   name: string
+  actorModes: ActorModeId[]
   permissions: Permission[]
   scope: AccessScope
 }

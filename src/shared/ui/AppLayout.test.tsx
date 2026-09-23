@@ -8,13 +8,14 @@ import { AppLayout } from './AppLayout'
 const stubUser: AuthContextValue['user'] = {
   id: 'user-test',
   name: '테스트 사용자',
+  actorModes: [],
   permissions: [],
   scope: { warehouseIds: [1, 2] },
 }
 
 function renderAppLayout(logout: () => void) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, can: () => true, login: vi.fn(), logout }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<AppLayout />}>
