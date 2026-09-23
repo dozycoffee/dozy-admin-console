@@ -4,23 +4,25 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../../features/auth/model/authContext'
 import { AppLayout } from './AppLayout'
+import { actorModeIds } from '../../features/auth/model/actorModes'
 
 const stubUser: AuthContextValue['user'] = {
   id: 'user-test',
   name: '테스트 사용자',
-  actorModes: [],
+  actorModes: [actorModeIds.warehouseManager],
   permissions: [],
   scope: { warehouseIds: [1, 2] },
 }
 
-function renderAppLayout(logout: () => void) {
+function renderAppLayout(logout: () => void, clearActorMode = vi.fn()) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.warehouseManager, can: () => true, selectActorMode: vi.fn(), clearActorMode, login: vi.fn(), logout }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<AppLayout />}>
             <Route index element={<div>page content</div>} />
           </Route>
+          <Route path="/select-mode" element={<div>mode selection</div>} />
         </Routes>
       </MemoryRouter>
     </AuthContext.Provider>,
@@ -45,6 +47,18 @@ describe('AppLayout', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(logout).not.toHaveBeenCalled()
+  })
+
+  it('현재 모드를 표시하고 모드 선택 화면으로 전환한다', async () => {
+    const clearActorMode = vi.fn()
+    const user = userEvent.setup()
+    renderAppLayout(vi.fn(), clearActorMode)
+
+    expect(screen.getByText('창고 관리')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /모드 전환/ }))
+
+    expect(clearActorMode).toHaveBeenCalled()
+    expect(screen.getByText('mode selection')).toBeInTheDocument()
   })
 
   it('확인 모달에서 로그아웃을 확정하면 logout을 호출한다', async () => {

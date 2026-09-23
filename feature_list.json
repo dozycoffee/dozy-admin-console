@@ -136,7 +136,7 @@
     "id": "actor-mode-routing-switch",
     "name": "액터 모드 라우팅 가드 및 모드 전환 구현",
     "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 콘솔 안에서 모드 선택 화면으로 돌아가 다른 허용 모드로 전환할 수 있게 한다.",
-    "status": "pending",
+    "status": "completed",
     "dependencies": ["actor-mode-selector"]
   }
 ]

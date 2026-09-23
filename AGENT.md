@@ -64,6 +64,8 @@ src/
 
 적용 컴포넌트:
 
+- `RequireActorMode` — 콘솔 진입 전 모드 선택 여부와 사용자 할당 여부를 검사하고, 특정 화면을 사용할
+  수 있는 모드 범위도 제한
 - `RequirePermission` — 페이지(라우트) 단위 접근 제한. 불허 시 `/access-denied`로 리다이렉트
 - `PermissionGate` — 버튼 등 화면 내 기능 단위 접근 제한. 불허 시 `fallback` 렌더링
 - `AccessDeniedPage` — 필요한 권한과 요청 경로 안내
