@@ -129,7 +129,7 @@
     "id": "actor-mode-selector",
     "name": "액터 모드 선택 화면과 잠금 상태 구현",
     "description": "로그인 후 전체 액터 모드를 표시하는 선택 화면을 구현한다. 허용되지 않은 모드는 숨기지 않고 잠금 아이콘과 접근 불가 설명을 표시하며 선택을 차단한다.",
-    "status": "pending",
+    "status": "completed",
     "dependencies": ["actor-mode-domain-session"]
   },
   {

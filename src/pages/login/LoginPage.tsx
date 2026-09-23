@@ -1,12 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate, type Location } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/model/useAuth'
-
-type LocationState = { from?: Location }
 
 export function LoginPage() {
   const { user, login } = useAuth()
-  const location = useLocation()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -14,8 +11,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (user) {
-    const redirectTo = (location.state as LocationState | null)?.from?.pathname ?? '/'
-    return <Navigate to={redirectTo} replace />
+    return <Navigate to="/select-mode" replace />
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -24,8 +20,7 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       await login(username, password)
-      const redirectTo = (location.state as LocationState | null)?.from?.pathname ?? '/'
-      navigate(redirectTo, { replace: true })
+      navigate('/select-mode', { replace: true })
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : '로그인에 실패했습니다.')
     } finally {

@@ -69,6 +69,39 @@ a { color: inherit; text-decoration: none; }
 .login-card input { min-height: 40px; padding: 0 12px; border: 1px solid #e4ddd9; border-radius: 9px; }
 .login-error { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fbecea; color: #9c3b2e; font-size: 13px; }
 .login-hint { color: #9b918c; font-size: 12px; text-align: center; }
+.mode-selection-page { min-height: 100vh; background: radial-gradient(circle at 50% 0, #fff 0, #f7f3f0 44%, #eee7e2 100%); }
+.mode-selection-header { height: 78px; padding: 0 48px; border-bottom: 1px solid rgb(101 76 64 / 12%); display: flex; align-items: center; justify-content: space-between; }
+.mode-selection-brand { display: flex; align-items: center; gap: 10px; color: #241914; font-size: 16px; letter-spacing: -.02em; }
+.mode-selection-brand img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 10px rgb(36 25 20 / 15%); }
+.mode-selection-brand span { color: #9c887e; font-weight: 500; }
+.mode-selection-user { display: flex; align-items: center; gap: 16px; color: #574942; font-size: 13px; }
+.mode-selection-user button { padding: 7px 11px; border: 1px solid #ded4ce; border-radius: 8px; background: rgb(255 255 255 / 65%); color: #796860; cursor: pointer; }
+.mode-selection-user button:hover { border-color: #bba9a0; color: #35251e; }
+.mode-selection-content { width: min(1080px, calc(100% - 48px)); margin: 0 auto; padding: 76px 0 90px; }
+.mode-selection-intro { text-align: center; }
+.mode-selection-intro > p { margin: 0 0 13px; color: #a08374; font-size: 11px; font-weight: 800; letter-spacing: .18em; }
+.mode-selection-intro h1 { margin: 0; color: #2c211d; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.045em; }
+.mode-selection-intro > span { display: block; margin-top: 13px; color: #806f67; font-size: 14px; }
+.mode-grid { margin-top: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.mode-card { position: relative; min-height: 260px; padding: 25px; border: 1px solid #e2d9d4; border-radius: 18px; background: rgb(255 255 255 / 88%); box-shadow: 0 12px 32px rgb(66 43 32 / 6%); display: flex; flex-direction: column; gap: 22px; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.mode-card.available:hover { transform: translateY(-3px); border-color: #b9a69b; box-shadow: 0 18px 40px rgb(66 43 32 / 11%); }
+.mode-card.locked { background: rgb(246 243 241 / 72%); box-shadow: none; }
+.mode-card-topline { display: flex; align-items: flex-start; justify-content: space-between; }
+.mode-icon { width: 45px; height: 45px; border-radius: 13px; background: #f0e8e3; display: grid; place-items: center; color: #63483b; }
+.mode-card.locked .mode-icon { background: #ebe7e5; color: #aaa09b; }
+.mode-icon svg, .mode-status svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.mode-status { padding: 6px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+.mode-status.available { background: #e8f4ed; color: #397553; }
+.mode-status.locked { background: #ece8e6; color: #8e817b; }
+.mode-status svg { width: 12px; height: 12px; }
+.mode-card h2 { margin: 0; color: #30231e; font-size: 21px; letter-spacing: -.025em; }
+.mode-card p { min-height: 42px; margin: 8px 0 0; color: #81716a; font-size: 13px; line-height: 1.6; }
+.mode-card > button { min-height: 43px; margin-top: auto; padding: 0 14px; border: 0; border-radius: 10px; background: #38271f; color: #fff; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; cursor: pointer; }
+.mode-card > button:hover { background: #51382d; }
+.mode-card > button:disabled { background: #e7e2df; color: #a09792; cursor: not-allowed; }
+.mode-card > small { margin-top: -14px; color: #9b918c; font-size: 11px; }
+@media (max-width: 700px) { .mode-selection-header { padding: 0 20px; }.mode-selection-content { width: min(100% - 32px, 520px); padding-top: 50px; }.mode-grid { grid-template-columns: 1fr; margin-top: 34px; }.mode-selection-user > span { display: none; } }
+@media (prefers-reduced-motion: reduce) { .mode-card { transition: none; } }
 .content { padding: 48px; max-width: 1440px; width: 100%; }
 @keyframes route-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .route-transition { animation: route-enter .22s ease-out both; }

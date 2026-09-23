@@ -8,12 +8,14 @@ import { InventoryPage } from '../../pages/inventory/InventoryPage'
 import { AccessDeniedPage } from '../../pages/access-denied/AccessDeniedPage'
 import { LoginPage } from '../../pages/login/LoginPage'
 import { WarehouseMapPage } from '../../pages/warehouse-map/WarehouseMapPage'
+import { ModeSelectionPage } from '../../pages/mode-selection/ModeSelectionPage'
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path="login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
+        <Route path="select-mode" element={<ModeSelectionPage />} />
         <Route element={<AppLayout />}>
           <Route index element={<RequirePermission permission={permissions.dashboardRead}><DashboardPage /></RequirePermission>} />
           <Route path="inventory" element={<RequirePermission permission={permissions.inventoryRead}><InventoryPage /></RequirePermission>} />
