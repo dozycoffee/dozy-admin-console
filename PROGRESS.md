@@ -5,8 +5,8 @@
 문서 체계(AGENT.md/CLAUDE.md/docs/ADR), `httpClient` 공통 에러 처리
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
-`zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`까지
-완료했다. 남은 상태:
+`zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
+`generalize-msw-mocks`까지 완료했다. 남은 상태:
 
 - **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
   띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
@@ -52,6 +52,14 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (MSW mock 구조 일반화)
+
+- 이슈(generalize-msw-mocks) 생성, `chore/generalize-msw-mocks` 브랜치에서 작업 (remove-catalog-feature 위에서 진행 — handlers.ts의 mockUser.permissions가 그 작업에서 제거된 catalogRead를 참조하고 있었음)
+- `mocks/handlers.ts`: 인증 전용이던 `authHandlers`를 `mockHandlers`로 이름 변경하고, `GET /api/warehouses/:warehouseId`, `GET /api/inventories/zone-summary` mock 핸들러 추가 (창고/Zone 요약 mock 데이터 포함)
+- `mocks/browser.ts`: `authHandlers` → `mockHandlers` import 갱신
+- `main.tsx`: MSW 워커 `onUnhandledRequest`를 `'bypass'`(인증 외 요청은 실 백엔드로 통과)에서 `'error'`(BFF 계약이 확정되기 전까지 정의 안 된 `/api/*` 요청은 실패시켜 누락을 바로 드러냄)로 변경
+- **주의** — 이 zone-summary mock 핸들러는 `*/api/inventories/zone-summary`처럼 호스트에 상관없이 경로만으로 매칭돼서, 실 백엔드(dozy-wms-api)로 가는 같은 경로 요청도 가로챌 수 있다. `inventory-dashboard-data`가 실 API 연동을 완료했다고 기록돼 있는 것과 이 mock 핸들러가 실제로 언제/어떤 조건에서 상호작용하는지는 이번 작업에서 확인하지 못했다 — 다음에 이 영역을 만지게 되면 짚어볼 것
 
 ### 2026-09-23 (Catalog 기능 제거)
 
