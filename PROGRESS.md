@@ -6,13 +6,12 @@
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
 `zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
-`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`까지 완료했다. 남은 상태:
+`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`까지
+완료했다. 남은 상태:
 
 - 창고 평면도(`WarehouseFloorPlan.tsx`)와 Dashboard의 Zone별 재고 현황 카드는 아직 전용 mock
   데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
   API로 옮기는 작업은 아직 없음
-- 적재 현황(`/inventory/capacity`)이 재고 현황 페이지의 "Zone별 요약"과 상당 부분 겹치는 정보를
-  보여준다 — 후속 정리 필요
 
 - **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
   띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
@@ -58,6 +57,17 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (재고 현황 Location 패널 정리 - 적재 현황 탭 통합)
+
+- 이슈(inventory-location-panel-cleanup) 생성, `fix/inventory-location-panel-cleanup` 브랜치에서
+  작업 (warehouse-floor-plan-dashboard 위에서 진행)
+- 검토 결과 `/inventory/capacity`(`InventoryCapacityPage`)가 재고 현황 페이지의 "Zone별 요약"과
+  거의 같은 정보(Zone별 용량/사용률/품질 breakdown)를 중복해서 보여주고 있었음. 유일하게 겹치지
+  않던 "작업 처리장 Capacity" 섹션만 `InventoryPage`의 Location별 재고 위쪽으로 옮기고,
+  `InventoryCapacityPage`와 그 라우트(`/inventory/capacity`)·메뉴("적재 현황")·전용 CSS
+  (`capacity-summary-grid`/`capacity-detail-panel`/`capacity-table`/`capacity-row`)는 제거
+- `npm run build`/`npm run lint`/`vitest run`(49개) 통과 확인
 
 ### 2026-09-23 (창고 평면도 아이소메트릭 뷰 + Dashboard 개편)
 

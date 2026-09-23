@@ -89,5 +89,12 @@
     "description": "정적 mock(warehouseMockData.ts)을 사용하는 Dashboard의 Zone별 재고 현황 카드 개편과, 창고 평면도 페이지(/warehouse-map)를 신규 추가한다. 창고 평면도는 usage 비율에 따라 박스 높이가 변하는 3D 아이소메트릭 SVG 뷰(WarehouseFloorPlan.tsx)로, 랙(Location)에 마우스를 올리면 상세 tooltip을 보여준다. AppLayout에 사이드바 collapse, 로고, 메뉴 아이콘, 로그아웃 확인 모달(ConfirmModal)을 추가하고 메뉴를 재고 현황/창고 평면도/적재 현황 중심으로 재편한다. 재고 현황(Zone별 상세)과 겹치는 요약을 보여주는 적재 현황(/inventory/capacity) 탭도 함께 추가한다. 이 화면들은 아직 실 zone-summary API가 아니라 전용 mock 데이터를 쓴다.",
     "status": "completed",
     "dependencies": ["generalize-msw-mocks"]
+  },
+  {
+    "id": "inventory-location-panel-cleanup",
+    "name": "재고 현황 Location 패널 정리 - 적재 현황 탭 통합",
+    "description": "warehouse-floor-plan-dashboard에서 추가한 /inventory/capacity(InventoryCapacityPage)가 재고 현황 페이지의 'Zone별 요약'과 상당 부분 겹치는 정보(Zone별 용량/사용률/품질 breakdown)를 보여주는 문제를 정리한다. InventoryCapacityPage에서 유일하게 겹치지 않던 '작업 처리장 Capacity' 섹션만 재고 현황(InventoryPage)의 Location별 재고 위로 옮기고, InventoryCapacityPage와 그 라우트·메뉴·전용 CSS는 제거한다.",
+    "status": "completed",
+    "dependencies": ["warehouse-floor-plan-dashboard"]
   }
 ]

@@ -10,16 +10,14 @@ const navigation: Array<{ label: string; to: string; permission: Permission }> =
   { label: '대시보드', to: '/', permission: permissions.dashboardRead },
   { label: '재고 현황', to: '/inventory', permission: permissions.inventoryRead },
   { label: '창고 평면도', to: '/warehouse-map', permission: permissions.inventoryRead },
-  { label: '적재 현황', to: '/inventory/capacity', permission: permissions.inventoryRead },
 ]
 
-type NavIconName = 'dashboard' | 'inventory' | 'map' | 'capacity' | 'logout'
+type NavIconName = 'dashboard' | 'inventory' | 'map' | 'logout'
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, string> = {
     dashboard: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
     inventory: 'M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v9',
     map: 'M4 5.5 9 3l6 3 5-2.5v15L15 21l-6-3-5 2.5zM9 3v15M15 6v15',
-    capacity: 'M5 19V9M12 19V5M19 19v-7',
     logout: 'M10 5H5v14h5M14 8l4 4-4 4M18 12H9',
   }
   return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name]} /></svg>
@@ -50,7 +48,7 @@ export function AppLayout() {
                 state={allowed ? undefined : { from: item.to, permission: item.permission }}
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
-                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/warehouse-map' ? 'map' : 'capacity'} />
+                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : 'map'} />
                 <span className="nav-link-label">{item.label}</span>
                 {!allowed && <small aria-label="접근 제한">잠김</small>}
               </NavLink>
