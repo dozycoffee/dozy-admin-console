@@ -6,7 +6,13 @@
 (`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
 러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
 `zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
-`generalize-msw-mocks`까지 완료했다. 남은 상태:
+`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`까지 완료했다. 남은 상태:
+
+- 창고 평면도(`WarehouseFloorPlan.tsx`)와 Dashboard의 Zone별 재고 현황 카드는 아직 전용 mock
+  데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
+  API로 옮기는 작업은 아직 없음
+- 적재 현황(`/inventory/capacity`)이 재고 현황 페이지의 "Zone별 요약"과 상당 부분 겹치는 정보를
+  보여준다 — 후속 정리 필요
 
 - **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
   띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
@@ -52,6 +58,30 @@
 실 API 연동 화면이 브라우저에서 정상 동작한다.
 
 ## 세션 로그
+
+### 2026-09-23 (창고 평면도 아이소메트릭 뷰 + Dashboard 개편)
+
+- 이슈(warehouse-floor-plan-dashboard) 생성, `feat/warehouse-floor-plan-dashboard` 브랜치에서
+  작업 (generalize-msw-mocks 위에서 진행)
+- `WarehouseFloorPlan.tsx` 신규 — usage 비율(`used/capacity`)에 비례해 박스 높이가 변하는 3D
+  아이소메트릭 SVG 뷰. hover/click 시 tooltip으로 Location 상세(용량/사용률/품질/냉장 여부) 표시,
+  pinch-zoom·pan 지원. `warehouseMockData.ts`(Zone 집계 mock)를 `/warehouse-map`
+  페이지(`WarehouseMapPage.tsx`)에서 사용
+- `DashboardPage.tsx` 전면 개편 — 업무 대기 카드(`work-grid`), Zone별 재고 현황 카드
+  (`dashboard-zone-grid`, `warehouseMockData` 기반), 알림/최근 활동 2단 레이아웃 추가
+- `AppLayout.tsx` 개편 — 사이드바 collapse 토글, 로고 이미지, 메뉴 아이콘(`NavIcon`), 활성 메뉴
+  슬라이더 애니메이션, 로그아웃 시 `ConfirmModal`(신규 공용 컴포넌트)로 확인 단계 추가. 메뉴를
+  대시보드/재고 현황/창고 평면도/적재 현황으로 재편
+- `InventoryCapacityPage.tsx`(`/inventory/capacity`) 신규 — 보관 Zone별 상세 + 작업 처리장
+  Capacity를 보여주는 별도 탭. **재고 현황 페이지의 "Zone별 요약"과 겹치는 정보라 후속 정리
+  필요 사항으로 남김**
+- **작업 중 발견한 실수**: 여러 파일을 브랜치별로 되돌리는 과정에서 `AppLayout.test.tsx`의
+  최종 버전 내용을 스냅샷 없이 `git checkout HEAD --`로 덮어써서 원문을 복구하지 못했다(한 번도
+  커밋된 적 없는 내용이라 git에도, VSCode 로컬 히스토리에도 기록이 없었음). 실제 동작(사이드바
+  collapse, 로그아웃 확인 모달 등)은 코드에 그대로 남아있어서, 그 동작을 검증하는 테스트를 새로
+  작성해 커버리지 공백만 없앴다 — 원본 테스트 코드의 정확한 문구는 유실됨
+- `npm run build`/`npm run lint`/`vitest run`(49개) 통과 확인. 브라우저 도구가 없어 시각적 확인은
+  못 함
 
 ### 2026-09-23 (MSW mock 구조 일반화)
 
