@@ -8,26 +8,28 @@ type ProductStock = { id: string; name: string; quantity: number; quality: Quali
 type LocationRow = { id: string; zoneCode: ZoneCode; capacity: number; products: ProductStock[] }
 
 const workAreas = [
-  { label: '입고 처리장', used: 22, capacity: 50 },
-  { label: '출고장', used: 31, capacity: 50 },
-  { label: '반품 처리장', used: 8, capacity: 30 },
-  { label: '폐기 처리장', used: 12, capacity: 20 },
+  { label: '입고 처리장', used: 101, capacity: 230 },
+  { label: '출고장', used: 38, capacity: 240 },
+  { label: '반품 처리장', used: 22, capacity: 130 },
+  { label: '폐기 처리장', used: 72, capacity: 80 },
 ]
 
 const mockLocations: LocationRow[] = [
-  { id: 'A-01', zoneCode: 'A', capacity: 70, products: [{ id: 'SKU-1001', name: '에티오피아 싱글 오리진', quantity: 35, quality: 'NORMAL', lot: 'LOT-250922-A', updatedAt: '오늘 10:24' }, { id: 'SKU-1002', name: '브라질 세하도', quantity: 20, quality: 'NORMAL', lot: 'LOT-250921-B', updatedAt: '오늘 09:42' }, { id: 'SKU-1003', name: '콜롬비아 수프리모', quantity: 8, quality: 'DISPOSAL_SCHEDULED', lot: 'LOT-250815-C', updatedAt: '어제 16:12' }] },
-  { id: 'A-02', zoneCode: 'A', capacity: 60, products: [{ id: 'SKU-1004', name: '브라질 세하도', quantity: 25, quality: 'NORMAL', lot: 'LOT-250920-D', updatedAt: '오늘 09:42' }] },
-  { id: 'A-03', zoneCode: 'A', capacity: 50, products: [{ id: 'SKU-1005', name: '콜롬비아 수프리모', quantity: 40, quality: 'DISPOSAL_SCHEDULED', lot: 'LOT-250810-E', updatedAt: '어제 16:12' }] },
-  { id: 'B-01', zoneCode: 'B', capacity: 60, products: [{ id: 'SKU-2001', name: '바닐라 시럽', quantity: 18, quality: 'NORMAL', lot: 'LOT-250918-F', updatedAt: '오늘 09:58' }, { id: 'SKU-2002', name: '헤이즐넛 시럽', quantity: 12, quality: 'NORMAL', lot: 'LOT-250916-G', updatedAt: '어제 18:20' }] },
-  { id: 'B-02', zoneCode: 'B', capacity: 60, products: [{ id: 'SKU-2003', name: '카라멜 시럽', quantity: 42, quality: 'DEFECTIVE', lot: 'LOT-250901-H', updatedAt: '어제 14:25' }] },
-  { id: 'C-01', zoneCode: 'C', capacity: 50, products: [{ id: 'SKU-3001', name: '초콜릿 파우더', quantity: 28, quality: 'DEFECTIVE', lot: 'LOT-250907-I', updatedAt: '오늘 08:40' }, { id: 'SKU-3002', name: '코코아 파우더', quantity: 18, quality: 'NORMAL', lot: 'LOT-250910-J', updatedAt: '어제 17:05' }] },
-  { id: 'C-02', zoneCode: 'C', capacity: 50, products: [{ id: 'SKU-3003', name: '말차 파우더', quantity: 45, quality: 'NORMAL', lot: 'LOT-250912-K', updatedAt: '어제 17:05' }] },
-  { id: 'D-01', zoneCode: 'D', capacity: 40, products: [{ id: 'SKU-4001', name: '우유', quantity: 15, quality: 'NORMAL', lot: 'LOT-250922-L', updatedAt: '오늘 10:02' }] },
-  { id: 'D-02', zoneCode: 'D', capacity: 40, products: [{ id: 'SKU-4002', name: '오트밀크', quantity: 15, quality: 'NORMAL', lot: 'LOT-250922-M', updatedAt: '오늘 09:35' }] },
-  { id: 'E-01', zoneCode: 'E', capacity: 100, products: [{ id: 'SKU-5001', name: '12oz 컵', quantity: 45, quality: 'NORMAL', lot: 'LOT-250901-N', updatedAt: '오늘 10:18' }, { id: 'SKU-5002', name: '16oz 컵', quantity: 25, quality: 'NORMAL', lot: 'LOT-250902-O', updatedAt: '오늘 09:50' }] },
-  { id: 'E-02', zoneCode: 'E', capacity: 100, products: [{ id: 'SKU-5003', name: '컵 리드', quantity: 60, quality: 'NORMAL', lot: 'LOT-250903-P', updatedAt: '오늘 09:50' }] },
-  { id: 'E-03', zoneCode: 'E', capacity: 90, products: [{ id: 'SKU-5004', name: '종이 쇼핑백', quantity: 60, quality: 'NORMAL', lot: 'LOT-250904-Q', updatedAt: '어제 18:22' }] },
-  { id: 'E-04', zoneCode: 'E', capacity: 80, products: [{ id: 'SKU-5005', name: '포장 박스', quantity: 54, quality: 'NORMAL', lot: 'LOT-250905-R', updatedAt: '어제 15:47' }] },
+  { id: 'A-01', zoneCode: 'A', capacity: 320, products: [{ id: 'SKU-1001', name: '에티오피아 싱글 오리진', quantity: 160, quality: 'NORMAL', lot: 'LOT-250922-A', updatedAt: '오늘 10:24' }, { id: 'SKU-1002', name: '브라질 세하도', quantity: 91, quality: 'NORMAL', lot: 'LOT-250921-B', updatedAt: '오늘 09:42' }, { id: 'SKU-1003', name: '콜롬비아 수프리모', quantity: 37, quality: 'DISPOSAL_SCHEDULED', lot: 'LOT-250815-C', updatedAt: '어제 16:12' }] },
+  { id: 'A-02', zoneCode: 'A', capacity: 270, products: [{ id: 'SKU-1004', name: '브라질 세하도', quantity: 113, quality: 'NORMAL', lot: 'LOT-250920-D', updatedAt: '오늘 09:42' }] },
+  { id: 'A-03', zoneCode: 'A', capacity: 230, products: [{ id: 'SKU-1005', name: '콜롬비아 수프리모', quantity: 184, quality: 'DISPOSAL_SCHEDULED', lot: 'LOT-250810-E', updatedAt: '어제 16:12' }] },
+  { id: 'B-01', zoneCode: 'B', capacity: 270, products: [{ id: 'SKU-2001', name: '바닐라 시럽', quantity: 81, quality: 'NORMAL', lot: 'LOT-250918-F', updatedAt: '오늘 09:58' }, { id: 'SKU-2002', name: '헤이즐넛 시럽', quantity: 54, quality: 'NORMAL', lot: 'LOT-250916-G', updatedAt: '어제 18:20' }] },
+  { id: 'B-02', zoneCode: 'B', capacity: 280, products: [{ id: 'SKU-2003', name: '카라멜 시럽', quantity: 196, quality: 'DEFECTIVE', lot: 'LOT-250901-H', updatedAt: '어제 14:25' }] },
+  { id: 'C-01', zoneCode: 'C', capacity: 230, products: [{ id: 'SKU-3001', name: '초콜릿 파우더', quantity: 129, quality: 'DEFECTIVE', lot: 'LOT-250907-I', updatedAt: '오늘 08:40' }, { id: 'SKU-3002', name: '코코아 파우더', quantity: 83, quality: 'NORMAL', lot: 'LOT-250910-J', updatedAt: '어제 17:05' }] },
+  { id: 'C-02', zoneCode: 'C', capacity: 230, products: [{ id: 'SKU-3003', name: '말차 파우더', quantity: 207, quality: 'NORMAL', lot: 'LOT-250912-K', updatedAt: '어제 17:05' }] },
+  { id: 'D-01', zoneCode: 'D', capacity: 180, products: [{ id: 'SKU-4001', name: '우유', quantity: 68, quality: 'NORMAL', lot: 'LOT-250922-L', updatedAt: '오늘 10:02' }] },
+  { id: 'D-02', zoneCode: 'D', capacity: 180, products: [{ id: 'SKU-4002', name: '오트밀크', quantity: 68, quality: 'NORMAL', lot: 'LOT-250922-M', updatedAt: '오늘 09:35' }] },
+  { id: 'E-01', zoneCode: 'E', capacity: 480, products: [{ id: 'SKU-5001', name: '12oz 컵', quantity: 216, quality: 'NORMAL', lot: 'LOT-250901-N', updatedAt: '오늘 10:18' }, { id: 'SKU-5002', name: '16oz 컵', quantity: 120, quality: 'NORMAL', lot: 'LOT-250902-O', updatedAt: '오늘 09:50' }] },
+  { id: 'E-02', zoneCode: 'E', capacity: 450, products: [{ id: 'SKU-5003', name: '컵 리드', quantity: 270, quality: 'NORMAL', lot: 'LOT-250903-P', updatedAt: '오늘 09:50' }] },
+  { id: 'E-03', zoneCode: 'E', capacity: 420, products: [{ id: 'SKU-5004', name: '종이 쇼핑백', quantity: 280, quality: 'NORMAL', lot: 'LOT-250904-Q', updatedAt: '어제 18:22' }] },
+  { id: 'E-04', zoneCode: 'E', capacity: 360, products: [{ id: 'SKU-5005', name: '포장 박스', quantity: 243, quality: 'NORMAL', lot: 'LOT-250905-R', updatedAt: '어제 15:47' }] },
+  { id: 'F-01', zoneCode: 'F', capacity: 230, products: [{ id: 'SKU-6001', name: '드립백 선물세트', quantity: 100, quality: 'NORMAL', lot: 'LOT-250919-S', updatedAt: '오늘 11:05' }, { id: 'SKU-6002', name: '로고 머그컵', quantity: 45, quality: 'NORMAL', lot: 'LOT-250917-T', updatedAt: '오늘 10:47' }] },
+  { id: 'F-02', zoneCode: 'F', capacity: 190, products: [{ id: 'SKU-6003', name: '텀블러', quantity: 60, quality: 'NORMAL', lot: 'LOT-250915-U', updatedAt: '어제 19:10' }, { id: 'SKU-6004', name: '에코백', quantity: 25, quality: 'NORMAL', lot: 'LOT-250913-V', updatedAt: '어제 20:02' }] },
 ]
 
 function locationStock(location: LocationRow) { return location.products.reduce((total, product) => total + product.quantity, 0) }
