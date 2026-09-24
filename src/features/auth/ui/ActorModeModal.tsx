@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { actorModes, type ActorModeId } from '../model/actorModes'
 import { useAuth } from '../model/useAuth'
 import { useCurrentUser } from '../model/useCurrentUser'
@@ -33,7 +34,7 @@ export function ActorModeModal({ open, onClose, onSelected }: ActorModeModalProp
           {activeActorMode && <button type="button" className="mode-modal-close" aria-label="닫기" onClick={onClose}>×</button>}
         </header>
         <div className="mode-modal-grid">
-          {actorModes.map((mode) => {
+          {actorModes.map((mode, index) => {
             const allowed = user.actorModes.includes(mode.id)
             const active = activeActorMode === mode.id
             return (
@@ -41,6 +42,7 @@ export function ActorModeModal({ open, onClose, onSelected }: ActorModeModalProp
                 key={mode.id}
                 type="button"
                 className={`mode-option ${allowed ? 'available' : 'locked'} ${active ? 'active' : ''}`}
+                style={{ '--mode-index': index } as CSSProperties}
                 disabled={!allowed}
                 aria-describedby={allowed ? undefined : `${mode.id}-locked-reason`}
                 onClick={() => handleSelect(mode.id)}
