@@ -4,17 +4,19 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../../features/auth/model/authContext'
 import { AppLayout } from './AppLayout'
+import { actorModeIds } from '../../features/auth/model/actorModes'
 
 const stubUser: AuthContextValue['user'] = {
   id: 'user-test',
   name: '테스트 사용자',
+  actorModes: [actorModeIds.warehouseManager],
   permissions: [],
   scope: { warehouseIds: [1, 2] },
 }
 
 function renderAppLayout(logout: () => void) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, can: () => true, login: vi.fn(), logout }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.warehouseManager, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<AppLayout />}>
@@ -44,6 +46,16 @@ describe('AppLayout', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(logout).not.toHaveBeenCalled()
+  })
+
+  it('CURRENT MODE 카드를 누르면 모드 선택 모달을 연다', async () => {
+    const user = userEvent.setup()
+    renderAppLayout(vi.fn())
+
+    expect(screen.getByText('창고 관리')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '업무 모드 변경' }))
+
+    expect(screen.getByRole('dialog', { name: '업무 모드 선택' })).toBeInTheDocument()
   })
 
   it('확인 모달에서 로그아웃을 확정하면 logout을 호출한다', async () => {

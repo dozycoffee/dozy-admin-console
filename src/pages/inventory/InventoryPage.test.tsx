@@ -12,9 +12,9 @@ const mockedUseZoneInventorySummary = vi.mocked(useZoneInventorySummary)
 const mockedUseWarehouses = vi.mocked(useWarehouses)
 
 function renderWithUser(warehouseIds: number[]) {
-  const user: AuthContextValue['user'] = { id: 'user-test', name: '테스트 사용자', permissions: [], scope: { warehouseIds } }
+  const user: AuthContextValue['user'] = { id: 'user-test', name: '테스트 사용자', actorModes: [], permissions: [], scope: { warehouseIds } }
   return render(
-    <AuthContext.Provider value={{ user, isLoading: false, can: () => true, login: vi.fn(), logout: vi.fn() }}>
+    <AuthContext.Provider value={{ user, isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
       <InventoryPage />
     </AuthContext.Provider>,
   )

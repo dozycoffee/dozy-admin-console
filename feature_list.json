@@ -117,5 +117,33 @@
     "description": "WarehouseFloorPlan.tsx의 아이소메트릭 Location 박스(컵+물 이중 레이어)에 실제 랙처럼 보이도록 네 모서리에 수직 기둥을 추가한다. 기둥은 컵(용기)의 capacity 비례 높이만큼 올라가며, 박스 벽(반투명)보다 먼저 그려 은은하게 벽 뒤에 있는 것처럼 보이게 한다.",
     "status": "completed",
     "dependencies": ["warehouse-capacity-md-zone-mock"]
+  },
+  {
+    "id": "actor-mode-domain-session",
+    "name": "액터 모드 도메인 및 선택 세션 구현",
+    "description": "계정 관리자, MD, 창고 관리자, 본사 재고 담당자 액터 모드와 확장 가능한 메타데이터 레지스트리를 정의한다. 사용자 응답에 허용 모드를 추가하고 현재 선택한 모드를 탭 세션에 안전하게 저장·복원하며 서버의 최신 허용 목록과 일치하지 않는 선택은 제거한다.",
+    "status": "completed",
+    "dependencies": ["auth-login-ui-mock-backend"]
+  },
+  {
+    "id": "actor-mode-selector",
+    "name": "액터 모드 선택 모달과 잠금 상태 구현",
+    "description": "로그인 후 콘솔 중앙에 전체 액터 모드를 표시하는 필수 선택 모달을 구현한다. 허용되지 않은 모드는 숨기지 않고 잠금 아이콘과 접근 불가 설명을 표시하며 선택을 차단한다.",
+    "status": "completed",
+    "dependencies": ["actor-mode-domain-session"]
+  },
+  {
+    "id": "actor-mode-routing-switch",
+    "name": "액터 모드 라우팅 가드 및 모드 전환 구현",
+    "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 사이드바의 CURRENT MODE 카드에서 선택 모달을 다시 열어 다른 허용 모드로 전환할 수 있게 한다.",
+    "status": "completed",
+    "dependencies": ["actor-mode-selector"]
+  },
+  {
+    "id": "actor-mode-reward-card-presentation",
+    "name": "보상 선택형 액터 모드 카드 연출 적용",
+    "description": "액터 모드 선택 모달을 게임 보상 선택 화면처럼 개선한다. 전체 화면 블러 위에 카드가 독립적으로 떠 보이고, 선택 가능한 카드는 호버 시 위로 들리며 강조된다.",
+    "status": "completed",
+    "dependencies": ["actor-mode-selector"]
   }
 ]

@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { permissions } from '../features/auth/model/permissions'
 import type { CurrentUser } from '../features/auth/model/permissions'
+import { actorModeIds } from '../features/auth/model/actorModes'
 import type { Warehouse } from '../features/warehouse/model/warehouseSchemas'
 import type { ZoneInventorySummary } from '../features/inventory/model/inventorySchemas'
 
@@ -12,6 +13,7 @@ const MOCK_ACCESS_TOKEN = 'mock-access-token'
 const mockUser: CurrentUser = {
   id: 'user-001',
   name: '김도윤',
+  actorModes: [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager],
   permissions: [permissions.dashboardRead, permissions.inventoryRead],
   scope: { warehouseIds: [1481] },
 }

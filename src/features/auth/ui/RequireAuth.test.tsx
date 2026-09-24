@@ -7,13 +7,14 @@ import { RequireAuth } from './RequireAuth'
 const stubUser: AuthContextValue['user'] = {
   id: 'user-test',
   name: '테스트 사용자',
+  actorModes: [],
   permissions: [],
   scope: { warehouseIds: [] },
 }
 
 function renderRequireAuth(value: Pick<AuthContextValue, 'user' | 'isLoading'>) {
   return render(
-    <AuthContext.Provider value={{ ...value, can: () => true, login: vi.fn(), logout: vi.fn() }}>
+    <AuthContext.Provider value={{ ...value, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<RequireAuth />}>
