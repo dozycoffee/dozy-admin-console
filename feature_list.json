@@ -138,5 +138,12 @@
     "description": "선택한 액터 모드에 맞는 콘솔 라우팅과 내비게이션을 제공하고 미선택·무권한 직접 접근을 차단한다. 사이드바의 CURRENT MODE 카드에서 선택 모달을 다시 열어 다른 허용 모드로 전환할 수 있게 한다.",
     "status": "completed",
     "dependencies": ["actor-mode-selector"]
+  },
+  {
+    "id": "actor-mode-reward-card-presentation",
+    "name": "보상 선택형 액터 모드 카드 연출 적용",
+    "description": "액터 모드 선택 모달을 게임 보상 선택 화면처럼 개선한다. 전체 화면 블러 위에 카드가 독립적으로 떠 보이고, 선택 가능한 카드는 호버 시 위로 들리며 강조된다.",
+    "status": "completed",
+    "dependencies": ["actor-mode-selector"]
   }
 ]
