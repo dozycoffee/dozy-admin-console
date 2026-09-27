@@ -145,5 +145,12 @@
     "description": "액터 모드 선택 모달을 게임 보상 선택 화면처럼 개선한다. 전체 화면 블러 위에 카드가 독립적으로 떠 보이고, 선택 가능한 카드는 호버 시 위로 들리며 강조된다.",
     "status": "completed",
     "dependencies": ["actor-mode-selector"]
+  },
+  {
+    "id": "warehouse-inbound-management",
+    "name": "창고 관리자 입고 관리 MSW 플로우 구현",
+    "description": "창고 관리자 전용 입고 관리 탭에서 입고 예정, 공간 점검, 수량·품질 검수, Location 분할 적재, 입고 완료를 상태형 MSW mock API와 TanStack Query로 처리한다.",
+    "status": "completed",
+    "dependencies": ["actor-mode-routing-switch"]
   }
 ]

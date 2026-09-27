@@ -25,12 +25,10 @@
 | Permission | 의미 | 적용 위치 |
 |---|---|---|
 | `dashboard.read` | 대시보드 조회 | `/` |
-| `catalog.read` | 상품 목록 조회 | `/catalog` |
-| `catalog.write` | 상품 등록/수정 | `/catalog` 내 등록 버튼 |
 | `inventory.read` | 재고·창고 현황 조회 | `/inventory` |
 | `inventory.write` | 재고 조정 등 쓰기 동작 | 미구현 — 재고 쓰기 화면 추가 시 적용 |
-| `users.manage` | 사용자·권한 관리 | `/users` — 메뉴만 존재, 라우트/화면 미구현
-  (`feature_list.json`의 `users-permission-management-page`) |
+| `inbound.read` | 입고 작업 조회 | 창고 관리자 모드의 `/inbounds` |
+| `inbound.write` | 검수 시작·완료, Location 적재 완료 | `/inbounds`의 작업 버튼 |
 
 새 Permission을 추가하면 이 표도 함께 갱신한다.
 
@@ -39,7 +37,7 @@
 - [ ] `src/features/auth/model/permissions.ts`의 `permissions` 객체에 `<도메인>.<read|write|manage>`
       형식으로 추가했는가?
 - [ ] 위 표에 추가했는가?
-- [ ] Mock 사용자(`AuthProvider`의 `mockUser`)에도 테스트에 필요한 권한을 반영했는가? (실제 로그인
+- [ ] Mock 사용자(`src/mocks/handlers.ts`의 `mockUser`)에도 테스트에 필요한 권한을 반영했는가? (실제 로그인
       연동 전까지는 여기서 접근 가능 범위가 결정된다)
 - [ ] API 서버 쪽에도 대응하는 권한 검증이 있는지 확인했는가, 혹은 별도 이슈로 추적하고 있는가?
 
