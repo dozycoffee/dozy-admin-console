@@ -15,7 +15,7 @@ const mockUser: CurrentUser = {
   id: 'user-001',
   name: '김도윤',
   actorModes: [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager],
-  permissions: [permissions.dashboardRead, permissions.inventoryRead, permissions.inboundRead, permissions.inboundWrite, permissions.outboundRead, permissions.outboundWrite, permissions.disposalRead, permissions.disposalWrite],
+  permissions: [permissions.dashboardRead, permissions.inventoryRead, permissions.inboundRead, permissions.inboundWrite, permissions.outboundRead, permissions.outboundWrite, permissions.disposalRead, permissions.disposalWrite, permissions.returnRead, permissions.returnWrite],
   scope: { warehouseIds: [MOCK_WAREHOUSE_ID] },
 }
 
