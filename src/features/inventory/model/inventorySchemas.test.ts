@@ -51,3 +51,11 @@ describe('quantityOf', () => {
     expect(quantityOf(summary, 'DISPOSAL_SCHEDULED')).toBe(0)
   })
 })
+
+describe('inventoryItemListSchema', () => {
+  it('재고 목록 응답을 파싱한다', async () => {
+    const { inventoryItemListSchema } = await import('./inventorySchemas')
+    const parsed = inventoryItemListSchema.parse([{ inventoryId: 1, productId: 2, lotId: 3, locationId: 4, quantity: 5, allocatedQuantity: 1, availableQuantity: 4, qualityStatus: 'DEFECTIVE' }])
+    expect(parsed[0].qualityStatus).toBe('DEFECTIVE')
+  })
+})
