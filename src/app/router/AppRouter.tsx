@@ -14,6 +14,8 @@ import { InboundManagementPage } from '../../pages/inbounds/InboundManagementPag
 import { InboundHistoryPage } from '../../pages/inbounds/InboundHistoryPage'
 import { OutboundManagementPage } from '../../pages/outbounds/OutboundManagementPage'
 import { OutboundHistoryPage } from '../../pages/outbounds/OutboundHistoryPage'
+import { DisposalManagementPage } from '../../pages/disposals/DisposalManagementPage'
+import { DisposalHistoryPage } from '../../pages/disposals/DisposalHistoryPage'
 
 const inventoryModes = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager] as const
 const warehouseOperationsModes = [actorModeIds.warehouseManager] as const
@@ -31,6 +33,8 @@ export function AppRouter() {
           <Route path="inbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="outbounds" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.outboundRead}><OutboundManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="outbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.outboundRead}><OutboundHistoryPage /></RequirePermission></RequireActorMode>} />
+          <Route path="disposals" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalManagementPage /></RequirePermission></RequireActorMode>} />
+          <Route path="disposals/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="access-denied" element={<AccessDeniedPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
