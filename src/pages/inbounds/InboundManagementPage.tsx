@@ -1,59 +1,50 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { permissions } from '../../features/auth/model/permissions'
-import { inboundStatusLabels, inspectionQualityLabels, type Inbound, type InboundStatus } from '../../features/inbound/model/inboundSchemas'
-import { useApproveInbound, useCompleteInspection, useCompletePutaway, useInbounds, useMarkInboundArrived, useMoveToReceivingArea, useStartInspection } from '../../features/inbound/model/useInbounds'
-import { zoneCodeLabels } from '../../features/inventory/model/inventorySchemas'
+import type { Inbound, InboundStatus } from '../../features/inbound/model/inboundSchemas'
+import { useCompleteInbound, useInboundItems, useInbounds, useInspectInboundItem, useStartInboundProcessing, type InboundItemView } from '../../features/inbound/model/useInbounds'
+import { InboundStatusBadge } from '../../features/inbound/ui/InboundStatusBadge'
+import { InboundItemsSummary } from '../../features/inbound/ui/InboundItemsSummary'
+import { RegisterInboundForm } from '../../features/inbound/ui/RegisterInboundForm'
+import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 
-type InspectionDraft = Record<string, { receivedQuantity: number; qualityStatus: 'NORMAL' | 'DEFECTIVE' }>
-type WorkGroup = 'ALL' | 'REQUEST' | 'ARRIVAL' | 'INSPECTION' | 'PUTAWAY' | 'COMPLETED'
+type WorkGroup = 'ALL' | 'WAITING' | 'PROCESSING' | 'COMPLETED'
+// COMPLETED 탭은 작업 큐가 아니라 "최근 완료 건 미리보기"다 — 전체는 /inbounds/history로 보낸다.
+const RECENT_HISTORY_SIZE = 10
 const workGroups: Array<{ id: WorkGroup; label: string; statuses: InboundStatus[] }> = [
   { id: 'ALL', label: '전체 작업', statuses: [] },
-  { id: 'REQUEST', label: '승인 처리', statuses: ['REQUESTED'] },
-  { id: 'ARRIVAL', label: '물품 입고', statuses: ['APPROVED', 'ARRIVED'] },
-  { id: 'INSPECTION', label: '검수', statuses: ['WAITING', 'PROCESSING'] },
-  { id: 'PUTAWAY', label: '적재 대기', statuses: ['PUTAWAY_READY'] },
+  { id: 'WAITING', label: '입고 대기', statuses: ['EXPECTED', 'WAITING'] },
+  { id: 'PROCESSING', label: '검수·처리중', statuses: ['PROCESSING'] },
   { id: 'COMPLETED', label: '완료', statuses: ['COMPLETED'] },
 ]
+const emptyInbounds: Inbound[] = []
+const emptyCounts = { EXPECTED: 0, WAITING: 0, PROCESSING: 0, COMPLETED: 0 }
 
-function formatStatus(status: InboundStatus) { return <span className={`inbound-status inbound-${status.toLowerCase()}`}>{inboundStatusLabels[status]}</span> }
-function draftFor(inbound: Inbound): InspectionDraft { return Object.fromEntries(inbound.items.map((item) => [item.id, { receivedQuantity: item.receivedQuantity ?? item.expectedQuantity, qualityStatus: item.qualityStatus ?? 'NORMAL' }])) }
+type InspectionDraft = Record<number, { actualQuantity: string; inspectionResult: 'NORMAL' | 'DEFECTIVE' }>
+type LotDraft = Record<number, { lotNumber: string; manufactureDate: string; expirationDate: string }>
+type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 
 export function InboundManagementPage() {
   const user = useCurrentUser()
   const { can } = useAuth()
   const [workGroup, setWorkGroup] = useState<WorkGroup>('ALL')
   const [page, setPage] = useState(1)
-  const paginationScrollTop = useRef<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
   const queueRef = useRef<HTMLElement>(null)
+  const warehouseIds = user.scope.warehouseIds
   const activeGroup = workGroups.find((group) => group.id === workGroup)!
-  const inboundsQuery = useInbounds(user.scope.warehouseIds, activeGroup.statuses, page)
-  const startInspection = useStartInspection()
-  const approveInbound = useApproveInbound()
-  const markInboundArrived = useMarkInboundArrived()
-  const moveToReceivingArea = useMoveToReceivingArea()
-  const completeInspection = useCompleteInspection()
-  const completePutaway = useCompletePutaway()
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const isHistoryPreview = activeGroup.id === 'COMPLETED'
+  const inboundsQuery = useInbounds(warehouseIds, activeGroup.statuses, page, isHistoryPreview ? RECENT_HISTORY_SIZE : 4)
   const inboundPage = inboundsQuery.data
   const inbounds = inboundPage?.items ?? emptyInbounds
-  const [draft, setDraft] = useState<InspectionDraft>({})
-  const selected = inbounds.find((inbound) => inbound.id === selectedId) ?? inbounds[0]
-  const counts = inboundPage?.statusCounts ?? emptyStatusCounts
-  const summary = { requested: counts.REQUESTED, arrivals: counts.APPROVED + counts.ARRIVED, pending: counts.WAITING, inspecting: counts.PROCESSING, putaway: counts.PUTAWAY_READY }
+  const selected = inbounds.find((inbound) => inbound.inboundId === selectedId) ?? inbounds[0]
+  const counts = inboundPage?.statusCounts ?? emptyCounts
   const totalPages = Math.max(1, Math.ceil((inboundPage?.total ?? 0) / (inboundPage?.size ?? 4)))
-  const busy = startInspection.isPending || approveInbound.isPending || markInboundArrived.isPending || moveToReceivingArea.isPending || completeInspection.isPending || completePutaway.isPending
   const writable = can(permissions.inboundWrite)
-  useLayoutEffect(() => {
-    if (paginationScrollTop.current === null || inboundPage?.page !== page) return
-    const scrollTop = paginationScrollTop.current
-    const frame = requestAnimationFrame(() => { window.scrollTo({ top: scrollTop, behavior: 'auto' }); paginationScrollTop.current = null })
-    return () => cancelAnimationFrame(frame)
-  }, [inboundPage?.page, page])
-  function changeDraft(itemId: string, field: 'receivedQuantity' | 'qualityStatus', value: string) { setDraft((current) => ({ ...current, [itemId]: { ...current[itemId], [field]: field === 'receivedQuantity' ? Math.max(0, Number(value)) : value as 'NORMAL' | 'DEFECTIVE' } })) }
-  function inspectComplete() { if (selected) completeInspection.mutate({ id: selected.id, body: { items: selected.items.map((item) => ({ inboundItemId: item.id, ...draft[item.id] })) } }) }
-  function changePage(nextPage: number) { paginationScrollTop.current = window.scrollY; setPage(nextPage); setSelectedId(null) }
+
   function selectWorkGroup(group: WorkGroup, moveToQueue = false) {
     setWorkGroup(group)
     setPage(1)
@@ -61,29 +52,87 @@ export function InboundManagementPage() {
     if (moveToQueue) queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   if (inboundsQuery.isLoading) return <section className="panel"><p>입고 관리 정보를 불러오는 중입니다...</p></section>
-  if (inboundsQuery.isError) return <section className="panel"><h1>입고 정보를 불러오지 못했습니다</h1><p>{inboundsQuery.error instanceof Error ? inboundsQuery.error.message : '잠시 후 다시 시도해주세요.'}</p></section>
+  if (inboundsQuery.isError) return <section className="panel"><h1>입고 정보를 불러오지 못했습니다</h1><p>{inboundsQuery.error.message}</p></section>
   return <>
-    <header className="page-header inbound-page-header"><div><p>INBOUND OPERATIONS</p><h1>입고 관리</h1></div></header>
+    <header className="page-header inbound-page-header"><div><p>INBOUND OPERATIONS</p><h1>입고 관리</h1></div><Link className="inbound-history-back" to="/inbounds/history">입고 히스토리</Link></header>
     <section className="inbound-summary-grid" aria-label="입고 작업 요약">
-      <button type="button" onClick={() => selectWorkGroup('REQUEST', true)}><span>입고 승인 필요</span><strong>{summary.requested}<small> 건</small></strong></button><button type="button" className="summary-warning" onClick={() => selectWorkGroup('ARRIVAL', true)}><span>도착·이동 처리</span><strong>{summary.arrivals}<small> 건</small></strong></button><button type="button" onClick={() => selectWorkGroup('INSPECTION', true)}><span>검수 처리 필요</span><strong>{summary.pending + summary.inspecting}<small> 건</small></strong></button><button type="button" className="summary-ok" onClick={() => selectWorkGroup('PUTAWAY', true)}><span>적재 완료 필요</span><strong>{summary.putaway}<small> 건</small></strong></button>
+      <button type="button" onClick={() => selectWorkGroup('WAITING', true)}><span>입고 대기</span><strong>{counts.EXPECTED + counts.WAITING}<small> 건</small></strong></button>
+      <button type="button" className="summary-warning" onClick={() => selectWorkGroup('PROCESSING', true)}><span>검수·처리중</span><strong>{counts.PROCESSING}<small> 건</small></strong></button>
+      <button type="button" className="summary-ok" onClick={() => selectWorkGroup('COMPLETED', true)}><span>입고 완료</span><strong>{counts.COMPLETED}<small> 건</small></strong></button>
     </section>
+    {warehouseIds[0] !== undefined && <RegisterInboundForm warehouseId={warehouseIds[0]} writable={writable} onRegistered={(id) => { setWorkGroup('ALL'); setPage(1); setSelectedId(id) }} />}
     <section className="inbound-workspace">
-      <aside className="panel inbound-list-panel" ref={queueRef}><div className="panel-heading"><div><p className="eyebrow">INBOUND QUEUE</p><h2>입고 작업 목록</h2></div><small>{inboundPage?.total ?? 0}건</small></div><div className="inbound-work-tabs" role="tablist" aria-label="입고 작업 단계">{workGroups.map((group) => { const count = group.statuses.length ? group.statuses.reduce((total, status) => total + counts[status], 0) : Object.values(counts).reduce((total, count) => total + count, 0); return <button type="button" key={group.id} role="tab" aria-selected={workGroup === group.id} className={workGroup === group.id ? 'active' : ''} onClick={() => selectWorkGroup(group.id)}>{group.label}<b>{count}</b></button> })}</div><div className="inbound-list">{inbounds.map((inbound) => <button type="button" key={inbound.id} className={`inbound-list-item ${selected?.id === inbound.id ? 'selected' : ''}`} onClick={() => { setSelectedId(inbound.id); setDraft(draftFor(inbound)) }}><span>{formatStatus(inbound.status)}<time>{inbound.expectedArrivalAt}</time></span><strong>{inbound.supplierName}</strong><small className="inbound-list-meta"><b>{inbound.id}</b><i>{inbound.items.length}개 품목</i></small><em className={inbound.capacityCheck.status.toLowerCase()}>{inbound.capacityCheck.status === 'AVAILABLE' ? '공간 확보' : inbound.capacityCheck.status === 'PARTIAL' ? '분할 적재' : '공간 부족'}</em></button>)}{inbounds.length === 0 && <p className="inbound-empty">이 단계에서 처리할 입고 건이 없습니다.</p>}</div>{totalPages > 1 && <div className="inbound-pagination"><button type="button" disabled={page === 1} onClick={() => changePage(page - 1)}>이전</button><span>{page} / {totalPages}</span><button type="button" disabled={page === totalPages} onClick={() => changePage(page + 1)}>다음</button></div>}</aside>
-      {selected ? <section className="panel inbound-detail-panel"><div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">{selected.id}</p><h2>{selected.supplierName}</h2><span>{selected.expectedArrivalAt} 도착 예정 · {selected.items.length}개 품목</span></div>{formatStatus(selected.status)}</div>
-        <div className="inbound-capacity-grid"><CapacityCheck title="적재 공간 점검" check={selected.capacityCheck} /><CapacityCheck title={`${selected.receivingAreaCheck.workAreaName} 점검`} check={selected.receivingAreaCheck} /></div>
-        {selected.status === 'REQUESTED' ? <section className="inbound-stage"><h3>1. 입고 요청 · 승인 조건 확인</h3><p>입고 예정 물품과 지정 Zone·Location의 적재 공간, 예상 도착 시각의 입고처리장 공간을 모두 확인합니다. 두 공간이 모두 확보된 경우에만 입고 요청을 승인할 수 있습니다.</p><ItemReadTable inbound={selected} showPlans />{selected.receivingAreaCheck.status === 'UNAVAILABLE' && <p className="inbound-hold-notice"><strong>승인 보류</strong> {selected.receivingAreaCheck.nextAvailableAt} 이후 입고처리장 사용이 가능합니다. 도착 일시 변경 또는 물량 분할이 필요합니다.</p>}<ActionButton disabled={!writable || busy || selected.capacityCheck.status === 'UNAVAILABLE' || selected.receivingAreaCheck.status === 'UNAVAILABLE'} onClick={() => approveInbound.mutate({ id: selected.id })}>{selected.receivingAreaCheck.status === 'UNAVAILABLE' ? '입고처리장 여유 확보 필요' : selected.capacityCheck.status === 'UNAVAILABLE' ? '적재 공간 여유 확보 필요' : '공간 확보 후 입고 요청 승인'}</ActionButton></section> : null}
-        {selected.status === 'APPROVED' ? <section className="inbound-stage"><h3>2. 입고 승인 · 물품 도착 대기</h3><p>입고 요청이 승인되어 적재 공간을 확보했습니다. 운송 물품이 창고에 도착하면 도착 처리를 진행하세요.</p><ItemReadTable inbound={selected} showPlans /><ActionButton disabled={!writable || busy} onClick={() => markInboundArrived.mutate({ id: selected.id })}>물품 도착 처리</ActionButton></section> : null}
-        {selected.status === 'ARRIVED' ? <section className="inbound-stage"><h3>3. 물품 도착 · 입고처리장 이동</h3><p>도착한 물품을 입고처리장으로 이동하면 검수 대기 상태가 됩니다.</p><ItemReadTable inbound={selected} /><ActionButton disabled={!writable || busy} onClick={() => moveToReceivingArea.mutate({ id: selected.id })}>입고처리장 이동 완료</ActionButton></section> : null}
-        {selected.status === 'WAITING' ? <section className="inbound-stage"><h3>4. 입고처리장 · 검수 대기</h3><p>입고처리장에 물품이 도착했습니다. 검수를 시작하면 실수량과 품질을 확인할 수 있습니다.</p><ItemReadTable inbound={selected} /> <ActionButton disabled={!writable || busy} onClick={() => startInspection.mutate({ id: selected.id })}>검수 시작</ActionButton></section> : null}
-        {selected.status === 'PROCESSING' ? <section className="inbound-stage"><h3>5. 수량·품질 검수</h3><p>실수량과 품질 상태를 기록합니다. 불량은 정상 재고로 적재되지 않고 별도 처리 대상으로 분리됩니다.</p><div className="inspection-table">{selected.items.map((item) => <div className="inspection-row" key={item.id}><div><strong>{item.productName}</strong><small>{item.sku} · {item.targetZoneCode} Zone · 예정 {item.expectedQuantity} ea</small></div><label>실수량<input type="number" min="0" value={draft[item.id]?.receivedQuantity ?? item.expectedQuantity} onChange={(event) => changeDraft(item.id, 'receivedQuantity', event.target.value)} /></label><label>품질<select value={draft[item.id]?.qualityStatus ?? 'NORMAL'} onChange={(event) => changeDraft(item.id, 'qualityStatus', event.target.value)}><option value="NORMAL">정상</option><option value="DEFECTIVE">불량 분리</option></select></label></div>)}</div><ActionButton disabled={!writable || busy} onClick={inspectComplete}>검수 완료 · 적재 계획 확인</ActionButton></section> : null}
-        {selected.status === 'PUTAWAY_READY' ? <section className="inbound-stage"><h3>6. Location 적재</h3><p>정상 판정 수량만 지정 Zone에 적재합니다. 분할 적재량과 각 Location의 잔여 Capacity를 확인한 후 완료하세요.</p><ItemReadTable inbound={selected} showPlans /><ActionButton disabled={!writable || busy} onClick={() => completePutaway.mutate({ id: selected.id })}>적재 완료</ActionButton></section> : null}
-        {selected.status === 'COMPLETED' ? <section className="inbound-stage completed"><h3>입고 완료</h3><p>정상 수량의 재고·Lot·이력 등록이 완료되었습니다. 불량 수량은 정상 재고에서 제외됩니다.</p><ItemReadTable inbound={selected} showPlans /></section> : null}
-      </section> : <section className="panel inbound-detail-panel inbound-empty-detail"><div><p className="eyebrow">INBOUND QUEUE</p><h2>처리할 입고 작업이 없습니다</h2><span>다른 단계 탭을 선택하거나 새 입고 요청을 기다려주세요.</span></div></section>}
+      <aside className="panel inbound-list-panel" ref={queueRef}>
+        <div className="panel-heading"><div><p className="eyebrow">INBOUND QUEUE</p><h2>입고 작업 목록</h2></div><small>{inboundPage?.total ?? 0}건</small></div>
+        <div className="inbound-work-tabs" role="tablist" aria-label="입고 작업 단계">{workGroups.map((group) => {
+          const count = group.statuses.length ? group.statuses.reduce((total, status) => total + counts[status], 0) : Object.values(counts).reduce((total, value) => total + value, 0)
+          return <button type="button" key={group.id} role="tab" aria-selected={workGroup === group.id} className={workGroup === group.id ? 'active' : ''} onClick={() => selectWorkGroup(group.id)}>{group.label}<b>{count}</b></button>
+        })}</div>
+        <div className="inbound-list">
+          {inbounds.map((inbound) => <button type="button" key={inbound.inboundId} className={`inbound-list-item ${selected?.inboundId === inbound.inboundId ? 'selected' : ''}`} onClick={() => setSelectedId(inbound.inboundId)}><span><InboundStatusBadge status={inbound.status} /><time>{inbound.expectedArrivalDate}</time></span><strong>입고 #{inbound.inboundId}</strong></button>)}
+          {inbounds.length === 0 && <p className="inbound-empty">이 단계에서 처리할 입고 건이 없습니다.</p>}
+        </div>
+        {isHistoryPreview ? (inboundPage && inboundPage.total > RECENT_HISTORY_SIZE && <div className="inbound-history-link"><Link to="/inbounds/history">전체 완료 이력 보기 ({inboundPage.total}건)</Link></div>) : (totalPages > 1 && <div className="inbound-pagination"><button type="button" disabled={page === 1} onClick={() => { setPage(page - 1); setSelectedId(null) }}>이전</button><span>{page} / {totalPages}</span><button type="button" disabled={page === totalPages} onClick={() => { setPage(page + 1); setSelectedId(null) }}>다음</button></div>)}
+      </aside>
+      {selected ? <InboundDetail key={selected.inboundId} inbound={selected} warehouseIds={warehouseIds} writable={writable} confirm={setPendingConfirm} /> : <section className="panel inbound-detail-panel inbound-empty-detail"><div><p className="eyebrow">INBOUND QUEUE</p><h2>처리할 입고 작업이 없습니다</h2><span>위에서 새 입고를 등록하거나 다른 단계 탭을 선택하세요.</span></div></section>}
     </section>
+    <ConfirmModal open={pendingConfirm !== null} title={pendingConfirm?.title ?? ''} description={pendingConfirm?.description} confirmLabel={pendingConfirm?.confirmLabel} onCancel={() => setPendingConfirm(null)} onConfirm={() => { pendingConfirm?.run(); setPendingConfirm(null) }} />
   </>
 }
-const emptyInbounds: Inbound[] = []
-const emptyStatusCounts = { REQUESTED: 0, APPROVED: 0, ARRIVED: 0, WAITING: 0, PROCESSING: 0, PUTAWAY_READY: 0, COMPLETED: 0, REJECTED: 0 }
+
 function ActionButton({ disabled, onClick, children }: { disabled: boolean; onClick: () => void; children: ReactNode }) { return <button className="inbound-action-button" type="button" disabled={disabled} onClick={onClick}>{children}</button> }
-function CapacityCheck({ title, check }: { title: string; check: Inbound['capacityCheck'] | Inbound['receivingAreaCheck'] }) { return <div className={`inbound-capacity ${check.status.toLowerCase()}`}><div><strong>{title}</strong><span>{check.message}</span></div><b>필요 {check.requiredCapacity} ea / 여유 {check.availableCapacity} ea</b></div> }
-function ItemReadTable({ inbound, showPlans = false }: { inbound: Inbound; showPlans?: boolean }) { return <div className="inbound-items">{inbound.items.map((item) => <article key={item.id}><header><div><strong>{item.productName}</strong><small>{item.sku} · {item.targetZoneCode} Zone · {zoneCodeLabels[item.targetZoneCode]}</small></div><b>{item.receivedQuantity ?? item.expectedQuantity} <small>/ {item.expectedQuantity} ea</small></b></header>{item.qualityStatus && <span className={`quality-status quality-${item.qualityStatus.toLowerCase()}`}>{inspectionQualityLabels[item.qualityStatus]}</span>}{showPlans && item.qualityStatus !== 'DEFECTIVE' && <div className="putaway-plans">{item.putawayPlans.map((plan) => <span key={plan.locationId}><b>{plan.locationId}</b> {plan.quantity} ea <small>잔여 {plan.remainingCapacity} / {plan.capacity}</small></span>)}</div>}</article>)}</div> }
+
+function InboundDetail({ inbound, warehouseIds, writable, confirm }: { inbound: Inbound; warehouseIds: number[]; writable: boolean; confirm: (pending: PendingConfirm) => void }) {
+  const itemsQuery = useInboundItems(inbound.inboundId, warehouseIds)
+  const items = itemsQuery.data
+  const startProcessing = useStartInboundProcessing()
+  const completeInbound = useCompleteInbound()
+  const busy = startProcessing.isPending || completeInbound.isPending
+  const actionError = startProcessing.error ?? completeInbound.error
+  return <section className="panel inbound-detail-panel">
+    <div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">INBOUND #{inbound.inboundId}</p><h2>입고 #{inbound.inboundId}</h2><div className="inbound-detail-meta"><span><b>도착 예정일</b>{inbound.expectedArrivalDate}</span><span><b>품목</b>{items ? `${items.length}개` : '-'}</span></div></div><InboundStatusBadge status={inbound.status} /></div>
+    {itemsQuery.isLoading && <p>품목을 불러오는 중입니다...</p>}
+    {itemsQuery.isError && <p className="inbound-error" role="alert">{itemsQuery.error instanceof Error ? itemsQuery.error.message : '품목을 불러오지 못했습니다.'}</p>}
+    {items && (inbound.status === 'EXPECTED' || inbound.status === 'WAITING') && <section className="inbound-stage"><h3>입고 대기</h3><p>Zone 용량 점검을 통과한 입고 건입니다. 물품이 입고처리장에 도착하면 입고 처리를 시작하세요. 시작하면 입고 수량만큼 입고처리장이 점유됩니다.</p><InboundItemsSummary items={items} /><ActionButton disabled={!writable || busy || inbound.status === 'EXPECTED'} onClick={() => confirm({ title: '입고 처리를 시작할까요?', description: '입고처리장 공간이 점유되며 되돌릴 수 없습니다.', confirmLabel: '처리 시작', run: () => startProcessing.mutate(inbound.inboundId) })}>입고 처리 시작</ActionButton></section>}
+    {items && inbound.status === 'PROCESSING' && <ProcessingStage items={items} writable={writable} busy={busy} confirm={confirm} onComplete={(body) => completeInbound.mutate({ inboundId: inbound.inboundId, body })} />}
+    {items && inbound.status === 'COMPLETED' && <section className="inbound-stage completed"><h3>입고 완료</h3><p>검수 결과대로 Lot·재고가 등록되었습니다. 불량 수량은 폐기 요청으로 연계됩니다.</p><InboundItemsSummary items={items} /></section>}
+    {actionError && <p className="inbound-error" role="alert">{actionError.message}</p>}
+  </section>
+}
+
+function ProcessingStage({ items, writable, busy, confirm, onComplete }: { items: InboundItemView[]; writable: boolean; busy: boolean; confirm: (pending: PendingConfirm) => void; onComplete: (body: { lotAssignments: Array<{ inboundItemId: number; lotNumber: string; manufactureDate?: string; expirationDate?: string }> }) => void }) {
+  const inspect = useInspectInboundItem()
+  const [draft, setDraft] = useState<InspectionDraft>({})
+  const [lots, setLots] = useState<LotDraft>({})
+  const allInspected = items.every((item) => item.inspectionResult !== 'PENDING')
+  const lotsReady = items.every((item) => (lots[item.inboundItemId]?.lotNumber ?? '').trim() !== '')
+  function changeDraft(id: number, patch: Partial<InspectionDraft[number]>, item: InboundItemView) { setDraft((current) => ({ ...current, [id]: { ...{ actualQuantity: String(item.expectedQuantity), inspectionResult: 'NORMAL' as const }, ...current[id], ...patch } })) }
+  function changeLot(id: number, patch: Partial<LotDraft[number]>) { setLots((current) => ({ ...current, [id]: { ...{ lotNumber: '', manufactureDate: '', expirationDate: '' }, ...current[id], ...patch } })) }
+  function complete() {
+    onComplete({ lotAssignments: items.map((item) => { const lot = lots[item.inboundItemId]; return { inboundItemId: item.inboundItemId, lotNumber: lot.lotNumber.trim(), ...(lot.manufactureDate && { manufactureDate: lot.manufactureDate }), ...(lot.expirationDate && { expirationDate: lot.expirationDate }) } }) })
+  }
+  return <section className="inbound-stage">
+    <h3>수량·품질 검수</h3><p>품목별로 실수량과 품질을 저장합니다. 검수는 품목당 한 번만 기록할 수 있고, 불량은 폐기 요청으로 연계됩니다.</p>
+    <div className="inspection-table">{items.map((item) => {
+      const value = draft[item.inboundItemId] ?? { actualQuantity: String(item.expectedQuantity), inspectionResult: 'NORMAL' as const }
+      const done = item.inspectionResult !== 'PENDING'
+      return <div className="inspection-row" key={item.inboundItemId}>
+        <div><strong>{item.productName}</strong><small>{item.productCode} · {item.zoneCode ?? `Zone #${item.zoneId}`} Zone · 예정 {item.expectedQuantity} ea</small></div>
+        <label>실수량<input type="number" min="0" disabled={done || !writable} value={done ? (item.actualQuantity ?? 0) : value.actualQuantity} onChange={(event) => changeDraft(item.inboundItemId, { actualQuantity: event.target.value }, item)} /></label>
+        <label>품질<select disabled={done || !writable} value={done ? item.inspectionResult : value.inspectionResult} onChange={(event) => changeDraft(item.inboundItemId, { inspectionResult: event.target.value as 'NORMAL' | 'DEFECTIVE' }, item)}>{done && <option value={item.inspectionResult}>{item.inspectionResult === 'NORMAL' ? '정상' : '불량'}</option>}<option value="NORMAL">정상</option><option value="DEFECTIVE">불량</option></select></label>
+        {done ? <span className="quality-status quality-normal">검수 완료</span> : <button type="button" disabled={!writable || inspect.isPending || value.actualQuantity === '' || Number(value.actualQuantity) < 0} onClick={() => inspect.mutate({ inboundItemId: item.inboundItemId, body: { actualQuantity: Number(value.actualQuantity), inspectionResult: value.inspectionResult } })}>검수 저장</button>}
+      </div>
+    })}</div>
+    {inspect.isError && <p className="inbound-error" role="alert">{inspect.error.message}</p>}
+    {allInspected ? <>
+      <h3>Lot 확정</h3><p>모든 품목의 검수가 끝났습니다. 품목별 Lot 번호(필수)와 제조·유통기한(선택)을 입력하면 재고로 등록됩니다.</p>
+      {items.map((item) => <div className="lot-row" key={item.inboundItemId}>
+        <strong>{item.productName}</strong>
+        <label>Lot 번호<input type="text" disabled={!writable} value={lots[item.inboundItemId]?.lotNumber ?? ''} onChange={(event) => changeLot(item.inboundItemId, { lotNumber: event.target.value })} /></label>
+        <label>제조일<input type="date" disabled={!writable} value={lots[item.inboundItemId]?.manufactureDate ?? ''} onChange={(event) => changeLot(item.inboundItemId, { manufactureDate: event.target.value })} /></label>
+        <label>유통기한<input type="date" disabled={!writable} value={lots[item.inboundItemId]?.expirationDate ?? ''} onChange={(event) => changeLot(item.inboundItemId, { expirationDate: event.target.value })} /></label>
+      </div>)}
+      <ActionButton disabled={!writable || busy || !lotsReady} onClick={() => confirm({ title: '입고를 완료할까요?', description: '재고·Lot이 등록되고 입고처리장이 해제됩니다. 되돌릴 수 없습니다.', confirmLabel: '입고 완료', run: complete })}>입고 완료 · 재고 등록</ActionButton>
+    </> : <p className="inbound-empty">모든 품목의 검수를 저장하면 Lot 확정 단계가 열립니다.</p>}
+  </section>
+}
