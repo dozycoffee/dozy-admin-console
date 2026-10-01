@@ -13,20 +13,22 @@ const operationsNavigation: Array<{ label: string; to: string; permission: Permi
   { label: '재고 현황', to: '/inventory', permission: permissions.inventoryRead },
   { label: '창고 평면도', to: '/warehouse-map', permission: permissions.inventoryRead },
 ]
+const warehouseManagerNavigation = [...operationsNavigation, { label: '입고 관리', to: '/inbounds', permission: permissions.inboundRead }]
 
 const navigationByMode: Record<ActorModeId, Array<{ label: string; to: string; permission: Permission }>> = {
   [actorModeIds.accountAdministrator]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }],
   [actorModeIds.merchandiser]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }],
-  [actorModeIds.warehouseManager]: operationsNavigation,
+  [actorModeIds.warehouseManager]: warehouseManagerNavigation,
   [actorModeIds.headquartersInventoryManager]: operationsNavigation,
 }
 
-type NavIconName = 'dashboard' | 'inventory' | 'map' | 'logout'
+type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'logout'
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, string> = {
     dashboard: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
     inventory: 'M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v9',
     map: 'M4 5.5 9 3l6 3 5-2.5v15L15 21l-6-3-5 2.5zM9 3v15M15 6v15',
+    inbound: 'M4 7h16M7 3v8m10-8v8M6 11h12v10H6zM9 15h6M9 18h4',
     logout: 'M10 5H5v14h5M14 8l4 4-4 4M18 12H9',
   }
   return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name]} /></svg>
@@ -71,7 +73,7 @@ export function AppLayout() {
                 state={allowed ? undefined : { from: item.to, permission: item.permission }}
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
-                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : 'map'} />
+                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/inbounds' ? 'inbound' : 'map'} />
                 <span className="nav-link-label">{item.label}</span>
                 {!allowed && <small aria-label="접근 제한">잠김</small>}
               </NavLink>

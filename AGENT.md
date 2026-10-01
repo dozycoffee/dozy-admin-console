@@ -56,7 +56,7 @@ src/
 - `ActorMode`: 사용자가 현재 수행하는 업무 역할이자 콘솔 경계. 로그인 후 중앙 모달에서 명시적으로
   선택하며, 사용자에게 할당되지 않은 모드는 잠금 상태로 노출하고 진입은 차단한다.
 - `Permission` (`src/features/auth/model/permissions.ts`): 기능 단위 허용 여부. `<도메인>.<read|write|manage>`
-  네이밍을 따른다 (예: `catalog.write`).
+  네이밍을 따른다 (예: `inbound.write`).
 - `AccessScope`: 데이터 범위 제한(현재는 `warehouseIds`). 같은 Permission을 가져도 조회·수정 가능한
   데이터 범위는 AccessScope로 좁혀진다.
 
@@ -97,17 +97,16 @@ Query로 관리한다 (`AppProviders`에서 전역 `QueryClient` 구성, `staleT
 - Base URL은 `VITE_API_BASE_URL` 환경변수로 주입한다(`.env.example` 참고). 코드에 URL을 하드코딩하지
   않는다.
 - API 응답은 Zod 스키마로 파싱해 타입과 런타임 검증을 동시에 확보한다. 스키마는 해당 기능의
-  `model/` 아래 둔다. (현재 `httpClient`는 초기 골격 상태이며, 공통 에러 처리·Zod 파싱 연결은
-  `feature_list.json`의 진행 중 작업이다 — 새로 API를 연동할 때 임시로 우회하지 말고 이 작업을 먼저
-  완료하거나 함께 진행한다.)
+  `model/` 아래 둔다.
+- 백엔드 계약이 아직 없는 도메인은 `src/mocks/handlers.ts`에 MSW 핸들러를 먼저 정의한다. 화면은
+  실제 API와 동일하게 `httpClient`/TanStack Query를 통해 그 목 API를 호출한다.
 
 ### 라우팅
 
 - 라우트 정의는 `src/app/router/AppRouter.tsx` 한 곳에 모은다.
 - 권한이 필요한 라우트는 반드시 `RequirePermission`으로 감싼다.
 - 새 라우트를 추가하면 `AppLayout`의 `navigation` 배열에도 함께 등록해 사이드바 메뉴와 라우트가
-  어긋나지 않게 한다. (참고: 현재 `AppLayout`의 `/users` 메뉴 항목은 아직 대응 라우트가 없는 상태 —
-  `feature_list.json`의 `users-permission-management-page` 작업에서 해소 예정.)
+  어긋나지 않게 한다.
 
 ## Common Commands
 
@@ -118,8 +117,11 @@ npm run lint      # oxlint
 npm run preview   # 빌드 결과 프리뷰
 ```
 
-테스트 러너는 아직 도입 전이다 (`feature_list.json`의 `testing-setup` 참고). 그 전까지는 기능 변경
-시 최소한 `npm run build`와 `npm run lint`로 검증한다.
+테스트는 Vitest로 실행한다.
+
+```bash
+npm test -- --run # 전체 단위/컴포넌트 테스트
+```
 
 ## Documentation
 

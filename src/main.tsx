@@ -5,11 +5,12 @@ import { AppProviders } from './app/providers/AppProviders'
 import App from './App'
 import './index.css'
 
-// BFF 계약이 확정되기 전까지 개발 환경의 모든 /api/* 요청은 MSW가 응답한다.
+// 개발 환경에서는 dozy-wms-api에 아직 없는 계약(인증, 입고 워크플로우)만 MSW가 응답하고,
+// handlers에 없는 /api/* 요청(창고, Zone 재고 요약 등)은 실제 백엔드로 그대로 보낸다.
 async function enableMocking() {
   if (!import.meta.env.DEV) return
   const { worker } = await import('./mocks/browser')
-  return worker.start({ onUnhandledRequest: 'error' })
+  return worker.start({ onUnhandledRequest: 'bypass' })
 }
 
 enableMocking().then(() => {

@@ -4,6 +4,8 @@ export const permissions = {
   dashboardRead: 'dashboard.read',
   inventoryRead: 'inventory.read',
   inventoryWrite: 'inventory.write',
+  inboundRead: 'inbound.read',
+  inboundWrite: 'inbound.write',
 } as const
 
 export type Permission = (typeof permissions)[keyof typeof permissions]

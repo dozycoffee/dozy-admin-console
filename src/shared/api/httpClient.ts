@@ -54,7 +54,8 @@ function extractMessage(data: unknown): string | undefined {
 }
 
 function extractCode(data: unknown): string | undefined {
-  const code = getField(data, 'code')
+  // dozy-wms-api는 에러 코드를 errorCode로, mock 서버는 code로 내려준다.
+  const code = getField(data, 'errorCode') ?? getField(data, 'code')
   return typeof code === 'string' ? code : undefined
 }
 
