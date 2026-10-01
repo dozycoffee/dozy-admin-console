@@ -166,5 +166,12 @@
     "description": "입고 화면을 dozy-wms-api 상태 모델(EXPECTED/WAITING/PROCESSING/COMPLETED)에 맞춰 재작성한다. 입고 등록, 처리 시작, 품목 검수, Lot 확정·완료를 실 API로 호출하고 입고 MSW mock은 제거한다. 승인/도착/분할/공급사/공간 점검 UI는 백엔드에 없어 제거한다.",
     "status": "completed",
     "dependencies": ["warehouse-inbound-management", "connect-wms-api-real"]
+  },
+  {
+    "id": "warehouse-outbound-management",
+    "name": "창고 관리자 출고 관리 구현",
+    "description": "창고 관리자 전용 출고 관리 화면. dozy-wms-api 출고 상태 모델(REQUESTED/PICKING/INSPECTING/COMPLETED)에 맞춰 출고 등록, FIFO 피킹 시작, 검수 시작, 완료를 실 API로 처리하고, 피킹 부족 수량과 유통기한 임박 재고 우선 출고 권고를 표시한다. 이력 페이지와 outbound.read/write 권한 포함.",
+    "status": "in_progress",
+    "dependencies": ["inbound-real-api"]
   }
 ]
