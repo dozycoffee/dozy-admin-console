@@ -12,6 +12,8 @@ import { ModeHomePage } from '../../pages/mode-home/ModeHomePage'
 import { actorModeIds } from '../../features/auth/model/actorModes'
 import { InboundManagementPage } from '../../pages/inbounds/InboundManagementPage'
 import { InboundHistoryPage } from '../../pages/inbounds/InboundHistoryPage'
+import { OutboundManagementPage } from '../../pages/outbounds/OutboundManagementPage'
+import { OutboundHistoryPage } from '../../pages/outbounds/OutboundHistoryPage'
 
 const inventoryModes = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager] as const
 const warehouseOperationsModes = [actorModeIds.warehouseManager] as const
@@ -27,6 +29,8 @@ export function AppRouter() {
           <Route path="warehouse-map" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><WarehouseMapPage /></RequirePermission></RequireActorMode>} />
           <Route path="inbounds" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="inbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundHistoryPage /></RequirePermission></RequireActorMode>} />
+          <Route path="outbounds" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.outboundRead}><OutboundManagementPage /></RequirePermission></RequireActorMode>} />
+          <Route path="outbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.outboundRead}><OutboundHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="access-denied" element={<AccessDeniedPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

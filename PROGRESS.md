@@ -67,6 +67,19 @@
 
 ## 세션 로그
 
+### 2026-10-01 (창고 관리자 출고 관리)
+
+- `/outbounds`(작업 큐), `/outbounds/history`(완료 이력) 추가. dozy-wms-api 출고 모델(`REQUESTED → PICKING → INSPECTING → COMPLETED`)대로
+  출고 요청 등록, 피킹 시작(FIFO 자동 점유), 검수 시작, 출고 완료를 실 API로 호출. 피킹 후 요청/피킹/부족 수량 표시
+- 유통기한 임박 재고 우선 출고 권고(`GET /api/lots/outbound-recommendations`) 패널 추가
+- 목록은 입고와 같이 전체를 받아 클라이언트에서 AccessScope 필터·상태별 건수·정렬·페이지 분할(`paginateOutbounds`)
+- `outbound.read`/`outbound.write` 권한, 창고 관리자 모드 사이드바 메뉴, 권한 문서 갱신
+- 검증: build/lint/test(92) 통과, 실 백엔드로 등록→피킹(재고 20/요청 25 → 부족 5)→검수→완료 API 흐름 확인.
+  화면(UI)은 내장 브라우저가 MSW 서비스 워커를 등록할 수 없어 직접 확인하지 못함
+- 로컬 dozy-wms-api DB가 초기화되어 있어 창고(762)·Zone A~E·작업구역·상품·입고 1건을 API로 재시드함.
+  `.env`의 `VITE_MOCK_WAREHOUSE_ID`를 762로 갱신(로컬 전용)
+- 알려진 한계: 출고 등록 시 재고를 사전 점검하지 않아 재고 부족은 피킹 시점에야 드러남. 출고 취소 API 없음
+
 ### 2026-10-01 (입고 관리 실 API 연동)
 
 - 입고 화면을 dozy-wms-api 모델로 재작성: 상태 `EXPECTED/WAITING/PROCESSING/COMPLETED`, 입고 등록(상품·수량·도착예정일),
