@@ -28,7 +28,9 @@
 | `inventory.read` | 재고·창고 현황 조회 | `/inventory` |
 | `inventory.write` | 재고 조정 등 쓰기 동작 | 미구현 — 재고 쓰기 화면 추가 시 적용 |
 | `inbound.read` | 입고 작업 조회 | 창고 관리자 모드의 `/inbounds`, `/inbounds/history` |
-| `inbound.write` | 검수 시작·완료, Location 적재 완료 | `/inbounds`의 작업 버튼 |
+| `inbound.write` | 입고 등록, 처리 시작, 품목 검수, 입고 완료 | `/inbounds`의 등록·작업 버튼 |
+| `outbound.read` | 출고 작업 조회 | 창고 관리자 모드의 `/outbounds`, `/outbounds/history` |
+| `outbound.write` | 출고 요청 등록, 피킹 시작, 검수 시작, 출고 완료 | `/outbounds`의 등록·작업 버튼 |
 
 새 Permission을 추가하면 이 표도 함께 갱신한다.
 
