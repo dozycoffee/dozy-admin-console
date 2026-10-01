@@ -173,5 +173,12 @@
     "description": "창고 관리자 전용 출고 관리 화면. dozy-wms-api 출고 상태 모델(REQUESTED/PICKING/INSPECTING/COMPLETED)에 맞춰 출고 등록, FIFO 피킹 시작, 검수 시작, 완료를 실 API로 처리하고, 피킹 부족 수량과 유통기한 임박 재고 우선 출고 권고를 표시한다. 이력 페이지와 outbound.read/write 권한 포함.",
     "status": "completed",
     "dependencies": ["inbound-real-api"]
+  },
+  {
+    "id": "warehouse-disposal-management",
+    "name": "창고 관리자 폐기 관리 구현",
+    "description": "창고 관리자 전용 폐기 관리 화면. dozy-wms-api 폐기 상태 모델(REQUESTED/APPROVED/COMPLETED)에 맞춰 폐기 요청 등록(불량·폐기 예정 재고 대상), 승인, 완료를 실 API로 처리한다. 입고·반품 불량이 자동 생성하는 폐기 요청도 처리한다. 이력 페이지와 disposal.read/write 권한 포함.",
+    "status": "in_progress",
+    "dependencies": ["warehouse-outbound-management"]
   }
 ]
