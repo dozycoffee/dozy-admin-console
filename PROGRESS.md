@@ -67,6 +67,19 @@
 
 ## 세션 로그
 
+### 2026-10-01 (창고 관리자 폐기 관리)
+
+- `/disposals`(작업 큐), `/disposals/history`(완료 이력) 추가. dozy-wms-api 폐기 모델(`REQUESTED → APPROVED → COMPLETED`)대로
+  폐기 요청 등록, 승인(재고를 폐기 처리장으로 이동), 완료(재고 영구 제외)를 실 API로 호출
+- 등록 대상은 불량·폐기 예정 재고(`GET /api/inventories?qualityStatus=`)뿐이며 서버 규칙상 폐기 수량은 재고 수량 전체라 입력받지 않음.
+  직접 등록 사유는 `EXPIRED`/`OTHER`만 노출 — 검수·반품 불량은 입고/반품 완료가 자동으로 폐기 요청을 만든다
+- 폐기 품목의 상품명은 폐기 가능 재고 목록에 남아 있는 건만 알 수 있어, 완료 건은 "재고 #id"로 표시(재고가 제외되므로)
+- `disposal.read`/`disposal.write` 권한, 창고 관리자 모드 사이드바 메뉴, 권한 문서 갱신
+- 검증: build/lint/test(105) 통과, 실 백엔드로 불량 입고 → 자동 폐기 요청 → 승인 → 완료(재고 제외) API 흐름 확인.
+  화면(UI)은 내장 브라우저가 MSW 서비스 워커를 등록할 수 없어 직접 확인하지 못함
+- 알려진 한계: NORMAL 재고를 폐기 예정으로 지정하는 액션(`mark-disposal-scheduled`)은 재고 쓰기 화면에서 제공 예정이라 아직 없음
+  (유통기한 경과 재고를 폐기하려면 먼저 그 지정이 필요). 폐기 취소 API 없음
+
 ### 2026-10-01 (창고 관리자 출고 관리)
 
 - `/outbounds`(작업 큐), `/outbounds/history`(완료 이력) 추가. dozy-wms-api 출고 모델(`REQUESTED → PICKING → INSPECTING → COMPLETED`)대로
