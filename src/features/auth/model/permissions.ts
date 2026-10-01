@@ -10,6 +10,8 @@ export const permissions = {
   outboundWrite: 'outbound.write',
   disposalRead: 'disposal.read',
   disposalWrite: 'disposal.write',
+  returnRead: 'return.read',
+  returnWrite: 'return.write',
 } as const
 
 export type Permission = (typeof permissions)[keyof typeof permissions]
