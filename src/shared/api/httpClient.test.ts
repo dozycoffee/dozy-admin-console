@@ -22,6 +22,12 @@ describe('toApiError', () => {
     expect(result.code).toBe('NOT_FOUND')
   })
 
+  it('dozy-wms-api처럼 errorCode로 내려주는 코드도 보존한다', () => {
+    const result = toApiError(buildResponseError({ message: '존재하지 않는 창고입니다.', errorCode: 'WAREHOUSE_NOT_FOUND' }, 404))
+
+    expect(result.code).toBe('WAREHOUSE_NOT_FOUND')
+  })
+
   it('서버 응답에 message가 없으면 status를 포함한 기본 메시지로 대체한다', () => {
     const error = buildResponseError({}, 500)
 
