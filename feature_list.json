@@ -180,5 +180,12 @@
     "description": "창고 관리자 전용 폐기 관리 화면. dozy-wms-api 폐기 상태 모델(REQUESTED/APPROVED/COMPLETED)에 맞춰 폐기 요청 등록(불량·폐기 예정 재고 대상), 승인, 완료를 실 API로 처리한다. 입고·반품 불량이 자동 생성하는 폐기 요청도 처리한다. 이력 페이지와 disposal.read/write 권한 포함.",
     "status": "completed",
     "dependencies": ["warehouse-outbound-management"]
+  },
+  {
+    "id": "warehouse-return-management",
+    "name": "창고 관리자 반품 관리 구현",
+    "description": "창고 관리자 전용 반품 관리 화면. dozy-wms-api 반품 상태 모델(RECEIVED/INSPECTING/COMPLETED)에 맞춰 반품 접수 등록, 검수 시작, 품목별 검수, Lot 확정 후 완료를 실 API로 처리한다. 정상 판정은 재고 복귀, 불량 판정은 폐기 요청으로 연계된다. 이력 페이지와 return.read/write 권한 포함.",
+    "status": "in_progress",
+    "dependencies": ["warehouse-disposal-management"]
   }
 ]
