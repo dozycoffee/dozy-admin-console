@@ -67,6 +67,31 @@
 
 ## 세션 로그
 
+### 2026-10-01 (입고 관리 실 API 연동)
+
+- 입고 화면을 dozy-wms-api 모델로 재작성: 상태 `EXPECTED/WAITING/PROCESSING/COMPLETED`, 입고 등록(상품·수량·도착예정일),
+  `PATCH /processing`, 품목별 `PATCH /inbound-items/:id/inspect`(품목당 1회), Lot 확정 후 `PATCH /complete`
+- 백엔드에 없는 기능 제거: 승인·도착·이동·적재완료 단계, 입고 요청 수정/분할, 공급사, 공간 점검(capacityCheck),
+  적재 계획. 입고 MSW handler/mock 데이터도 삭제 — 이제 mock은 인증만 남음
+- `GET /api/inbounds`는 창고 필터·페이지네이션이 없어 `useInbounds`가 전체를 받아 클라이언트에서 AccessScope 필터·
+  상태별 건수·정렬·페이지 분할(`paginateInbounds`). 품목은 목록 N+1을 피하려 선택한 건만 조회하고 상품명(`/api/products`)·
+  Zone 코드(zone-summary)를 합침. 완료 시 `inventory` 쿼리도 invalidate
+- `httpClient`가 서버 에러 코드 필드 `errorCode`도 읽도록 수정
+- 검증: build/lint/test(78) 통과, 실 백엔드로 등록→처리시작→검수→완료→Zone 사용량 반영 API 흐름 확인.
+  화면(UI) 확인은 못 함 — 내장 브라우저는 MSW 서비스 워커 등록 불가(로그인이 mock이라 진입 불가), Chrome 확장 미연결
+- 알려진 한계: 입고처리장(INBOUND) 용량 50 초과 입고는 처리 시작에서 서버가 거부(메시지를 화면에 표시).
+  목록에 품목 수는 표시하지 않음. 입고 취소 API는 백엔드에 없음
+
+### 2026-10-01 (dozy-wms-api 실연동)
+
+- `mocks/handlers.ts`에서 `GET /api/warehouses/:id`, `GET /api/inventories/zone-summary` mock 제거,
+  `main.tsx`의 MSW를 `onUnhandledRequest: 'bypass'`로 변경 — 인증·입고만 mock, 나머지는 실제 백엔드로 전달
+- mock 사용자 `warehouseIds`/mock 입고의 창고 id를 `VITE_MOCK_WAREHOUSE_ID`(기본 543)로 주입. 로컬
+  dozy-wms-api DB가 비어 있어 API로 창고(543)·Zone A~E·Location을 시드함 (F Zone은 백엔드 미지원으로 500)
+- 검증: 실 응답을 Zod 스키마로 파싱 성공, CORS 프리플라이트 OK, build/lint/test 통과.
+  내장 브라우저 패널은 MSW 서비스 워커 등록이 막혀 화면 확인은 못 함(Chrome 확장 미연결)
+- 인증은 보류 유지(mock)
+
 ### 2026-09-24 (창고 관리자 입고 관리 탭)
 
 - 창고 관리자 모드에만 노출되는 `/inbounds` 입고 관리 탭을 추가했다. 본사 재고 담당자는 같은 URL에 직접 접근해도 모드 가드에서 차단된다.
