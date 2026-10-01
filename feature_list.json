@@ -171,7 +171,7 @@
     "id": "warehouse-outbound-management",
     "name": "창고 관리자 출고 관리 구현",
     "description": "창고 관리자 전용 출고 관리 화면. dozy-wms-api 출고 상태 모델(REQUESTED/PICKING/INSPECTING/COMPLETED)에 맞춰 출고 등록, FIFO 피킹 시작, 검수 시작, 완료를 실 API로 처리하고, 피킹 부족 수량과 유통기한 임박 재고 우선 출고 권고를 표시한다. 이력 페이지와 outbound.read/write 권한 포함.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inbound-real-api"]
   }
 ]
