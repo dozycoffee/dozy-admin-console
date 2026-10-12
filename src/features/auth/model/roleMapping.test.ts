@@ -18,7 +18,7 @@ describe('parseWarehouseIds', () => {
 })
 
 describe('buildCurrentUser', () => {
-  it('auth 관리 role은 계정 관리자 모드와 대시보드·계정 관리 권한만 준다', () => {
+  it('auth:admin은 계정 관리자 모드와 대시보드·계정 조회·쓰기 권한만 준다', () => {
     const user = buildCurrentUser({ ...base, roles: ['auth:admin'] }, [1])
 
     expect(user.id).toBe(base.principalId)
@@ -26,6 +26,13 @@ describe('buildCurrentUser', () => {
     expect(user.actorModes).toEqual([actorModeIds.accountAdministrator])
     expect(user.permissions).toEqual([permissions.dashboardRead, permissions.accountRead, permissions.accountWrite])
     expect(user.scope.warehouseIds).toEqual([])
+  })
+
+  it('auth:owner는 admin 권한에 owner 전용 계정 관리 권한(account.manage)을 더한다', () => {
+    const user = buildCurrentUser({ ...base, roles: ['auth:owner'] }, [1])
+
+    expect(user.actorModes).toEqual([actorModeIds.accountAdministrator])
+    expect(user.permissions).toEqual([permissions.dashboardRead, permissions.accountRead, permissions.accountWrite, permissions.accountManage])
   })
 
   it('창고 관리자 role은 입출고·폐기·반품 권한과 환경 설정의 창고 범위를 준다', () => {
