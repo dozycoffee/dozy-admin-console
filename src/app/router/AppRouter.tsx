@@ -23,6 +23,7 @@ import { EmployeesPage } from '../../pages/employees/EmployeesPage'
 import { RolesPage } from '../../pages/roles/RolesPage'
 import { AccountPage } from '../../pages/account/AccountPage'
 import { AuditLogsPage } from '../../pages/audit-logs/AuditLogsPage'
+import { SystemClientsPage } from '../../pages/system-clients/SystemClientsPage'
 import { ReturnManagementPage } from '../../pages/returns/ReturnManagementPage'
 import { ReturnHistoryPage } from '../../pages/returns/ReturnHistoryPage'
 
@@ -53,6 +54,7 @@ export function AppRouter() {
           <Route path="returns/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="employees" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><EmployeesPage /></RequirePermission></RequireActorMode>} />
           <Route path="roles" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><RolesPage /></RequirePermission></RequireActorMode>} />
+          <Route path="system-clients" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><SystemClientsPage /></RequirePermission></RequireActorMode>} />
           <Route path="audit-logs" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountManage}><AuditLogsPage /></RequirePermission></RequireActorMode>} />
           {/* 로그인한 모든 사용자의 본인 계정 화면이라 모드·권한 제한이 없다 */}
           <Route path="account" element={<AccountPage />} />
