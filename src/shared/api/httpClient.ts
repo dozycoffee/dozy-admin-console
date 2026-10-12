@@ -1,25 +1,80 @@
-import axios from 'axios'
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import { ApiError } from './ApiError'
 import { getAccessToken } from './authToken'
 
-export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10_000,
-  headers: { 'Content-Type': 'application/json' },
-})
+type RetriableConfig = InternalAxiosRequestConfig & { _tokenRefreshed?: boolean }
 
-httpClient.interceptors.request.use((config) => {
-  const accessToken = getAccessToken()
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
-  }
-  return config
-})
+type TokenRefreshHandlers = {
+  /** 새 access token을 발급받아 반환한다. 실패하면 reject한다. */
+  refresh: () => Promise<string>
+  /** 갱신까지 실패해 세션을 더 이어갈 수 없을 때 호출한다. */
+  onSessionLost: () => void
+}
 
-httpClient.interceptors.response.use(
-  (response) => response,
-  (error: unknown) => Promise.reject(toApiError(error)),
-)
+let tokenRefreshHandlers: TokenRefreshHandlers | null = null
+
+/** AuthProvider가 access token 만료(401 UNAUTHENTICATED) 시 자동 갱신 로직을 연결한다. */
+export function configureTokenRefresh(handlers: TokenRefreshHandlers | null): void {
+  tokenRefreshHandlers = handlers
+}
+
+function createClient(baseURL: string | undefined, options: { withCredentials?: boolean } = {}): AxiosInstance {
+  const client = axios.create({
+    baseURL,
+    timeout: 10_000,
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: options.withCredentials,
+  })
+
+  client.interceptors.request.use((config) => {
+    const accessToken = getAccessToken()
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    return config
+  })
+
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: unknown) => {
+      const apiError = toApiError(error)
+      if (axios.isAxiosError(error) && error.config && shouldRefreshToken(error.config, apiError)) {
+        const config: RetriableConfig = error.config
+        config._tokenRefreshed = true
+        const handlers = tokenRefreshHandlers!
+        let accessToken: string
+        try {
+          accessToken = await handlers.refresh()
+        } catch {
+          handlers.onSessionLost()
+          throw apiError
+        }
+        config.headers.Authorization = `Bearer ${accessToken}`
+        return client.request(config)
+      }
+      throw apiError
+    },
+  )
+
+  return client
+}
+
+function shouldRefreshToken(config: RetriableConfig, apiError: ApiError): boolean {
+  return (
+    tokenRefreshHandlers !== null &&
+    !config._tokenRefreshed &&
+    apiError.status === 401 &&
+    apiError.code === 'UNAUTHENTICATED' &&
+    // 토큰 없이 보낸 요청의 401은 갱신할 대상이 없다.
+    Boolean(config.headers.Authorization)
+  )
+}
+
+/** 업무 API(dozy-wms-api 등) 호출용 클라이언트 */
+export const httpClient = createClient(import.meta.env.VITE_API_BASE_URL)
+
+/** dozy-auth 호출용 클라이언트. refresh 쿠키(HttpOnly)를 주고받으므로 credentials를 포함한다. */
+export const authHttpClient = createClient(import.meta.env.VITE_AUTH_BASE_URL, { withCredentials: true })
 
 export function toApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) {
@@ -54,7 +109,7 @@ function extractMessage(data: unknown): string | undefined {
 }
 
 function extractCode(data: unknown): string | undefined {
-  // dozy-wms-api는 에러 코드를 errorCode로, mock 서버는 code로 내려준다.
+  // dozy-wms-api는 에러 코드를 errorCode로, dozy-auth(RFC 9457 Problem Details)와 mock 서버는 code로 내려준다.
   const code = getField(data, 'errorCode') ?? getField(data, 'code')
   return typeof code === 'string' ? code : undefined
 }

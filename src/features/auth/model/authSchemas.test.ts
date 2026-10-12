@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { currentUserSchema, loginResponseSchema } from './authSchemas'
-import { actorModeIds } from './actorModes'
+import { loginResponseSchema, meResponseSchema } from './authSchemas'
 
 describe('loginResponseSchema', () => {
-  it('accessToken을 파싱한다', () => {
-    const result = loginResponseSchema.parse({ accessToken: 'test-token' })
+  it('accessToken을 파싱하고 나머지 필드는 무시한다', () => {
+    const result = loginResponseSchema.parse({ accessToken: 'test-token', tokenType: 'Bearer', expiresIn: 600 })
 
-    expect(result.accessToken).toBe('test-token')
+    expect(result).toEqual({ accessToken: 'test-token' })
   })
 
   it('accessToken이 없으면 파싱에 실패한다', () => {
@@ -14,28 +13,25 @@ describe('loginResponseSchema', () => {
   })
 })
 
-describe('currentUserSchema', () => {
-  const validUser = {
-    id: 'user-001',
+describe('meResponseSchema', () => {
+  const validMe = {
+    principalType: 'employee',
+    principalId: '0199a3c4-7b2e-7c1a-9f3d-2b6e8a1c4d5f',
     name: '김도윤',
-    actorModes: [actorModeIds.warehouseManager],
-    permissions: ['dashboard.read', 'inventory.write'],
-    scope: { warehouseIds: [1, 2] },
+    email: 'kim@dozycoffee.com',
+    roles: ['wms:warehouse_manager'],
   }
 
-  it('서버 응답 형태를 파싱한다', () => {
-    const result = currentUserSchema.parse(validUser)
-
-    expect(result.name).toBe('김도윤')
-    expect(result.actorModes).toEqual([actorModeIds.warehouseManager])
-    expect(result.permissions).toEqual(['dashboard.read', 'inventory.write'])
+  it('dozy-auth의 내 정보 응답을 파싱한다', () => {
+    expect(meResponseSchema.parse(validMe)).toEqual(validMe)
   })
 
-  it('알 수 없는 permission 값이면 파싱에 실패한다', () => {
-    expect(() => currentUserSchema.parse({ ...validUser, permissions: ['unknown.permission'] })).toThrow()
+  it('role이 없는 직원은 빈 배열로 파싱한다', () => {
+    expect(meResponseSchema.parse({ ...validMe, roles: [] }).roles).toEqual([])
   })
 
-  it('알 수 없는 액터 모드 값이면 파싱에 실패한다', () => {
-    expect(() => currentUserSchema.parse({ ...validUser, actorModes: ['unknown-mode'] })).toThrow()
+  it('roles가 없으면 파싱에 실패한다', () => {
+    const { roles: _roles, ...withoutRoles } = validMe
+    expect(() => meResponseSchema.parse(withoutRoles)).toThrow()
   })
 })

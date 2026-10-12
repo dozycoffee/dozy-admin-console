@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { actorModeIds } from '../../features/auth/model/actorModes'
+import { ApiError } from '../../shared/api/ApiError'
 import { LoginPage } from './LoginPage'
 
 vi.mock('../../features/auth/model/useAuth')
@@ -44,9 +45,8 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    expect(screen.getByText('아이디')).toBeInTheDocument()
-    expect(screen.getByText('비밀번호')).toBeInTheDocument()
-    expect(screen.getByText('데모 계정: dozy / dozy1234')).toBeInTheDocument()
+    expect(screen.getByLabelText('이메일')).toBeInTheDocument()
+    expect(screen.getByLabelText('비밀번호')).toBeInTheDocument()
   })
 
   it('로그인 성공 시 콘솔 홈으로 이동한다', async () => {
@@ -55,24 +55,42 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
 
     renderLoginPage()
-    await user.type(screen.getByLabelText('아이디'), 'dozy')
-    await user.type(screen.getByLabelText('비밀번호'), 'dozy1234')
+    await user.type(screen.getByLabelText('이메일'), 'kim@dozycoffee.com')
+    await user.type(screen.getByLabelText('비밀번호'), 'pw')
     await user.click(screen.getByRole('button', { name: '로그인' }))
 
-    expect(login).toHaveBeenCalledWith('dozy', 'dozy1234')
+    expect(login).toHaveBeenCalledWith('kim@dozycoffee.com', 'pw')
     expect(await screen.findByText('home page')).toBeInTheDocument()
   })
 
-  it('로그인 실패 시 에러 메시지를 보여준다', async () => {
-    const login = vi.fn().mockRejectedValue(new Error('아이디 또는 비밀번호가 올바르지 않습니다.'))
+  it.each([
+    ['INVALID_CREDENTIALS', 401, '이메일 또는 비밀번호가 올바르지 않습니다.'],
+    ['ACCOUNT_SUSPENDED', 403, '정지된 계정입니다. 관리자에게 문의해주세요.'],
+    ['TOO_MANY_ATTEMPTS', 429, '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.'],
+    ['SOMETHING_ELSE', 500, '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.'],
+  ])('로그인 실패 코드 %s는 콘솔이 정한 안내 문구로 보여준다', async (code, status, message) => {
+    const login = vi.fn().mockRejectedValue(new ApiError('서버 문구는 쓰지 않는다', { status, code }))
     mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login, logout: vi.fn() })
     const user = userEvent.setup()
 
     renderLoginPage()
-    await user.type(screen.getByLabelText('아이디'), 'wrong')
+    await user.type(screen.getByLabelText('이메일'), 'wrong@dozycoffee.com')
     await user.type(screen.getByLabelText('비밀번호'), 'wrong')
     await user.click(screen.getByRole('button', { name: '로그인' }))
 
-    expect(await screen.findByText('아이디 또는 비밀번호가 올바르지 않습니다.')).toBeInTheDocument()
+    expect(await screen.findByText(message)).toBeInTheDocument()
+  })
+
+  it('서버에 연결하지 못하면 네트워크 안내 문구를 보여준다', async () => {
+    const login = vi.fn().mockRejectedValue(new ApiError('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.', { status: null }))
+    mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login, logout: vi.fn() })
+    const user = userEvent.setup()
+
+    renderLoginPage()
+    await user.type(screen.getByLabelText('이메일'), 'kim@dozycoffee.com')
+    await user.type(screen.getByLabelText('비밀번호'), 'pw')
+    await user.click(screen.getByRole('button', { name: '로그인' }))
+
+    expect(await screen.findByText('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.')).toBeInTheDocument()
   })
 })

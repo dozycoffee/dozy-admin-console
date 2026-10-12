@@ -1,11 +1,28 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { ApiError } from '../../shared/api/ApiError'
 import { useAuth } from '../../features/auth/model/useAuth'
+
+// dozy-auth는 문구가 아니라 code로만 분기하도록 하므로 안내 문구는 콘솔이 정한다.
+const loginErrorMessages: Record<string, string> = {
+  INVALID_CREDENTIALS: '이메일 또는 비밀번호가 올바르지 않습니다.',
+  ACCOUNT_SUSPENDED: '정지된 계정입니다. 관리자에게 문의해주세요.',
+  TOO_MANY_ATTEMPTS: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.',
+  VALIDATION_FAILED: '이메일과 비밀번호를 올바르게 입력해주세요.',
+}
+
+function toLoginErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === null) return error.message
+    return (error.code && loginErrorMessages[error.code]) || '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.'
+  }
+  return '로그인에 실패했습니다.'
+}
 
 export function LoginPage() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -19,10 +36,10 @@ export function LoginPage() {
     setError(null)
     setIsSubmitting(true)
     try {
-      await login(username, password)
+      await login(email, password)
       navigate('/', { replace: true })
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : '로그인에 실패했습니다.')
+      setError(toLoginErrorMessage(loginError))
     } finally {
       setIsSubmitting(false)
     }
@@ -34,8 +51,8 @@ export function LoginPage() {
         <div className="brand">DOZY <span>COFFEE</span></div>
         <p>관리자 콘솔에 로그인하세요.</p>
         <label>
-          아이디
-          <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" />
+          이메일
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" />
         </label>
         <label>
           비밀번호
@@ -50,7 +67,6 @@ export function LoginPage() {
         <button type="submit" className="button" disabled={isSubmitting}>
           {isSubmitting ? '로그인 중...' : '로그인'}
         </button>
-        <small className="login-hint">데모 계정: dozy / dozy1234</small>
       </form>
     </div>
   )

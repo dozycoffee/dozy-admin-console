@@ -22,20 +22,15 @@
   데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
   API로 옮기는 작업은 아직 없음
 
-- **중요 — dozy-wms-api에 CORS 설정이 없다.** 이번 세션에서 처음으로 실제 브라우저로 화면을
-  띄워봤는데(이전 세션들은 curl로만 API 응답을 검증), 프런트(5173)에서 백엔드(8080)로 보내는
-  실제 요청이 전부 CORS로 막혀 `net::ERR_FAILED`가 난다(`OPTIONS` 프리플라이트 응답에
-  `Access-Control-Allow-Origin` 자체가 없음을 확인). `inventory-dashboard-data`도 이 문제 때문에
-  실제로는 브라우저에서 정상 동작하지 않는 상태 — 그동안 curl 기반 검증만으로 "완료"라고
-  판단한 게 이 결함을 놓친 원인이다. dozy-wms-api에 Spring WebFlux CORS 설정(프런트 origin 허용)
-  추가가 필요하며, 프런트 쪽 수정 사항은 없다
-- 로그인은 MSW로 `POST /api/auth/login`/`GET /api/auth/me`를 목킹해 실제 로그인
-  UI(`LoginPage`)·세션 상태(`AuthProvider`)·인증 가드(`RequireAuth`)·로그아웃까지 완성했다.
-  데모 계정은 `dozy`/`dozy1234`. dozy-wms-api ADR-0010과 동일하게 "포트 + mock 어댑터" 패턴이라,
-  실제 인증 서비스가 준비되면 `authApi.ts`의 두 함수만 실제 API로 교체하면 된다. **의도적 보류** —
-  인증(JWT/JWKS 등 실제 연동)은 별도 MSA로 분리될 예정이며 우선순위가 가장 낮아, 해당 서비스가
-  준비되기 전까지 `auth-real-login`(mock 어댑터 교체)/`users-permission-management-page`는
-  착수하지 않는다 (`feature_list.json` 참고)
+- dozy-wms-api CORS는 해결된 상태다(2026-10-01 세션에서 프리플라이트 OK 확인). 아래 로그인 항목의 dozy-auth도
+  허용 origin 설정(`AUTH_CORS_ALLOWED_ORIGINS`)이 필요하다
+- **로그인은 dozy-auth 실서비스로 연동했다**(`auth-real-login`). internal realm 이메일+비밀번호 로그인,
+  access token은 메모리에만 보관하고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014).
+  업무 API가 401 `UNAUTHENTICATED`를 주면 `httpClient`가 토큰을 갱신하고 한 번 재시도하며, 갱신까지
+  실패하면 로그아웃 상태로 돌아간다. auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로
+  변환한다 — 이 파일의 role 이름(`wms:warehouse_manager` 등)은 임시로 정한 것이라 운영 role 정의와 맞춰야 한다.
+  dozy-auth가 시드하는 role은 `auth:owner`/`auth:admin`뿐이다. 창고 범위(`AccessScope.warehouseIds`)는
+  auth에 창고 개념이 없어 `VITE_WAREHOUSE_IDS`로 임시 지정한다. MSW 핸들러는 비어 있다
 - Catalog 화면은 완전히 제거했다. **`catalog-crud`도 그에 따라 목록에서 제거** — CatalogPage가
   가리키던 완제품(아메리카노 등) 상품 마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른
   별도 catalog MSA에서 처리될 예정이며 아직 미구현 상태라, 연동할 API가 없는 미완성 화면을 계속
@@ -59,13 +54,31 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목 중 의존성 없는 게 더 이상 없다 —
-`catalog-crud`/`auth-real-login`/`users-permission-management-page`는 모두 외부 서비스(별도 MSA)
-준비를 기다려야 하는 보류 상태다. 백엔드 쪽 진행 상황을 확인해서 보류가 풀리면 그때 착수한다.
-그 전에 **dozy-wms-api CORS 설정 추가가 선행되어야** `inventory-dashboard-data`를 포함한 모든
-실 API 연동 화면이 브라우저에서 정상 동작한다.
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정, 직원 관리, role 관리,
+system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (dozy-auth 실로그인 연동)
+
+- 이슈 #45, `feat/auth-real-login` 브랜치에서 `auth-real-login` 구현 (PR #46)
+- `authHttpClient`(`VITE_AUTH_BASE_URL`, credentials 포함) 추가. 로그인/갱신/로그아웃/`/me`는 `/realms/internal/*` 호출.
+  access token을 localStorage에서 메모리로 옮겼다(새로고침 시 refresh 쿠키로 복원, `restoreSession`)
+- `httpClient` 응답 인터셉터: 401 `UNAUTHENTICATED`(토큰을 보낸 요청만)면 갱신 후 한 번 재시도. 갱신은 한 번에 하나만
+  보내고(교체형 refresh token), `TOKEN_ROTATED`(409)는 한 번 재시도한다
+- `roleMapping.ts`: `/me`의 `roles`를 액터 모드·Permission으로 변환(`buildCurrentUser`). 매핑에 없는 role은 무시.
+  창고 범위는 환경 변수로 대체. LoginPage는 이메일 입력으로 바꾸고 에러 code별 안내 문구를 콘솔이 정한다
+- 로그아웃은 서버 세션을 폐기하고, 로컬 로그인 상태와 이전 사용자의 업무 데이터 캐시를 함께 지운다
+- 로컬 환경: dozy-auth를 `SERVER_PORT=8081 AUTH_ISSUER_BASE_URL=http://localhost:8081
+  AUTH_CORS_ALLOWED_ORIGINS=http://localhost:5173 AUTH_APP_URL_INTERNAL=http://localhost:5173`로 실행
+  (`local` 프로필, Docker 필요). owner 초대 메일은 Mailpit(8025)에서 토큰을 받아 수락. 콘솔 `.env`에
+  `VITE_AUTH_BASE_URL`, `VITE_WAREHOUSE_IDS` 추가(`VITE_MOCK_WAREHOUSE_ID`는 삭제)
+- 검증: build/lint/test(146) 통과. 헤드리스 Chrome으로 실서버(auth 8081)에 대해 로그인 실패 문구, 로그인 →
+  모드 선택(owner는 계정 관리자만 사용 가능) → 새로고침 후 세션 복원 → 로그아웃(서버 세션 폐기) →
+  새로고침해도 로그아웃 유지까지 확인. 토큰 만료 중 자동 갱신은 단위 테스트로만 검증(10분 대기 미수행)
+- 알려진 한계: 창고 관리자·본사 재고·MD 모드는 해당 role을 가진 직원이 있어야 쓸 수 있는데, dozy-auth에는
+  `auth:owner`/`auth:admin`만 시드돼 있다. 해당 role 정의와 직원 초대는 직원·role 관리 화면(후속) 또는
+  auth 관리 API로 만들어야 한다. 이 환경에서 창고 모드 화면은 실로그인으로 확인하지 못했다
 
 ### 2026-10-01 (창고 관리자 반품 관리)
 
@@ -439,12 +452,10 @@
 
 ## 다음 세션에서 할 일
 
-- **dozy-wms-api에 CORS 설정 추가가 최우선** — 이게 없으면 `inventory-dashboard-data`를 포함해
-  실 API를 부르는 모든 화면이 브라우저에서 동작하지 않는다. 프런트 쪽에서 할 일은 없고, 백엔드에
-  Spring WebFlux CORS 설정(프런트 origin 허용)만 추가하면 됨
-- `feature_list.json`의 `pending` 3건(`catalog-crud`/`auth-real-login`/
-  `users-permission-management-page`)은 모두 별도 MSA(카탈로그/인증) 준비를 기다리는 보류 상태 —
-  해당 서비스 쪽 진행 상황을 먼저 확인한 뒤 보류가 풀리면 착수
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → 직원 관리 → role 관리 →
+  system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `roleMapping.ts`의 role 이름을 운영 role 정의(auth 관리 API)와 맞추고, 창고 모드를 실로그인으로 확인
+- 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
   ProductService.DELETED_BY_SYSTEM의 CurrentAccessScopeProvider 교체, warehouseIds 필터와
   AccessScope의 교차검증)은 실제 인증이 붙는 시점에 auth-real-login과 함께 처리해야 함을 기억할 것
