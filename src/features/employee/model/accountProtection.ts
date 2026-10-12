@@ -1,4 +1,4 @@
-export type ProtectedAction = 'edit' | 'invitation' | 'suspend' | 'reactivate' | 'deactivate' | 'password-reset'
+export type ProtectedAction = 'edit' | 'invitation' | 'suspend' | 'reactivate' | 'deactivate' | 'password-reset' | 'role'
 
 const OWNER_ROLE = 'auth:owner'
 const ADMIN_ROLE = 'auth:admin'

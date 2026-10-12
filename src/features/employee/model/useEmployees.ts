@@ -88,3 +88,25 @@ export function useSendPasswordReset() {
     await authHttpClient.post(`/admin/principals/${principalId}/password-reset`)
   })
 }
+
+/** role 부여·회수는 직원의 role과 role별 부여 인원 수를 함께 바꾼다. */
+function useRoleAssignmentMutation<TVariables>(mutationFn: (variables: TVariables) => Promise<unknown>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: () => Promise.all([queryClient.invalidateQueries({ queryKey: ['employees'] }), queryClient.invalidateQueries({ queryKey: ['roles'] })]),
+  })
+}
+
+export function useGrantRoles() {
+  return useRoleAssignmentMutation(async ({ principalId, roles }: { principalId: string; roles: string[] }) => {
+    await authHttpClient.post(`/admin/principals/${principalId}/roles`, { roles })
+  })
+}
+
+/** `role`은 `{audience}:{code}` 형식이다. */
+export function useRevokeRole() {
+  return useRoleAssignmentMutation(async ({ principalId, role }: { principalId: string; role: string }) => {
+    await authHttpClient.delete(`/admin/principals/${principalId}/roles/${role}`)
+  })
+}

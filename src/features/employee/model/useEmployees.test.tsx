@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { authHttpClient } from '../../../shared/api/httpClient'
 import { createQueryClientWrapper } from '../../../shared/testing/queryClientWrapper'
-import { toQueryParams, useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useInviteEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee } from './useEmployees'
+import { toQueryParams, useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useGrantRoles, useInviteEmployee, useReactivateEmployee, useResendInvitation, useRevokeRole, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee } from './useEmployees'
 
 const summary = { principalId: 'p-1', email: 'kim@dozycoffee.com', name: '김도윤', status: 'ACTIVE', roles: [], createdAt: '2026-09-24T05:00:00Z' }
 const listResponse = { items: [summary], page: { number: 0, size: 10, totalElements: 1, totalPages: 1 } }
@@ -125,5 +125,25 @@ describe('계정 상태·정보 mutation', () => {
 
     expect(patchSpy).toHaveBeenCalledWith('/admin/employees/p-1', { name: '김새이름', phone: null })
     expect(updated.name).toBe('김새이름')
+  })
+})
+
+describe('role 부여·회수 mutation', () => {
+  it('부여는 POST .../roles로 role 목록을 보낸다', async () => {
+    const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useGrantRoles(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync({ principalId: 'p-1', roles: ['wms:warehouse_manager'] })
+
+    expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/roles', { roles: ['wms:warehouse_manager'] })
+  })
+
+  it('회수는 DELETE .../roles/{role}로 보낸다', async () => {
+    const deleteSpy = vi.spyOn(authHttpClient, 'delete').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useRevokeRole(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync({ principalId: 'p-1', role: 'wms:warehouse_manager' })
+
+    expect(deleteSpy).toHaveBeenCalledWith('/admin/principals/p-1/roles/wms:warehouse_manager')
   })
 })
