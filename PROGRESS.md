@@ -37,12 +37,11 @@
   띄워두는 대신 지우고 나중에 API가 준비되면 화면부터 새로 만들기로 했다. `permissions.ts`의
   `catalogRead`/`catalogWrite`, `AppLayout`의 "상품 관리" 메뉴, `product` 모델
   (`productSchemas`/`useActiveProducts`)도 함께 제거. 같은 맥락에서 대응 화면이 없던
-  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(실제 화면은 `users-permission-management-page`
-  착수 시 다시 추가 필요)
+  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(계정 관리 화면은 이후 직원 관리·role 관리 등 `auth-*` 화면으로
+  나눠 구현했다)
 - Inventory/Dashboard는 dozy-wms-api 실 API(zone-summary/warehouses/products)로 연동 완료.
   `AccessScope.warehouseIds`를 `string[]`(슬러그) → `number[]`(dozy-wms-api Long id)로 변경했고,
   mock 값은 로컬 dev DB에 실제 등록한 창고 id를 가리킨다 — 다른 개발 DB에서는 이 값을 맞춰야 함
-- `AppLayout`의 `/users` 메뉴는 대응 라우트/화면이 아직 없음 (위 인증 보류와 연결됨)
 - 이슈/PR은 `.github/ISSUE_TEMPLATE`(feature/bug/refactor)·`.github/PULL_REQUEST_TEMPLATE.md`
   구조를 따르고, 라벨과 GitHub 네이티브 Issue Type(Feature/Bug/Task)을 맞춰 붙인다
   (`docs/git-workflow.md` "이슈/PR 템플릿·라벨·타입" 절 참고)
