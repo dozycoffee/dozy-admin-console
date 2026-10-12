@@ -449,3 +449,14 @@ a { color: inherit; text-decoration: none; }
 .employee-danger { background: #9c3b3b; }
 .employee-success { margin: 10px 0 0; color: #25683a; font-size: 13px; }
 @media (max-width: 600px) { .employee-invite-grid, .employee-fields { grid-template-columns: 1fr; } }
+.employee-secondary { background: #8a7a72; }
+.employee-hint { margin: 12px 0 0; color: #786d68; font-size: 12px; }
+.employee-edit { display: grid; gap: 10px; margin: 16px 0 0; padding: 14px; border: 1px solid #e4ddd9; border-radius: 10px; }
+.employee-edit label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
+.employee-edit input { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
+.employee-edit .employee-hint, .employee-edit .employee-actions { margin: 0; }
+.employee-actions { flex-wrap: wrap; margin-top: 16px; }
+.employee-actions .inbound-action-button { margin-top: 0; }
+.reason-modal label { display: grid; gap: 4px; margin: 0 0 4px; font-size: 12px; color: #6f6862; }
+.reason-modal textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; font: inherit; resize: vertical; }
+.reason-modal small { display: block; margin-bottom: 16px; color: #9b918c; text-align: right; }

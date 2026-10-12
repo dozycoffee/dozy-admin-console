@@ -219,8 +219,8 @@
   {
     "id": "auth-employee-account-actions",
     "name": "직원 계정 상태 변경·정보 수정",
-    "description": "직원 상세에서 계정 정지·해제·비활성화(사유 입력), 비밀번호 재설정 메일 발송, 이름·전화번호·주소 수정을 dozy-auth API로 구현한다. owner·admin 보호 규칙(PROTECTED_ACCOUNT)과 INVALID_STATE 안내를 포함한다.",
-    "status": "pending",
+    "description": "직원 상세에서 계정 정지·해제·비활성화(사유 입력), 비밀번호 재설정 메일 발송, 이름·전화번호·주소 수정을 dozy-auth API로 구현한다. account.manage(owner 전용) Permission으로 owner·admin 보호 규칙(GOV-02·GOV-03)을 화면에서 미리 반영하고 서버의 PROTECTED_ACCOUNT·INVALID_STATE 안내를 포함한다.",
+    "status": "completed",
     "dependencies": ["auth-employee-management"]
   }
 ]

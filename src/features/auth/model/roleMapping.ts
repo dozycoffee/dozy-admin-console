@@ -14,14 +14,20 @@ type RoleGrant = {
   permissions: readonly Permission[]
 }
 
-const accountAdministratorGrant: RoleGrant = {
+const adminGrant: RoleGrant = {
   actorModes: [actorModeIds.accountAdministrator],
   permissions: [permissions.dashboardRead, permissions.accountRead, permissions.accountWrite],
 }
 
+// owner만 할 수 있는 계정 관리(owner·admin 계정 변경, admin 임명 등)는 account.manage로 구분한다.
+const ownerGrant: RoleGrant = {
+  actorModes: adminGrant.actorModes,
+  permissions: [...adminGrant.permissions, permissions.accountManage],
+}
+
 export const roleGrants: Readonly<Record<string, RoleGrant>> = {
-  'auth:owner': accountAdministratorGrant,
-  'auth:admin': accountAdministratorGrant,
+  'auth:owner': ownerGrant,
+  'auth:admin': adminGrant,
   'wms:warehouse_manager': {
     actorModes: [actorModeIds.warehouseManager],
     permissions: [

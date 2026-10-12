@@ -5,7 +5,7 @@ import { ApiError } from '../../shared/api/ApiError'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail, EmployeeSummary } from '../../features/employee/model/employeeSchemas'
-import { useCancelInvitation, useEmployee, useEmployees, useInviteEmployee, useResendInvitation } from '../../features/employee/model/useEmployees'
+import { useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useInviteEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee } from '../../features/employee/model/useEmployees'
 import { useRoles } from '../../features/role/model/useRoles'
 import { EmployeesPage } from './EmployeesPage'
 
@@ -18,6 +18,7 @@ const mockedUseRoles = vi.mocked(useRoles)
 const mockedUseResend = vi.mocked(useResendInvitation)
 const mockedUseCancel = vi.mocked(useCancelInvitation)
 const mockedUseInvite = vi.mocked(useInviteEmployee)
+const idleMutation = { mutate: vi.fn(), reset: vi.fn(), isPending: false, isError: false, isSuccess: false } as never
 
 const kim: EmployeeSummary = { principalId: 'p-1', email: 'kim@dozycoffee.com', name: '김도윤', status: 'ACTIVE', roles: ['wms:warehouse_manager'], createdAt: '2026-09-24T05:00:00Z' }
 const lee: EmployeeSummary = { principalId: 'p-2', email: 'lee@dozycoffee.com', name: '이서연', status: 'PENDING', roles: [], createdAt: '2026-09-25T05:00:00Z' }
@@ -36,8 +37,13 @@ function setup(items: EmployeeSummary[] = [kim, lee], totalPages = 1) {
     return { isLoading: false, isError: false, data: detail } as never
   })
   mockedUseRoles.mockReturnValue({ isLoading: false, isError: false, data: [{ id: 11, audience: 'wms', code: 'warehouse_manager', fullCode: 'wms:warehouse_manager', name: '창고 관리자', description: null, isSystem: false, grantedCount: 1 }] } as never)
-  mockedUseResend.mockReturnValue({ mutate: resend, isPending: false, isSuccess: false } as never)
-  mockedUseCancel.mockReturnValue({ mutate: cancel, isPending: false } as never)
+  mockedUseResend.mockReturnValue({ mutate: resend, reset: vi.fn(), isPending: false, isError: false, isSuccess: false } as never)
+  mockedUseCancel.mockReturnValue({ mutate: cancel, reset: vi.fn(), isPending: false, isError: false, isSuccess: false } as never)
+  vi.mocked(useSuspendEmployee).mockReturnValue(idleMutation)
+  vi.mocked(useReactivateEmployee).mockReturnValue(idleMutation)
+  vi.mocked(useDeactivateEmployee).mockReturnValue(idleMutation)
+  vi.mocked(useSendPasswordReset).mockReturnValue(idleMutation)
+  vi.mocked(useUpdateEmployee).mockReturnValue(idleMutation)
   mockedUseInvite.mockReturnValue({ mutate: vi.fn(), isPending: false, isError: false, isSuccess: false } as never)
 }
 

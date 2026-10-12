@@ -14,6 +14,7 @@ export const permissions = {
   returnWrite: 'return.write',
   accountRead: 'account.read',
   accountWrite: 'account.write',
+  accountManage: 'account.manage',
 } as const
 
 export type Permission = (typeof permissions)[keyof typeof permissions]

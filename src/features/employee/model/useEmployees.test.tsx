@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { authHttpClient } from '../../../shared/api/httpClient'
 import { createQueryClientWrapper } from '../../../shared/testing/queryClientWrapper'
-import { toQueryParams, useCancelInvitation, useEmployee, useEmployees, useInviteEmployee, useResendInvitation } from './useEmployees'
+import { toQueryParams, useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useInviteEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee } from './useEmployees'
 
 const summary = { principalId: 'p-1', email: 'kim@dozycoffee.com', name: '김도윤', status: 'ACTIVE', roles: [], createdAt: '2026-09-24T05:00:00Z' }
 const listResponse = { items: [summary], page: { number: 0, size: 10, totalElements: 1, totalPages: 1 } }
@@ -76,5 +76,54 @@ describe('직원 mutation', () => {
     await result.current.mutateAsync('p-2')
 
     expect(deleteSpy).toHaveBeenCalledWith('/admin/employees/p-2/invitation')
+  })
+})
+
+describe('계정 상태·정보 mutation', () => {
+  it('정지는 사유를 담아 POST .../suspend로 보낸다', async () => {
+    const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useSuspendEmployee(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync({ principalId: 'p-1', reason: '계정 탈취 의심' })
+
+    expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/suspend', { reason: '계정 탈취 의심' })
+  })
+
+  it('정지 해제는 POST .../reactivate로 보낸다', async () => {
+    const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useReactivateEmployee(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync('p-1')
+
+    expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/reactivate')
+  })
+
+  it('비활성화는 사유를 담아 POST .../deactivate로 보낸다', async () => {
+    const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useDeactivateEmployee(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync({ principalId: 'p-1', reason: '퇴사' })
+
+    expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/deactivate', { reason: '퇴사' })
+  })
+
+  it('재설정 메일 발송은 POST .../password-reset으로 보낸다', async () => {
+    const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
+    const { result } = renderHook(() => useSendPasswordReset(), { wrapper: createQueryClientWrapper() })
+
+    await result.current.mutateAsync('p-1')
+
+    expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/password-reset')
+  })
+
+  it('정보 수정은 PATCH /admin/employees/{id}로 보내고 응답을 검증한다', async () => {
+    const detail = { ...summary, phone: null, address: null, lockedUntil: null, invitation: null, updatedAt: '2026-09-24T05:00:00Z', name: '김새이름' }
+    const patchSpy = vi.spyOn(authHttpClient, 'patch').mockResolvedValue({ data: detail })
+    const { result } = renderHook(() => useUpdateEmployee(), { wrapper: createQueryClientWrapper() })
+
+    const updated = await result.current.mutateAsync({ principalId: 'p-1', body: { name: '김새이름', phone: null } })
+
+    expect(patchSpy).toHaveBeenCalledWith('/admin/employees/p-1', { name: '김새이름', phone: null })
+    expect(updated.name).toBe('김새이름')
   })
 })

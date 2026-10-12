@@ -54,10 +54,26 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(직원 계정 상태 변경, 초대 수락·재설정, role 관리,
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정, role 관리,
 system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (직원 계정 상태 변경·정보 수정)
+
+- 이슈 #49, `feat/auth-employee-account-actions` 브랜치에서 `auth-employee-account-actions` 구현
+- 직원 상세(`pages/employees/EmployeeDetail.tsx`)에 상태별 작업 추가: ACTIVE는 정보 수정·재설정 메일 발송·정지·비활성화,
+  SUSPENDED는 정보 수정·정지 해제·비활성화, PENDING은 정보 수정·초대 재발송·취소. DEACTIVATED는 변경 불가 안내
+- 정지·비활성화는 사유 입력 모달(`ReasonModal`, 공백 불가·500자 이하), 해제·메일 발송은 확인 모달. 정보 수정은 바뀐 필드만
+  PATCH로 보내고 비운 전화번호·주소는 null(삭제). 새 작업을 시작하면 이전 mutation의 에러·성공 안내를 모두 지운다
+- `account.manage` Permission(owner 전용)을 `auth:owner`에만 매핑해 `blockedReason`(accountProtection.ts)으로 GOV-02·GOV-03을
+  화면에서 미리 반영한다: owner 계정은 owner도 정지·비활성화 불가, admin은 owner·admin 계정의 모든 변경 불가. 서버가 최종 판단하므로
+  서버의 `PROTECTED_ACCOUNT`도 에러 문구로 안내한다
+- 검증: build/lint/test(247) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 정보 수정(전화번호) → 정지(사유 없이는 확인
+  비활성) → 정지 해제 → 재설정 메일 발송, owner 본인 계정의 정지·비활성화 비활성, admin(`auth:admin` 직원, 초대 수락 후 로그인):
+  owner 계정의 모든 작업 비활성과 안내, 일반 직원 작업은 가능까지 확인
+- 알려진 한계: 비활성화는 되돌릴 수 없어 실서버에서 실행해 보지 않았다(단위 테스트로만 검증). 직원 role 부여·회수는 role 관리 화면에서 한다.
+  admin 임명(`auth:admin` 부여)도 같다
 
 ### 2026-10-12 (직원 관리 화면 — 목록·상세·초대)
 
@@ -471,8 +487,7 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 직원 계정 상태 변경·정보 수정 → 초대 수락·재설정 화면 →
-  role 관리 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → role 관리 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
