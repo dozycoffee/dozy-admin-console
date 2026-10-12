@@ -226,8 +226,8 @@
   {
     "id": "auth-employee-roles",
     "name": "직원 role 부여·회수 (admin 임명·해임 포함)",
-    "description": "직원 상세에서 dozy-auth role을 부여·회수한다(POST /admin/principals/{id}/roles, DELETE .../roles/{role}). auth:admin 임명·해임은 owner만 가능(GOV-05)하고 자기 자신에게는 부여할 수 없다(GOV-04). 정지·비활성화 직원 부여 불가(INVALID_STATE) 안내를 포함한다.",
-    "status": "pending",
+    "description": "직원 상세에서 dozy-auth role을 부여·회수한다(POST /admin/principals/{id}/roles, DELETE .../roles/{role}). auth:admin 임명·해임은 owner만 가능(GOV-05)하고 확인 모달에서 owner 알림 메일을 안내한다. 자기 자신 부여 불가(GOV-04), admin의 owner·admin 대상 변경 불가(GOV-02), 정지·비활성화 직원 부여 불가(GOV-07)를 화면에서 미리 반영하고 role 변경은 다음 토큰 갱신부터 반영됨을 안내한다.",
+    "status": "completed",
     "dependencies": ["auth-role-management", "auth-employee-account-actions"]
   }
 ]

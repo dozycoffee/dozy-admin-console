@@ -54,10 +54,25 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(직원 role 부여·회수, 초대 수락·재설정,
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정,
 system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (직원 role 부여·회수)
+
+- 이슈 #53, `feat/auth-employee-roles` 브랜치에서 `auth-employee-roles` 구현
+- 직원 상세의 role 영역을 `EmployeeRoles`로 분리: 부여된 role 칩(× 회수), "role 추가" 선택·부여. 부여·회수 후 직원·role 쿼리를 함께 갱신해
+  role 목록의 부여 인원 수도 바뀐다
+- 규칙을 화면에서 미리 반영(`roleAssignment.ts`, `accountProtection.ts`의 `role` 액션): `auth:owner`는 부여·회수 대상에서 제외(양도만 가능),
+  `auth:admin` 임명·해임은 owner(`account.manage`)에게만 노출하고 확인 모달에서 owner 알림 메일을 안내, 자기 자신에게 부여 불가(GOV-04),
+  admin은 owner·admin 계정의 role 변경 불가(GOV-02), 정지·비활성화 직원에게 부여 불가·정지 직원 회수는 가능(GOV-07). 서버가 최종 판단하며
+  `SELF_GRANT_NOT_ALLOWED` 등은 에러 문구로 안내
+- 변경은 직원의 다음 로그인·토큰 갱신(최대 10분)부터 반영된다고 성공 문구에 안내
+- 검증: build/lint/test(332) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 창고담당에게 role 부여(204) → `auth:admin` 임명(확인
+  모달, 204) → 해임(204) → role 회수(204), owner 본인 화면은 부여 불가 안내, admin: 선택지에 `auth:admin`이 없고 owner 계정은 변경 불가 안내까지 확인
+- 알려진 한계: 정지 직원 회수 가능·부여 불가나 비활성화 직원 처리는 단위 테스트로 검증했고 실서버에서 실행하지 않았다. 한 번에 한 role만 부여한다
+  (API는 여러 role을 한 번에 받는다)
 
 ### 2026-10-12 (role·audience 관리 화면)
 
@@ -505,7 +520,7 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 직원 role 부여·회수 → 초대 수락·재설정 화면 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
