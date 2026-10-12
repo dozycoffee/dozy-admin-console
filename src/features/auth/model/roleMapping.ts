@@ -33,6 +33,8 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
       permissions.outboundWrite,
       permissions.disposalRead,
       permissions.disposalWrite,
+      permissions.returnRead,
+      permissions.returnWrite,
     ],
   },
   'wms:hq_inventory_manager': {
