@@ -54,10 +54,29 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정, 직원 관리, role 관리,
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(직원 계정 상태 변경, 초대 수락·재설정, role 관리,
 system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (직원 관리 화면 — 목록·상세·초대)
+
+- 이슈 #47, `feat/auth-employee-management` 브랜치에서 `auth-employee-management` 구현
+- `account.read`/`account.write` Permission을 추가하고 `auth:owner`/`auth:admin`에 매핑. 계정 관리자 모드에 `/employees`
+  라우트(`RequireActorMode` + `RequirePermission`)와 "직원 관리" 사이드바 메뉴 추가
+- `features/employee`: 목록(상태·role 필터, 이름·이메일 검색, 서버 페이지네이션)·상세·초대·초대 재발송·취소 훅과 Zod 스키마.
+  dozy-auth는 `authHttpClient`로 호출하고 에러는 code별 안내 문구로 바꾼다(`toEmployeeErrorMessage`). `features/role`은
+  초대 폼의 role 선택(`GET /admin/roles`)용 조회만 있다
+- 초대 폼은 system role(`auth:owner`/`auth:admin`)을 선택지에서 뺀다 — admin 임명은 role 관리 화면에서 한다
+- 검증: build/lint/test(200) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 role 2개(`wms:warehouse_manager`,
+  `wms:hq_inventory_manager`) 등록 → 직원 초대(role 지정) → 중복 이메일 안내 → 초대 수락 → 그 직원으로 로그인 →
+  창고 관리자 모드만 사용 가능, 사이드바에 입고·출고·폐기·반품 메뉴, `/employees` 직접 접근은 모드 가드로 차단 →
+  초대 재발송(202)·취소(204, 계정은 DEACTIVATED로 익명화)까지 확인. 이전 세션에서 못 했던 창고 모드 실로그인 검증도 이로써 완료
+- `.panel`에 `min-height: 180px`이 있고 `--line` CSS 변수는 정의돼 있지 않다. 새 화면에서 폼 패널은 min-height를 0으로
+  덮어쓰고 테두리 색을 직접 지정했다
+- 알려진 한계: 계정 정지·해제·비활성화·정보 수정·비밀번호 재설정 메일 발송은 `auth-employee-account-actions`로 분리.
+  admin이 owner·admin 계정의 초대를 재발송·취소하면 서버가 `PROTECTED_ACCOUNT`로 거부하고, 화면은 버튼을 숨기지 않고
+  에러 문구만 보여준다(직원 목록 응답에 등급이 없어 클라이언트가 미리 알 수 없음)
 
 ### 2026-10-12 (dozy-auth 실로그인 연동)
 
@@ -452,9 +471,9 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → 직원 관리 → role 관리 →
-  system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
-- `roleMapping.ts`의 role 이름을 운영 role 정의(auth 관리 API)와 맞추고, 창고 모드를 실로그인으로 확인
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 직원 계정 상태 변경·정보 수정 → 초대 수락·재설정 화면 →
+  role 관리 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
   ProductService.DELETED_BY_SYSTEM의 CurrentAccessScopeProvider 교체, warehouseIds 필터와

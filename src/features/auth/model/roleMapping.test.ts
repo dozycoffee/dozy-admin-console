@@ -18,13 +18,13 @@ describe('parseWarehouseIds', () => {
 })
 
 describe('buildCurrentUser', () => {
-  it('auth 관리 role은 계정 관리자 모드와 대시보드 권한만 준다', () => {
+  it('auth 관리 role은 계정 관리자 모드와 대시보드·계정 관리 권한만 준다', () => {
     const user = buildCurrentUser({ ...base, roles: ['auth:admin'] }, [1])
 
     expect(user.id).toBe(base.principalId)
     expect(user.name).toBe('김도윤')
     expect(user.actorModes).toEqual([actorModeIds.accountAdministrator])
-    expect(user.permissions).toEqual([permissions.dashboardRead])
+    expect(user.permissions).toEqual([permissions.dashboardRead, permissions.accountRead, permissions.accountWrite])
     expect(user.scope.warehouseIds).toEqual([])
   })
 

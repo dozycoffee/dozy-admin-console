@@ -420,3 +420,32 @@ a { color: inherit; text-decoration: none; }
 .inbound-form-row label, .lot-row label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
 .lot-row { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 8px; align-items: end; padding: 10px 0; border-top: 1px solid #ece7e3; }
 .inbound-error { margin: 10px 0 0; color: #9c3b3b; font-size: 13px; }
+
+/* 직원 관리 */
+.employee-invite-toggle { margin-top: 0; }
+.employee-invite, .employee-filters { min-height: 0; margin-bottom: 16px; padding: 20px 26px; }
+.employee-invite-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.employee-invite label, .employee-filters label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
+.employee-invite input[type="email"], .employee-invite input:not([type]), .employee-filters input, .employee-filters select { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
+.employee-role-picker { margin: 14px 0 0; padding: 12px; border: 1px solid #e4ddd9; border-radius: 8px; }
+.employee-role-picker legend { padding: 0 6px; font-size: 12px; color: #6f6862; }
+.employee-role-picker label { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; color: inherit; }
+.employee-role-picker small { color: #9b918c; }
+.employee-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.employee-filters .inbound-action-button { margin-top: 0; }
+.employee-filter-search { flex: 1 1 200px; }
+.employee-status-pending { background: #fff3d6; color: #8a5a00; }
+.employee-status-active { background: #e1f3e6; color: #25683a; }
+.employee-status-suspended { background: #fde4e1; color: #9c3b3b; }
+.employee-status-deactivated { background: #ececec; color: #6b6b6b; }
+.employee-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 16px 0; }
+.employee-fields dt { font-size: 11px; font-weight: 800; color: #9b918c; }
+.employee-fields dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+.employee-section-title { margin: 18px 0 8px; font-size: 14px; }
+.employee-roles { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.employee-roles li { padding: 4px 9px; border-radius: 99px; background: #f3efec; font-size: 12px; font-weight: 700; }
+.employee-no-roles { margin: 0; color: #786d68; font-size: 13px; }
+.employee-actions { display: flex; gap: 8px; }
+.employee-danger { background: #9c3b3b; }
+.employee-success { margin: 10px 0 0; color: #25683a; font-size: 13px; }
+@media (max-width: 600px) { .employee-invite-grid, .employee-fields { grid-template-columns: 1fr; } }
