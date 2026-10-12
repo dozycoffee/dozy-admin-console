@@ -54,10 +54,28 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정, role 관리,
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(직원 role 부여·회수, 초대 수락·재설정,
 system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (role·audience 관리 화면)
+
+- 이슈 #51, `feat/auth-role-management` 브랜치에서 `auth-role-management` 구현. 직원에게 role을 부여·회수하는 화면은
+  `auth-employee-roles`로 분리해 등록
+- `/roles`(계정 관리자 모드, `account.read`): audience 목록과 추가(`account.manage`, owner 전용), role 등록(audience 선택,
+  code 형식 `^[a-z][a-z0-9_]*$` 검증, 이름, 설명), role 목록(audience 필터, 부여된 인원 수), 이름·설명 수정, 삭제
+- 삭제는 먼저 `revokeAll=false`로 요청하고 `ROLE_IN_USE`(409)로 거부되면 영향 인원을 보여준 뒤 확인을 받아 `revokeAll=true`로
+  다시 요청한다(dozy-auth 명세). system role(`auth:owner`/`auth:admin`)은 수정·삭제 버튼을 비활성화한다. role을 일괄 회수하면
+  직원 role도 바뀌므로 직원 쿼리도 invalidate한다
+- 에러 안내를 직원 화면과 공유하도록 `toEmployeeErrorMessage`를 `features/auth/model/adminErrors.ts`의 `toAdminErrorMessage`로
+  일반화하고 `ROLE_CODE_DUPLICATED`·`AUDIENCE_CODE_DUPLICATED`·`ROLE_IN_USE` 문구를 추가
+- 검증: build/lint/test(298) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: role 등록 → 잘못된 code로 등록 불가 →
+  중복 code 안내 → 설명 수정 → 미사용 role 삭제 → 부여된 role 삭제 시 "1명에게 부여된 role입니다" 확인 후 revokeAll 삭제 →
+  system role 버튼 비활성 → audience 추가·중복 안내, admin: audience 추가 폼 없이 안내만 노출까지 확인
+- 알려진 한계: role 이름이 바뀌어도 `roleMapping.ts`는 code(`{audience}:{code}`)를 기준으로 하므로 영향이 없지만, 운영 role code가
+  `roleMapping.ts`의 값과 다르면 권한이 부여되지 않는다. audience는 삭제할 수 없고 code·audience는 등록 후 변경할 수 없다(dozy-auth 규칙)
+- 로컬 auth DB에 audience `order`가 추가돼 있다. 테스트로 만든 role은 모두 삭제했다
 
 ### 2026-10-12 (직원 계정 상태 변경·정보 수정)
 
@@ -72,7 +90,7 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 - 검증: build/lint/test(247) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 정보 수정(전화번호) → 정지(사유 없이는 확인
   비활성) → 정지 해제 → 재설정 메일 발송, owner 본인 계정의 정지·비활성화 비활성, admin(`auth:admin` 직원, 초대 수락 후 로그인):
   owner 계정의 모든 작업 비활성과 안내, 일반 직원 작업은 가능까지 확인
-- 알려진 한계: 비활성화는 되돌릴 수 없어 실서버에서 실행해 보지 않았다(단위 테스트로만 검증). 직원 role 부여·회수는 role 관리 화면에서 한다.
+- 알려진 한계: 비활성화는 되돌릴 수 없어 실서버에서 실행해 보지 않았다(단위 테스트로만 검증). 직원 role 부여·회수는 `auth-employee-roles`에서 한다.
   admin 임명(`auth:admin` 부여)도 같다
 
 ### 2026-10-12 (직원 관리 화면 — 목록·상세·초대)
@@ -487,7 +505,7 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → role 관리 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 직원 role 부여·회수 → 초대 수락·재설정 화면 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
