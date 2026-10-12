@@ -54,9 +54,23 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(system client 관리·owner 양도)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (감사 로그 조회 화면)
+
+- 이슈 #59, `feat/auth-audit-logs` 브랜치에서 감사 로그 화면 구현. `auth-system-client-owner-audit`를 쪼개 감사 로그는 `auth-audit-logs`로 완료하고
+  나머지(system client 관리·owner 양도)는 기존 항목에 남겼다. 직원 본인 정보 수정 제외 방침도 같은 브랜치에서 문서에 반영
+- `/audit-logs`(`account.manage`, owner 전용 — `auth:owner`에만 매핑): 최신순 목록(시각·action 한글 이름+코드·행위자·대상·IP·detail 펼쳐 보기), 서버 페이지네이션(20건)
+- 필터: 기간(빠른 선택 24시간·7일·30일, 직접 입력 `datetime-local`; 선택하지 않으면 서버 기본 최근 7일), 행위자 id(UUID 검증), 대상 종류·id, action 여러 개(AUD-01의 26개를
+  분류별 체크박스, 쉼표로 이어 전송). 시작>종료와 90일 초과는 클라이언트에서 막고 서버 `VALIDATION_FAILED`는 조건 확인 안내로 바꾼다. 빠른 선택에 90일을 넣지 않은 것은
+  서버 시각이 조금 뒤라 상한에 걸릴 수 있기 때문
+- 감사 로그에는 이름·이메일이 없어(AUD-07) 행위자·대상은 `type`과 앞 8자리 id로 보이고 전체는 툴팁이다. 시스템 작업(행위자 없음)은 `-`
+- 사이드바 "감사 로그" 메뉴(owner가 아니면 다른 메뉴처럼 "잠김"), 직접 URL 접근은 `RequirePermission`이 `/access-denied`로 보낸다
+- 검증: build/lint/test(424) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 기본 조회(91건, 최신순) → action `role 부여·회수` 필터(9건, 쉼표 전송) → detail 펼치기
+  → 최근 24시간+대상 종류 ROLE 필터 → 90일 초과 기간 안내, admin: 사이드바에 "잠김", `/audit-logs` 직접 접근은 `/access-denied`까지 확인
+- 알려진 한계: 행위자·대상의 이름은 보여주지 않는다(id만). 서버 `VALIDATION_FAILED`의 정확한 원인(기간/UUID/알 수 없는 action)은 구분하지 못하고 한 문구로 안내한다
 
 ### 2026-10-12 (내 계정 화면 — 내 정보 조회·비밀번호 변경)
 
@@ -550,7 +564,7 @@
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: system client 관리 → owner 양도. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
