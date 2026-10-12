@@ -33,6 +33,8 @@
 | `outbound.write` | 출고 요청 등록, 피킹 시작, 검수 시작, 출고 완료 | `/outbounds`의 등록·작업 버튼 |
 | `disposal.read` | 폐기 작업 조회 | 창고 관리자 모드의 `/disposals`, `/disposals/history` |
 | `disposal.write` | 폐기 요청 등록, 승인, 완료 | `/disposals`의 등록·작업 버튼 |
+| `return.read` | 반품 작업 조회 | 창고 관리자 모드의 `/returns`, `/returns/history` |
+| `return.write` | 반품 접수 등록, 검수 시작, 품목 검수, 반품 완료 | `/returns`의 등록·작업 버튼 |
 
 새 Permission을 추가하면 이 표도 함께 갱신한다.
 

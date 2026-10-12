@@ -67,6 +67,19 @@
 
 ## 세션 로그
 
+### 2026-10-01 (창고 관리자 반품 관리)
+
+- `/returns`(작업 큐), `/returns/history`(완료 이력) 추가. dozy-wms-api 반품 모델(`RECEIVED → INSPECTING → COMPLETED`)대로
+  반품 접수 등록, 검수 시작(반품 처리장 점유), 품목별 검수(품목당 1회), Lot 확정 후 완료를 실 API로 호출
+- 완료 시 정상 수량은 재고로 복귀, 불량 수량은 `RETURN_DEFECT` 폐기 요청으로 연계(폐기 관리 화면에서 처리). 완료 시 inventory·disposals 쿼리 invalidate
+- 목록은 입고·출고와 같이 전체를 받아 클라이언트에서 AccessScope 필터·상태별 건수·정렬·페이지 분할(`paginateReturns`)
+- `return.read`/`return.write` 권한, 창고 관리자 모드 사이드바 메뉴, 권한 문서 갱신
+- 검증: build/lint/test(118) 통과, 실 백엔드로 접수→검수 시작→검수→완료(정상 5ea 재고 복귀) API 흐름 확인. 불량→폐기 연계는 입고와 같은
+  서비스 패턴이라 별도 실행하지 않음. 화면(UI)은 내장 브라우저가 MSW 서비스 워커를 등록할 수 없어 직접 확인하지 못함
+- 로컬 DB에 반품 처리장(RETURN) 작업구역을 추가 시드. 작업구역이 없으면 검수 시작이 `WORK_AREA_NOT_FOUND`로 실패함(메시지는 화면에 표시)
+- 백엔드 관찰: `PATCH /return-items/:id/inspect`가 반품 요청 상태(INSPECTING)를 확인하지 않아 RECEIVED 상태에서도 호출된다
+  (입고 검수도 동일 구조일 가능성). 화면은 INSPECTING에서만 입력 UI를 노출하므로 영향 없음
+
 ### 2026-10-01 (창고 관리자 폐기 관리)
 
 - `/disposals`(작업 큐), `/disposals/history`(완료 이력) 추가. dozy-wms-api 폐기 모델(`REQUESTED → APPROVED → COMPLETED`)대로
