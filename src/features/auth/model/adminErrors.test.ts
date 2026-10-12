@@ -8,6 +8,7 @@ describe('toAdminErrorMessage', () => {
     ['PROTECTED_ACCOUNT', 403, 'owner·admin 계정은 admin이 변경할 수 없습니다.'],
     ['INVALID_STATE', 409, '현재 계정 상태에서는 할 수 없는 작업입니다.'],
     ['NOT_FOUND', 404, '대상을 찾을 수 없습니다. 목록을 새로고침해 주세요.'],
+    ['SELF_GRANT_NOT_ALLOWED', 403, '자기 자신에게는 role을 부여할 수 없습니다.'],
     ['ROLE_CODE_DUPLICATED', 409, '같은 audience에 이미 있는 role code입니다.'],
     ['AUDIENCE_CODE_DUPLICATED', 409, '이미 있는 audience code입니다.'],
     ['ROLE_IN_USE', 409, '이 role이 부여된 직원이 있어 삭제할 수 없습니다.'],

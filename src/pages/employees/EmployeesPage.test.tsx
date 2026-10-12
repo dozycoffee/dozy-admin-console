@@ -5,7 +5,7 @@ import { ApiError } from '../../shared/api/ApiError'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail, EmployeeSummary } from '../../features/employee/model/employeeSchemas'
-import { useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useInviteEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee } from '../../features/employee/model/useEmployees'
+import { useCancelInvitation, useDeactivateEmployee, useEmployee, useEmployees, useInviteEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee, useGrantRoles, useRevokeRole } from '../../features/employee/model/useEmployees'
 import { useRoles } from '../../features/role/model/useRoles'
 import { EmployeesPage } from './EmployeesPage'
 
@@ -44,6 +44,8 @@ function setup(items: EmployeeSummary[] = [kim, lee], totalPages = 1) {
   vi.mocked(useDeactivateEmployee).mockReturnValue(idleMutation)
   vi.mocked(useSendPasswordReset).mockReturnValue(idleMutation)
   vi.mocked(useUpdateEmployee).mockReturnValue(idleMutation)
+  vi.mocked(useGrantRoles).mockReturnValue(idleMutation)
+  vi.mocked(useRevokeRole).mockReturnValue(idleMutation)
   mockedUseInvite.mockReturnValue({ mutate: vi.fn(), isPending: false, isError: false, isSuccess: false } as never)
 }
 

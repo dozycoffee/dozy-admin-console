@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { blockedReason, type ProtectedAction } from './accountProtection'
 
-const actions: ProtectedAction[] = ['edit', 'invitation', 'suspend', 'reactivate', 'deactivate', 'password-reset']
+const actions: ProtectedAction[] = ['edit', 'invitation', 'suspend', 'reactivate', 'deactivate', 'password-reset', 'role']
 
 describe('blockedReason', () => {
   it('GOV-03 owner 계정은 owner 자신도 정지·비활성화할 수 없다', () => {
