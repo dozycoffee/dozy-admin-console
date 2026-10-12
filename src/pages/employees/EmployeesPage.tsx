@@ -2,18 +2,16 @@ import { useState, type FormEvent } from 'react'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { permissions } from '../../features/auth/model/permissions'
 import { toEmployeeErrorMessage } from '../../features/employee/model/employeeErrors'
-import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { employeeStatuses, employeeStatusLabels, type EmployeeStatus, type EmployeeSummary } from '../../features/employee/model/employeeSchemas'
-import { useCancelInvitation, useEmployee, useEmployees, useResendInvitation } from '../../features/employee/model/useEmployees'
+import { useEmployees } from '../../features/employee/model/useEmployees'
 import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
 import { InviteEmployeeForm } from '../../features/employee/ui/InviteEmployeeForm'
 import { useRoles } from '../../features/role/model/useRoles'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { EmployeeDetail, type PendingConfirm } from './EmployeeDetail'
 
 const PAGE_SIZE = 10
 const emptyEmployees: EmployeeSummary[] = []
-
-type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 
 export function EmployeesPage() {
   const { can } = useAuth()
@@ -94,41 +92,4 @@ export function EmployeesPage() {
     </section>}
     <ConfirmModal open={pendingConfirm !== null} title={pendingConfirm?.title ?? ''} description={pendingConfirm?.description} confirmLabel={pendingConfirm?.confirmLabel} onCancel={() => setPendingConfirm(null)} onConfirm={() => { pendingConfirm?.run(); setPendingConfirm(null) }} />
   </>
-}
-
-function EmployeeDetail({ principalId, writable, confirm }: { principalId: string; writable: boolean; confirm: (pending: PendingConfirm) => void }) {
-  const detailQuery = useEmployee(principalId)
-  const resend = useResendInvitation()
-  const cancel = useCancelInvitation()
-  const busy = resend.isPending || cancel.isPending
-  const actionError = resend.error ?? cancel.error
-  const employee = detailQuery.data
-
-  if (detailQuery.isLoading) return <section className="panel inbound-detail-panel"><p>직원 정보를 불러오는 중입니다...</p></section>
-  if (detailQuery.isError || !employee) return <section className="panel inbound-detail-panel"><p className="inbound-error" role="alert">{toEmployeeErrorMessage(detailQuery.error)}</p></section>
-
-  return <section className="panel inbound-detail-panel">
-    <div className="panel-heading inbound-detail-heading">
-      <div><p className="eyebrow">EMPLOYEE</p><h2>{employee.name}</h2></div>
-      <EmployeeStatusBadge status={employee.status} />
-    </div>
-    <dl className="employee-fields">
-      <div><dt>이메일</dt><dd>{employee.email}</dd></div>
-      <div><dt>전화번호</dt><dd>{employee.phone || '-'}</dd></div>
-      <div><dt>주소</dt><dd>{employee.address || '-'}</dd></div>
-      <div><dt>등록일</dt><dd>{formatDateTime(employee.createdAt)}</dd></div>
-      {employee.lockedUntil && <div><dt>로그인 잠금</dt><dd>{formatDateTime(employee.lockedUntil)}까지</dd></div>}
-      {employee.invitation && <div><dt>초대 만료</dt><dd>{formatDateTime(employee.invitation.expiresAt)}{new Date(employee.invitation.expiresAt) < new Date() ? ' (만료됨)' : ''}</dd></div>}
-    </dl>
-    <h3 className="employee-section-title">부여된 role</h3>
-    {employee.roles.length > 0
-      ? <ul className="employee-roles">{employee.roles.map((roleCode) => <li key={roleCode}>{roleCode}</li>)}</ul>
-      : <p className="employee-no-roles">부여된 role이 없습니다. role이 없는 직원은 콘솔의 어떤 업무 모드도 사용할 수 없습니다.</p>}
-    {employee.status === 'PENDING' && <div className="employee-actions">
-      <button type="button" className="inbound-action-button" disabled={!writable || busy} onClick={() => confirm({ title: '초대 메일을 다시 보낼까요?', description: '이전 초대 링크는 무효가 되고 새 링크가 발송됩니다.', confirmLabel: '재발송', run: () => resend.mutate(employee.principalId) })}>초대 재발송</button>
-      <button type="button" className="inbound-action-button employee-danger" disabled={!writable || busy} onClick={() => confirm({ title: '초대를 취소할까요?', description: '계정이 비활성화되며 되돌릴 수 없습니다. 같은 이메일로 다시 초대할 수 있습니다.', confirmLabel: '초대 취소', run: () => cancel.mutate(employee.principalId) })}>초대 취소</button>
-    </div>}
-    {resend.isSuccess && <p className="employee-success" role="status">초대 메일을 다시 보냈습니다. 새 초대는 {formatDateTime(resend.data.invitationExpiresAt)}까지 유효합니다.</p>}
-    {actionError && <p className="inbound-error" role="alert">{toEmployeeErrorMessage(actionError)}</p>}
-  </section>
 }
