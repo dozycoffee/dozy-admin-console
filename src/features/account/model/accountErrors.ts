@@ -11,6 +11,8 @@ export const expiredLinkMessage = '링크가 만료되었거나 이미 사용되
 const messages: Record<string, string> = {
   VALIDATION_FAILED: '비밀번호가 규칙에 맞지 않습니다. 8~128자여야 하고 이메일과 같을 수 없습니다.',
   TOO_MANY_ATTEMPTS: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+  CURRENT_PASSWORD_MISMATCH: '현재 비밀번호가 올바르지 않습니다.',
+  INVALID_STATE: '현재 계정 상태에서는 변경할 수 없습니다.',
 }
 
 export function toAccountErrorMessage(error: unknown): string {

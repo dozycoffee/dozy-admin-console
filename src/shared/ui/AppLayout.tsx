@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
@@ -86,7 +86,7 @@ export function AppLayout() {
           })}
         </nav>
         <div className="user-card">
-          <strong>{user.name}</strong>
+          <Link className="user-card-link" to="/account" title="내 계정"><strong>{user.name}</strong></Link>
           <button type="button" className="logout-button" onClick={() => setLogoutModalOpen(true)}><NavIcon name="logout" /><span>로그아웃</span></button>
         </div>
       </aside>

@@ -37,6 +37,12 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: /재고 현황/ })).toBeInTheDocument()
   })
 
+  it('사용자 이름은 내 계정 화면으로 가는 링크다', () => {
+    renderAppLayout(vi.fn())
+
+    expect(screen.getByRole('link', { name: '테스트 사용자' })).toHaveAttribute('href', '/account')
+  })
+
   it('로그아웃 버튼을 누르면 바로 로그아웃하지 않고 확인 모달을 띄운다', async () => {
     const logout = vi.fn()
     const user = userEvent.setup()
