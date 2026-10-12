@@ -16,11 +16,13 @@ import { OutboundManagementPage } from '../../pages/outbounds/OutboundManagement
 import { OutboundHistoryPage } from '../../pages/outbounds/OutboundHistoryPage'
 import { DisposalManagementPage } from '../../pages/disposals/DisposalManagementPage'
 import { DisposalHistoryPage } from '../../pages/disposals/DisposalHistoryPage'
+import { EmployeesPage } from '../../pages/employees/EmployeesPage'
 import { ReturnManagementPage } from '../../pages/returns/ReturnManagementPage'
 import { ReturnHistoryPage } from '../../pages/returns/ReturnHistoryPage'
 
 const inventoryModes = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager] as const
 const warehouseOperationsModes = [actorModeIds.warehouseManager] as const
+const accountAdministrationModes = [actorModeIds.accountAdministrator] as const
 
 export function AppRouter() {
   return (
@@ -39,6 +41,7 @@ export function AppRouter() {
           <Route path="disposals/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnHistoryPage /></RequirePermission></RequireActorMode>} />
+          <Route path="employees" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><EmployeesPage /></RequirePermission></RequireActorMode>} />
           <Route path="access-denied" element={<AccessDeniedPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

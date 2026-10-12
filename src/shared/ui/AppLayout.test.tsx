@@ -80,4 +80,21 @@ describe('AppLayout', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(logout).not.toHaveBeenCalled()
   })
+
+  it('계정 관리자 모드에는 직원 관리 메뉴를 보여준다', () => {
+    render(
+      <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.accountAdministrator, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<div>page content</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    )
+
+    expect(screen.getByRole('link', { name: /직원 관리/ })).toHaveAttribute('href', '/employees')
+    expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
+  })
 })
