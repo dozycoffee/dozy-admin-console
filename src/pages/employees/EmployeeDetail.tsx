@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { permissions } from '../../features/auth/model/permissions'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { blockedReason, type ProtectedAction } from '../../features/employee/model/accountProtection'
-import { toEmployeeErrorMessage } from '../../features/employee/model/employeeErrors'
+import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import {
   useCancelInvitation, useDeactivateEmployee, useEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee,
@@ -39,7 +39,7 @@ export function EmployeeDetail({ principalId, writable, confirm }: Props) {
   const isOwner = can(permissions.accountManage)
 
   if (detailQuery.isLoading) return <section className="panel inbound-detail-panel"><p>직원 정보를 불러오는 중입니다...</p></section>
-  if (detailQuery.isError || !employee) return <section className="panel inbound-detail-panel"><p className="inbound-error" role="alert">{toEmployeeErrorMessage(detailQuery.error)}</p></section>
+  if (detailQuery.isError || !employee) return <section className="panel inbound-detail-panel"><p className="inbound-error" role="alert">{toAdminErrorMessage(detailQuery.error)}</p></section>
 
   // 이전 작업의 에러·성공 안내가 남지 않도록 새 작업을 시작할 때 모든 mutation 상태를 지운다.
   function start(run: () => void) {
@@ -91,7 +91,7 @@ export function EmployeeDetail({ principalId, writable, confirm }: Props) {
     {blockedNotes.map((note) => <p key={note} className="employee-hint">{note}</p>)}
     {resend.isSuccess && <p className="employee-success" role="status">초대 메일을 다시 보냈습니다. 새 초대는 {formatDateTime(resend.data.invitationExpiresAt)}까지 유효합니다.</p>}
     {passwordReset.isSuccess && <p className="employee-success" role="status">비밀번호 재설정 메일을 보냈습니다.</p>}
-    {actionError && <p className="inbound-error" role="alert">{toEmployeeErrorMessage(actionError)}</p>}
+    {actionError && <p className="inbound-error" role="alert">{toAdminErrorMessage(actionError)}</p>}
 
     <ReasonModal
       open={reasonAction === 'suspend'}

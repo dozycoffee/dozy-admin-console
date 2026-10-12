@@ -95,6 +95,7 @@ describe('AppLayout', () => {
     )
 
     expect(screen.getByRole('link', { name: /직원 관리/ })).toHaveAttribute('href', '/employees')
+    expect(screen.getByRole('link', { name: /role 관리/ })).toHaveAttribute('href', '/roles')
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
 })

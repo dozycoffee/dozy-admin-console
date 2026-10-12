@@ -205,8 +205,8 @@
   {
     "id": "auth-role-management",
     "name": "role·audience 관리 화면",
-    "description": "dozy-auth 직원 role 부여·회수, role 정의 등록·수정·삭제(ROLE_IN_USE 확인 후 revokeAll), audience 목록·추가(owner 전용) 화면. roleMapping.ts의 role 이름과 운영 role 정의를 맞춘다.",
-    "status": "pending",
+    "description": "dozy-auth /admin/roles, /admin/audiences 기반 role 목록(audience 필터)·등록(code 형식 검증)·이름·설명 수정·삭제(ROLE_IN_USE 시 영향 인원 확인 후 revokeAll)와 audience 목록·추가(owner 전용) 화면(/roles). system role은 수정·삭제 불가. 직원에게 role을 부여·회수하는 화면은 auth-employee-roles로 분리.",
+    "status": "completed",
     "dependencies": ["auth-real-login"]
   },
   {
@@ -222,5 +222,12 @@
     "description": "직원 상세에서 계정 정지·해제·비활성화(사유 입력), 비밀번호 재설정 메일 발송, 이름·전화번호·주소 수정을 dozy-auth API로 구현한다. account.manage(owner 전용) Permission으로 owner·admin 보호 규칙(GOV-02·GOV-03)을 화면에서 미리 반영하고 서버의 PROTECTED_ACCOUNT·INVALID_STATE 안내를 포함한다.",
     "status": "completed",
     "dependencies": ["auth-employee-management"]
+  },
+  {
+    "id": "auth-employee-roles",
+    "name": "직원 role 부여·회수 (admin 임명·해임 포함)",
+    "description": "직원 상세에서 dozy-auth role을 부여·회수한다(POST /admin/principals/{id}/roles, DELETE .../roles/{role}). auth:admin 임명·해임은 owner만 가능(GOV-05)하고 자기 자신에게는 부여할 수 없다(GOV-04). 정지·비활성화 직원 부여 불가(INVALID_STATE) 안내를 포함한다.",
+    "status": "pending",
+    "dependencies": ["auth-role-management", "auth-employee-account-actions"]
   }
 ]

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { toEmployeeErrorMessage } from '../model/employeeErrors'
+import { toAdminErrorMessage } from '../../auth/model/adminErrors'
 import { buildUpdateRequest } from '../model/buildUpdateRequest'
 import type { EmployeeDetail } from '../model/employeeSchemas'
 import { useUpdateEmployee } from '../model/useEmployees'
@@ -37,7 +37,7 @@ export function EditEmployeeForm({ employee, disabled, onDone }: Props) {
         <button type="submit" className="inbound-action-button" disabled={locked || name.trim() === ''}>{update.isPending ? '저장 중...' : '저장'}</button>
         <button type="button" className="inbound-action-button employee-secondary" disabled={update.isPending} onClick={onDone}>취소</button>
       </div>
-      {update.isError && <p className="inbound-error" role="alert">{toEmployeeErrorMessage(update.error)}</p>}
+      {update.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(update.error)}</p>}
     </form>
   )
 }
