@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { permissions } from '../../features/auth/model/permissions'
-import { toEmployeeErrorMessage } from '../../features/employee/model/employeeErrors'
+import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import { employeeStatuses, employeeStatusLabels, type EmployeeStatus, type EmployeeSummary } from '../../features/employee/model/employeeSchemas'
 import { useEmployees } from '../../features/employee/model/useEmployees'
 import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
@@ -68,7 +68,7 @@ export function EmployeesPage() {
       <button type="submit" className="inbound-action-button">검색</button>
     </form>
     {employeesQuery.isLoading && <section className="panel"><p>직원 목록을 불러오는 중입니다...</p></section>}
-    {employeesQuery.isError && <section className="panel"><h2>직원 목록을 불러오지 못했습니다</h2><p>{toEmployeeErrorMessage(employeesQuery.error)}</p></section>}
+    {employeesQuery.isError && <section className="panel"><h2>직원 목록을 불러오지 못했습니다</h2><p>{toAdminErrorMessage(employeesQuery.error)}</p></section>}
     {employeesQuery.data && <section className="inbound-workspace">
       <aside className="panel inbound-list-panel">
         <div className="panel-heading"><div><p className="eyebrow">EMPLOYEES</p><h2>직원 목록</h2></div><small>{totalElements}명</small></div>

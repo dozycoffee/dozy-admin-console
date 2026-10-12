@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useRoles } from '../../role/model/useRoles'
-import { toEmployeeErrorMessage } from '../model/employeeErrors'
+import { toAdminErrorMessage } from '../../auth/model/adminErrors'
 import { formatDateTime } from '../model/formatDateTime'
 import { useInviteEmployee } from '../model/useEmployees'
 
@@ -63,7 +63,7 @@ export function InviteEmployeeForm({ writable, onInvited }: Props) {
       <fieldset className="employee-role-picker" disabled={disabled}>
         <legend>함께 부여할 role (선택)</legend>
         {roles.isLoading && <p>role 목록을 불러오는 중입니다...</p>}
-        {roles.isError && <p className="inbound-error" role="alert">{toEmployeeErrorMessage(roles.error)}</p>}
+        {roles.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(roles.error)}</p>}
         {roles.data && assignableRoles.length === 0 && <p>부여할 수 있는 role이 아직 없습니다. role 정의는 dozy-auth 관리 API로 등록합니다.</p>}
         {assignableRoles.map((role) => (
           <label key={role.id}>
@@ -75,7 +75,7 @@ export function InviteEmployeeForm({ writable, onInvited }: Props) {
       <div className="inbound-form-actions">
         <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{invite.isPending ? '초대 중...' : '초대 메일 보내기'}</button>
       </div>
-      {invite.isError && <p className="inbound-error" role="alert">{toEmployeeErrorMessage(invite.error)}</p>}
+      {invite.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(invite.error)}</p>}
       {invite.isSuccess && <p className="employee-success" role="status">초대 메일을 보냈습니다. 초대는 {formatDateTime(invite.data.invitationExpiresAt)}까지 유효합니다.</p>}
     </form>
   )
