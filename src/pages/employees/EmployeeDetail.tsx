@@ -10,6 +10,7 @@ import {
 import { EditEmployeeForm } from '../../features/employee/ui/EditEmployeeForm'
 import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
 import { ReasonModal } from '../../features/employee/ui/ReasonModal'
+import { EmployeeRoles } from './EmployeeRoles'
 
 export type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 
@@ -65,10 +66,7 @@ export function EmployeeDetail({ principalId, writable, confirm }: Props) {
       {employee.lockedUntil && <div><dt>로그인 잠금</dt><dd>{formatDateTime(employee.lockedUntil)}까지</dd></div>}
       {employee.invitation && <div><dt>초대 만료</dt><dd>{formatDateTime(employee.invitation.expiresAt)}{new Date(employee.invitation.expiresAt) < new Date() ? ' (만료됨)' : ''}</dd></div>}
     </dl>
-    <h3 className="employee-section-title">부여된 role</h3>
-    {employee.roles.length > 0
-      ? <ul className="employee-roles">{employee.roles.map((roleCode) => <li key={roleCode}>{roleCode}</li>)}</ul>
-      : <p className="employee-no-roles">부여된 role이 없습니다. role이 없는 직원은 콘솔의 어떤 업무 모드도 사용할 수 없습니다.</p>}
+    <EmployeeRoles employee={employee} writable={writable} confirm={confirm} />
 
     {editing && <EditEmployeeForm employee={employee} disabled={!canAct('edit')} onDone={() => setEditing(false)} />}
 

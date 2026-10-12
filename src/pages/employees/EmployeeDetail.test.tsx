@@ -6,11 +6,13 @@ import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail as EmployeeDetailData, EmployeeStatus } from '../../features/employee/model/employeeSchemas'
 import {
-  useCancelInvitation, useDeactivateEmployee, useEmployee, useReactivateEmployee, useResendInvitation, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee,
+  useCancelInvitation, useDeactivateEmployee, useEmployee, useGrantRoles, useReactivateEmployee, useResendInvitation, useRevokeRole, useSendPasswordReset, useSuspendEmployee, useUpdateEmployee,
 } from '../../features/employee/model/useEmployees'
+import { useRoles } from '../../features/role/model/useRoles'
 import { EmployeeDetail } from './EmployeeDetail'
 
 vi.mock('../../features/employee/model/useEmployees')
+vi.mock('../../features/role/model/useRoles')
 
 const ownerPermissions = [permissions.accountRead, permissions.accountWrite, permissions.accountManage]
 const adminPermissions = [permissions.accountRead, permissions.accountWrite]
@@ -36,6 +38,9 @@ function mockMutations(overrides: Partial<Record<'resend' | 'cancel' | 'suspend'
   vi.mocked(useDeactivateEmployee).mockReturnValue(all.deactivate as never)
   vi.mocked(useSendPasswordReset).mockReturnValue(all.passwordReset as never)
   vi.mocked(useUpdateEmployee).mockReturnValue(all.update as never)
+  vi.mocked(useGrantRoles).mockReturnValue(mutation() as never)
+  vi.mocked(useRevokeRole).mockReturnValue(mutation() as never)
+  vi.mocked(useRoles).mockReturnValue({ isLoading: false, isError: false, data: [] } as never)
   return all
 }
 
@@ -51,7 +56,7 @@ function setup(employee: EmployeeDetailData, { granted = ownerPermissions, writa
   return { mutations, confirm }
 }
 
-const buttonNames = () => screen.queryAllByRole('button').map((button) => button.textContent)
+const buttonNames = () => Array.from(document.querySelectorAll('.employee-actions button')).map((button) => button.textContent)
 
 beforeEach(() => vi.clearAllMocks())
 
