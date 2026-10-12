@@ -7,6 +7,7 @@ import {
   resendInvitationResponseSchema,
   type EmployeeListParams,
   type InviteEmployeeRequest,
+  type UpdateEmployeeRequest,
 } from './employeeSchemas'
 
 export function useEmployees(params: EmployeeListParams) {
@@ -55,5 +56,35 @@ export function useResendInvitation() {
 export function useCancelInvitation() {
   return useEmployeeMutation(async (principalId: string) => {
     await authHttpClient.delete(`/admin/employees/${principalId}/invitation`)
+  })
+}
+
+export function useUpdateEmployee() {
+  return useEmployeeMutation(async ({ principalId, body }: { principalId: string; body: UpdateEmployeeRequest }) =>
+    employeeDetailSchema.parse((await authHttpClient.patch(`/admin/employees/${principalId}`, body)).data),
+  )
+}
+
+export function useSuspendEmployee() {
+  return useEmployeeMutation(async ({ principalId, reason }: { principalId: string; reason: string }) => {
+    await authHttpClient.post(`/admin/principals/${principalId}/suspend`, { reason })
+  })
+}
+
+export function useReactivateEmployee() {
+  return useEmployeeMutation(async (principalId: string) => {
+    await authHttpClient.post(`/admin/principals/${principalId}/reactivate`)
+  })
+}
+
+export function useDeactivateEmployee() {
+  return useEmployeeMutation(async ({ principalId, reason }: { principalId: string; reason: string }) => {
+    await authHttpClient.post(`/admin/principals/${principalId}/deactivate`, { reason })
+  })
+}
+
+export function useSendPasswordReset() {
+  return useEmployeeMutation(async (principalId: string) => {
+    await authHttpClient.post(`/admin/principals/${principalId}/password-reset`)
   })
 }

@@ -76,3 +76,10 @@ export type EmployeeListParams = {
   page: number
   size: number
 }
+
+/** 보낸 필드만 수정한다. phone·address는 null이면 삭제한다. email은 바꿀 수 없다. */
+export type UpdateEmployeeRequest = {
+  name?: string
+  phone?: string | null
+  address?: string | null
+}
