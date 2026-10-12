@@ -27,6 +27,7 @@
   없으므로 `Task`.
 - PR은 `.github/PULL_REQUEST_TEMPLATE.md` 형식(연관된 이슈 / 작업 내용 / 스크린샷(선택) / 리뷰
   요구사항(선택))을 따르고, 연관 이슈와 같은 라벨을 붙인다.
+- PR 본문의 "연관된 이슈"는 목록 항목으로 쓴다. `Closes` 앞에 `-`를 붙인다 (예: `- Closes #45`).
 
 ## Branch Strategy
 
