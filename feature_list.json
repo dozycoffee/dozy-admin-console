@@ -203,9 +203,9 @@
     "dependencies": ["auth-real-login"]
   },
   {
-    "id": "auth-system-client-owner-audit",
-    "name": "system client 관리·owner 양도 화면",
-    "description": "dozy-auth system client 목록·등록(일반 role 지정)·secret 재발급(응답 1회 표시, 복사 후 닫으면 다시 볼 수 없음) 화면과 owner 양도 요청·취소·수락(/owner-transfer?token=, 대상 직원이 본인으로 로그인한 상태에서 수락) 화면. system client 폐기는 직원과 같은 계정 비활성화 API를 쓴다. 감사 로그 조회는 auth-audit-logs로 분리해 완료.",
+    "id": "auth-owner-transfer",
+    "name": "owner 양도 화면",
+    "description": "dozy-auth owner 양도: 현재 owner의 양도 요청(대상 ACTIVE 직원 선택, POST /admin/owner/transfer)·취소(DELETE), 대상 직원이 메일 링크(/owner-transfer?token=)로 본인 계정에 로그인한 상태에서 수락(POST /admin/owner/transfer/accept, aud 검사 예외). 진행 중 양도는 하나만 가능하고 수락하면 기존 owner는 role 없는 직원이 되며 세션이 폐기된다(GOV-09). 되돌리기 어려운 작업이라 확인 모달과 안내를 충분히 둔다. system client 관리는 auth-system-clients로 분리해 완료.",
     "status": "pending",
     "dependencies": ["auth-real-login"]
   },
@@ -236,5 +236,12 @@
     "description": "dozy-auth GET /admin/audit-logs 기반 감사 로그 화면(/audit-logs, account.manage). 최신순 목록(시각·action·행위자·대상·IP·detail)과 서버 페이지네이션, 기간 필터(빠른 선택 24시간·7일·30일과 직접 입력, 90일 상한·순서 검증), 행위자 id·대상 종류·id·action(여러 개) 필터를 제공한다. 읽기 전용이며 계정은 id로만 표시한다(개인정보 없음).",
     "status": "completed",
     "dependencies": ["auth-real-login"]
+  },
+  {
+    "id": "auth-system-clients",
+    "name": "system client 관리 화면",
+    "description": "dozy-auth /admin/system-clients 기반 system client 목록·등록(clientId 형식 svc-{서비스명} 검증, 일반 role 선택)·secret 재발급(기존 secret 즉시 무효 안내)과 role 부여·회수·폐기(계정 비활성화, 사유 입력) 화면(/system-clients, account.read/write). secret은 응답에서 한 번만 받으므로 화면에 한 번만 보여주고(복사 버튼, 저장 확인 후 닫기) mutation 캐시에 남기지 않는다.",
+    "status": "completed",
+    "dependencies": ["auth-role-management"]
   }
 ]

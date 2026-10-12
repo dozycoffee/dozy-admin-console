@@ -53,9 +53,25 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(system client 관리·owner 양도)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-owner-transfer`(owner 양도)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (system client 관리 화면)
+
+- 이슈 #61, `feat/auth-system-clients` 브랜치에서 system client 화면 구현. `auth-system-client-owner-audit`를 쪼개 system client는 `auth-system-clients`로 완료하고
+  남은 owner 양도는 `auth-owner-transfer`로 이름을 바꿔 pending으로 남겼다
+- `/system-clients`(계정 관리자 모드, `account.read`/`account.write`): 목록(clientId·이름·상태·role·secret 발급 시각, 폐기된 client는 `deleted-{id}`로 표시), 등록
+  (clientId `^svc-[a-z][a-z0-9]*(-[a-z0-9]+)*$`·100자 검증, 이름, system role을 뺀 일반 role 선택), secret 재발급, role 부여·회수(일반 role만), 폐기(사유 입력 모달, 되돌릴 수 없음 안내)
+- **secret은 한 번만 보여준다**(CLI-02): 등록·재발급 응답의 secret을 `SecretReveal`(읽기 전용 입력·복사 버튼·"안전한 곳에 저장했습니다" 확인 후에만 닫기)로 보여주고,
+  mutation은 `gcTime: 0`으로 결과를 캐시에 남기지 않으며 호출한 쪽 콜백에서 페이지 state로만 넘긴다. 새로고침하거나 화면을 떠나면 사라진다
+- 재발급은 확인 모달에서 "기존 secret 즉시 무효, 이미 발급된 토큰은 최대 10분 유효"(CLI-03)를 안내하고 `ACTIVE`일 때만 할 수 있다. 정지된 client는 재발급·role 부여 불가
+- role 부여·회수·폐기는 직원과 같은 계정 API(`/admin/principals/{id}/...`)를 쓰되 `system-client` 쿼리와 role 쿼리를 갱신하는 훅을 따로 둔다. owner·admin 보호 규칙은 system client에 적용되지 않는다
+- 검증: build/lint/test(482) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 등록(role 지정) → secret 표시(저장 확인 전 닫기 비활성, 복사 버튼, 클립보드 일치) →
+  그 secret으로 `POST /realms/internal/token` 토큰 발급 200 → 닫으면 화면에서 secret 사라짐 → 중복 clientId 안내 → 재발급(옛 secret 401 `invalid_client`, 새 secret 200) →
+  role 회수·부여 → 폐기(clientId가 `deleted-…`로 바뀌고 role 회수, 폐기된 client의 secret은 401)까지 확인
+- 알려진 한계: client 정지·해제 화면은 만들지 않았다(계정 정지 API는 같다). 서비스 토큰에 어떤 `aud`가 담기는지(role의 audience)는 화면에서 보여주지 않는다
+- 로컬 auth DB에는 폐기된 `svc-store` client가 남아 있다
 
 ### 2026-10-12 (감사 로그 조회 화면)
 
@@ -563,7 +579,7 @@
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: system client 관리 → owner 양도. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: owner 양도. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/

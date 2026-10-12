@@ -529,3 +529,15 @@ a { color: inherit; text-decoration: none; }
 .audit-none { color: #c9c3be; }
 .audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
 .audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }
+
+/* system client */
+.client-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.client-card { min-height: 0; margin-top: 0; padding: 20px 26px; }
+.client-card.deactivated { opacity: .7; }
+.client-card .employee-fields { margin: 12px 0; }
+.secret-reveal { min-height: 0; margin-bottom: 16px; padding: 20px 26px; border-color: #e0c27a; background: #fffaf0; }
+.secret-warning { margin: 0 0 12px; color: #8a5a00; font-size: 13px; font-weight: 700; }
+.secret-box { display: flex; gap: 8px; }
+.secret-box input { flex: 1; min-width: 0; padding: 9px 11px; border: 1px solid #e0c27a; border-radius: 7px; background: #fff; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.secret-box .inbound-action-button { margin-top: 0; }
+.secret-confirm { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: #5a4d47; }
