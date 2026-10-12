@@ -16,7 +16,7 @@ type RoleGrant = {
 
 const accountAdministratorGrant: RoleGrant = {
   actorModes: [actorModeIds.accountAdministrator],
-  permissions: [permissions.dashboardRead],
+  permissions: [permissions.dashboardRead, permissions.accountRead, permissions.accountWrite],
 }
 
 export const roleGrants: Readonly<Record<string, RoleGrant>> = {
