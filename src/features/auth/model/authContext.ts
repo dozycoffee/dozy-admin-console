@@ -9,7 +9,7 @@ export type AuthContextValue = {
   can: (permission: Permission) => boolean
   selectActorMode: (modeId: ActorModeId) => boolean
   clearActorMode: () => void
-  login: (username: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
 

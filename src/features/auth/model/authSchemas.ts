@@ -1,21 +1,17 @@
 import { z } from 'zod'
-import { actorModeIds, type ActorModeId } from './actorModes'
-import { permissions, type Permission } from './permissions'
 
-const permissionValues = Object.values(permissions) as [Permission, ...Permission[]]
-const permissionSchema = z.enum(permissionValues)
-const actorModeValues = Object.values(actorModeIds) as [ActorModeId, ...ActorModeId[]]
-export const actorModeIdSchema = z.enum(actorModeValues)
-
+/** `POST /realms/internal/login`, `POST /realms/internal/token/refresh` 응답 */
 export const loginResponseSchema = z.object({
   accessToken: z.string(),
 })
 export type LoginResponse = z.infer<typeof loginResponseSchema>
 
-export const currentUserSchema = z.object({
-  id: z.string(),
+/** `GET /realms/internal/me` 응답. roles는 DB의 현재 값이다. */
+export const meResponseSchema = z.object({
+  principalType: z.string(),
+  principalId: z.string(),
   name: z.string(),
-  actorModes: z.array(actorModeIdSchema),
-  permissions: z.array(permissionSchema),
-  scope: z.object({ warehouseIds: z.array(z.number()) }),
+  email: z.string(),
+  roles: z.array(z.string()),
 })
+export type MeResponse = z.infer<typeof meResponseSchema>
