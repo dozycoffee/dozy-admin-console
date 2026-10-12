@@ -37,12 +37,11 @@
   띄워두는 대신 지우고 나중에 API가 준비되면 화면부터 새로 만들기로 했다. `permissions.ts`의
   `catalogRead`/`catalogWrite`, `AppLayout`의 "상품 관리" 메뉴, `product` 모델
   (`productSchemas`/`useActiveProducts`)도 함께 제거. 같은 맥락에서 대응 화면이 없던
-  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(실제 화면은 `users-permission-management-page`
-  착수 시 다시 추가 필요)
+  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(계정 관리 화면은 이후 직원 관리·role 관리 등 `auth-*` 화면으로
+  나눠 구현했다)
 - Inventory/Dashboard는 dozy-wms-api 실 API(zone-summary/warehouses/products)로 연동 완료.
   `AccessScope.warehouseIds`를 `string[]`(슬러그) → `number[]`(dozy-wms-api Long id)로 변경했고,
   mock 값은 로컬 dev DB에 실제 등록한 창고 id를 가리킨다 — 다른 개발 DB에서는 이 값을 맞춰야 함
-- `AppLayout`의 `/users` 메뉴는 대응 라우트/화면이 아직 없음 (위 인증 보류와 연결됨)
 - 이슈/PR은 `.github/ISSUE_TEMPLATE`(feature/bug/refactor)·`.github/PULL_REQUEST_TEMPLATE.md`
   구조를 따르고, 라벨과 GitHub 네이티브 Issue Type(Feature/Bug/Task)을 맞춰 붙인다
   (`docs/git-workflow.md` "이슈/PR 템플릿·라벨·타입" 절 참고)
@@ -54,9 +53,23 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(system client·owner 양도·감사 로그)이다. 본인 정보 수정(`auth-my-profile-edit`)은 dozy-auth에 `PATCH /realms/{realm}/me`가 생긴 뒤 한다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(system client 관리·owner 양도)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (감사 로그 조회 화면)
+
+- 이슈 #59, `feat/auth-audit-logs` 브랜치에서 감사 로그 화면 구현. `auth-system-client-owner-audit`를 쪼개 감사 로그는 `auth-audit-logs`로 완료하고
+  나머지(system client 관리·owner 양도)는 기존 항목에 남겼다. 직원 본인 정보 수정 제외 방침도 같은 브랜치에서 문서에 반영
+- `/audit-logs`(`account.manage`, owner 전용 — `auth:owner`에만 매핑): 최신순 목록(시각·action 한글 이름+코드·행위자·대상·IP·detail 펼쳐 보기), 서버 페이지네이션(20건)
+- 필터: 기간(빠른 선택 24시간·7일·30일, 직접 입력 `datetime-local`; 선택하지 않으면 서버 기본 최근 7일), 행위자 id(UUID 검증), 대상 종류·id, action 여러 개(AUD-01의 26개를
+  분류별 체크박스, 쉼표로 이어 전송). 시작>종료와 90일 초과는 클라이언트에서 막고 서버 `VALIDATION_FAILED`는 조건 확인 안내로 바꾼다. 빠른 선택에 90일을 넣지 않은 것은
+  서버 시각이 조금 뒤라 상한에 걸릴 수 있기 때문
+- 감사 로그에는 이름·이메일이 없어(AUD-07) 행위자·대상은 `type`과 앞 8자리 id로 보이고 전체는 툴팁이다. 시스템 작업(행위자 없음)은 `-`
+- 사이드바 "감사 로그" 메뉴(owner가 아니면 다른 메뉴처럼 "잠김"), 직접 URL 접근은 `RequirePermission`이 `/access-denied`로 보낸다
+- 검증: build/lint/test(424) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 기본 조회(91건, 최신순) → action `role 부여·회수` 필터(9건, 쉼표 전송) → detail 펼치기
+  → 최근 24시간+대상 종류 ROLE 필터 → 90일 초과 기간 안내, admin: 사이드바에 "잠김", `/audit-logs` 직접 접근은 `/access-denied`까지 확인
+- 알려진 한계: 행위자·대상의 이름은 보여주지 않는다(id만). 서버 `VALIDATION_FAILED`의 정확한 원인(기간/UUID/알 수 없는 action)은 구분하지 못하고 한 문구로 안내한다
 
 ### 2026-10-12 (내 계정 화면 — 내 정보 조회·비밀번호 변경)
 
@@ -65,18 +78,16 @@
   진입점(`/account` 링크). 이메일·부여된 role을 읽기 전용으로 보여준다(`GET /realms/internal/me`)
 - 비밀번호 변경(`POST /realms/internal/password/change`): 현재 비밀번호와 새 비밀번호·확인(초대 수락·재설정과 같은 `NewPasswordFields`·정책 검증).
   현재 비밀번호 불일치는 401이 아니라 400 `CURRENT_PASSWORD_MISMATCH`라 로그아웃되지 않고 안내만 한다(PWD-08). 성공하면 이 기기를 뺀 다른 기기의 로그인이 해제된다고 안내
-- **본인 정보 수정(이름·전화번호·주소)은 이번에 넣지 않았다.** dozy-auth 명세(`docs/api/account.md`)에는 `PATCH /realms/{realm}/me`가 있지만 서버에 구현되어
-  있지 않다(`MeController`는 GET만, 실서버 405). 동작하지 않는 폼을 올리지 않으려고 `auth-my-profile-edit`로 분리하고 dozy-auth가 구현한 뒤 착수한다.
-  구현했다가 뺀 코드(`ProfileForm`, 바뀐 필드만 담는 요청 생성, 수정 후 사이드바 이름을 `setQueryData`로 갱신)는 이 세션 이력에 있다. 내 정보 응답에는 전화번호·주소가 없어
-  현재 값을 보여줄 수 없다는 점도 같이 알아둘 것
+- **직원의 본인 정보(이름·전화번호·주소) 수정은 의도적으로 제외한다.** 정보 수정은 관리자가 직원 관리 화면에서 한다. 따라서 dozy-auth의
+  `PATCH /realms/{realm}/me`는 쓰지 않는다(참고: 서버에도 구현되어 있지 않다). 내 계정 화면은 조회와 비밀번호 변경만 한다
 - 검증: build/lint/test(389) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 두 기기(브라우저 컨텍스트)에서 로그인 → 내 계정 화면(이메일·role) →
   틀린 현재 비밀번호(400, 로그인 유지) → 변경(204) → 변경한 기기는 새로고침해도 세션 유지, 다른 기기는 새로고침하면 로그인 화면 → 새 비밀번호로 로그인 → 원래 비밀번호로 복구까지 확인
-- 알려진 한계: 이름이 바뀌는 흐름이 없어 사이드바 이름 갱신은 해당 없음. role이 없는 직원은 로그인 후 `/access-denied`로 이동하므로 이 화면에 사이드바로 들어갈 수 없다
+- 알려진 한계: role이 없는 직원은 로그인 후 `/access-denied`로 이동하므로 이 화면에 사이드바로 들어갈 수 없다
   (URL로 직접 접근은 가능)
 
 ### 2026-10-12 (초대 수락·비밀번호 찾기·재설정 공개 화면)
 
-- 이슈 #55, `feat/auth-account-recovery-pages` 브랜치에서 `auth-account-recovery-pages` 구현. 내 정보 수정·비밀번호 변경은
+- 이슈 #55, `feat/auth-account-recovery-pages` 브랜치에서 `auth-account-recovery-pages` 구현. 비밀번호 변경은
   `auth-my-account-pages`로 분리해 등록
 - 메일 링크 경로는 dozy-auth `MailRenderer`와 같다: `/invitation?token=`(초대), `/password/reset?token=`(재설정). 둘 다 `RequireAuth` 밖의
   공개 라우트이고 `/password/forgot`(비밀번호 찾기)도 공개다. `/owner-transfer?token=`은 `auth-system-client-owner-audit`에서 만든다
@@ -552,7 +563,7 @@
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: system client·owner 양도·감사 로그. (`auth-my-profile-edit`는 dozy-auth `PATCH /me` 구현 후) 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: system client 관리 → owner 양도. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
