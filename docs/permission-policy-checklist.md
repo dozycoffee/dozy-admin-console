@@ -43,12 +43,14 @@
 - [ ] `src/features/auth/model/permissions.ts`의 `permissions` 객체에 `<도메인>.<read|write|manage>`
       형식으로 추가했는가?
 - [ ] 위 표에 추가했는가?
-- [ ] Mock 사용자(`src/mocks/handlers.ts`의 `mockUser`)에도 테스트에 필요한 권한을 반영했는가? (실제 로그인
-      연동 전까지는 여기서 접근 가능 범위가 결정된다)
+- [ ] `src/features/auth/model/roleMapping.ts`의 `roleGrants`에서 이 Permission을 줄 dozy-auth role을
+      정했는가? (사용자의 허용 모드·Permission은 auth의 role에서 이 파일 한 곳으로 도출된다. 운영 중인 role
+      이름과 같아야 부여된다)
 - [ ] API 서버 쪽에도 대응하는 권한 검증이 있는지 확인했는가, 혹은 별도 이슈로 추적하고 있는가?
 
 ## 참고
 
-AccessScope는 현재 `warehouseIds` 하나뿐이다. 매장 단위 스코프 등 새로운 축이 필요해지면 구조
+AccessScope는 현재 `warehouseIds` 하나뿐이다. dozy-auth에는 창고 개념이 없고 담당 창고 API도 아직 없어,
+창고 관련 모드를 가진 사용자의 `warehouseIds`는 환경 변수 `VITE_WAREHOUSE_IDS`로 임시 지정한다. 매장 단위 스코프 등 새로운 축이 필요해지면 구조
 변경 근거를 [docs/adr/](adr/README.md)에 남긴다 — 여러 화면의 데이터 필터링 방식에 영향을 주는
 되돌리기 번거로운 변경이기 때문이다.
