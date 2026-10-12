@@ -190,9 +190,9 @@
   },
   {
     "id": "auth-account-recovery-pages",
-    "name": "초대 수락·비밀번호 재설정·내 정보 화면",
-    "description": "메일 링크가 여는 /invitation?token=(초대 조회·수락), 비밀번호 찾기·재설정(/password/reset?token=) 화면과 내 정보 수정·비밀번호 변경을 dozy-auth API로 구현한다. 메일 링크 경로 중 재설정·owner 양도는 auth와 합의된 경로를 쓴다.",
-    "status": "pending",
+    "name": "초대 수락·비밀번호 찾기·재설정 화면 (공개)",
+    "description": "메일 링크가 여는 공개 화면: /invitation?token=(초대 조회·수락), /password/forgot(계정 존재 여부를 드러내지 않는 안내), /password/reset?token=(재설정)을 dozy-auth /realms/internal/* API로 구현한다. 비밀번호 정책(8~128자, 확인 일치) 검증, 만료·사용된 링크 안내, 수락·재설정 후 자동 로그인 없이 로그인 화면으로 이동해 완료 안내를 보여준다. 내 정보 수정·비밀번호 변경은 auth-my-account-pages로 분리.",
+    "status": "completed",
     "dependencies": ["auth-real-login"]
   },
   {
@@ -229,5 +229,12 @@
     "description": "직원 상세에서 dozy-auth role을 부여·회수한다(POST /admin/principals/{id}/roles, DELETE .../roles/{role}). auth:admin 임명·해임은 owner만 가능(GOV-05)하고 확인 모달에서 owner 알림 메일을 안내한다. 자기 자신 부여 불가(GOV-04), admin의 owner·admin 대상 변경 불가(GOV-02), 정지·비활성화 직원 부여 불가(GOV-07)를 화면에서 미리 반영하고 role 변경은 다음 토큰 갱신부터 반영됨을 안내한다.",
     "status": "completed",
     "dependencies": ["auth-role-management", "auth-employee-account-actions"]
+  },
+  {
+    "id": "auth-my-account-pages",
+    "name": "내 정보 수정·비밀번호 변경 화면",
+    "description": "로그인한 사용자가 본인 정보(이름·전화번호·주소)를 수정(PATCH /realms/internal/me)하고 비밀번호를 변경(POST /realms/internal/password/change)하는 화면. 비밀번호 변경은 현재 비밀번호 확인 후 현재 세션을 제외한 모든 세션이 폐기되며 CURRENT_PASSWORD_MISMATCH(400)·TOO_MANY_ATTEMPTS를 안내한다. 모든 액터 모드에서 접근할 수 있는 진입점(사이드바 사용자 영역)을 포함한다.",
+    "status": "pending",
+    "dependencies": ["auth-account-recovery-pages"]
   }
 ]

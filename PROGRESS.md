@@ -54,10 +54,27 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(초대 수락·재설정,
+다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-*` 화면들(내 정보 수정·비밀번호 변경,
 system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-12 (초대 수락·비밀번호 찾기·재설정 공개 화면)
+
+- 이슈 #55, `feat/auth-account-recovery-pages` 브랜치에서 `auth-account-recovery-pages` 구현. 내 정보 수정·비밀번호 변경은
+  `auth-my-account-pages`로 분리해 등록
+- 메일 링크 경로는 dozy-auth `MailRenderer`와 같다: `/invitation?token=`(초대), `/password/reset?token=`(재설정). 둘 다 `RequireAuth` 밖의
+  공개 라우트이고 `/password/forgot`(비밀번호 찾기)도 공개다. `/owner-transfer?token=`은 `auth-system-client-owner-audit`에서 만든다
+- 초대 수락: 토큰으로 초대를 조회(소비하지 않음)해 이름·마스킹된 이메일을 보여주고 비밀번호를 정한다. 만료·사용된 초대와 토큰 없는 접근은 같은
+  만료 안내(dozy-auth는 구분해 주지 않는다). 비밀번호 찾기는 계정이 없어도 같은 성공 문구, 재설정은 토큰과 새 비밀번호
+- 수락·재설정 후에는 자동 로그인하지 않고 `/login`으로 이동해 완료 안내(`location.state.notice`)를 보여준다. 로그인 화면에 "비밀번호를 잊으셨나요?" 링크 추가
+- `features/account`: 비밀번호 정책(PWD-01 코드 포인트 길이 8~128, 확인 일치) 클라이언트 검증, 서버의 `VALIDATION_FAILED`(이메일과 같은 비밀번호 등)·
+  `TOO_MANY_ATTEMPTS`·`VERIFICATION_EXPIRED` 안내
+- 검증: build/lint/test(374) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 직원 초대 → 메일 링크 → 초대 조회(마스킹 이메일) → 확인 불일치 안내 →
+  수락(204) → 로그인 안내 → 같은 링크 재사용 시 만료 안내(410) → 존재하지 않는 이메일·존재하는 이메일 모두 같은 성공 문구(202) → 메일 링크로 재설정 →
+  짧은 비밀번호 안내 → 변경(204) → 옛 비밀번호 로그인 실패, 새 비밀번호 로그인 성공 → 재설정 링크 재사용 시 만료 안내까지 확인
+- 알려진 한계: 링크의 토큰이 URL 쿼리에 남는다(dozy-auth VER-05는 메일 링크에 한정). 요청 제한(429)은 실서버에서 확인하지 않고 단위 테스트로만 검증했다.
+  role이 없는 직원은 로그인하면 `/access-denied`로 이동한다(기존 동작)
 
 ### 2026-10-12 (직원 role 부여·회수)
 
@@ -520,7 +537,7 @@ system client·owner 양도·감사 로그)이다. dozy-wms-api는 inventory 분
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 초대 수락·재설정 화면 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: 내 정보 수정·비밀번호 변경 → system client·owner 양도·감사 로그. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/

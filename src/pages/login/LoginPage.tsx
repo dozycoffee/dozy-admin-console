@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../shared/api/ApiError'
 import { useAuth } from '../../features/auth/model/useAuth'
 
@@ -22,6 +22,8 @@ function toLoginErrorMessage(error: unknown): string {
 export function LoginPage() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
+  // 초대 수락·비밀번호 재설정을 마치고 넘어오면 완료 안내를 보여준다.
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +52,7 @@ export function LoginPage() {
       <form className="login-card" onSubmit={handleSubmit}>
         <div className="brand">DOZY <span>COFFEE</span></div>
         <p>관리자 콘솔에 로그인하세요.</p>
+        {notice && <p className="login-notice" role="status">{notice}</p>}
         <label>
           이메일
           <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" />
@@ -67,6 +70,7 @@ export function LoginPage() {
         <button type="submit" className="button" disabled={isSubmitting}>
           {isSubmitting ? '로그인 중...' : '로그인'}
         </button>
+        <Link className="login-link" to="/password/forgot">비밀번호를 잊으셨나요?</Link>
       </form>
     </div>
   )

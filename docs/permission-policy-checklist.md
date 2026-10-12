@@ -53,6 +53,9 @@
 
 ## 참고
 
+로그인 없이 접근하는 공개 라우트는 `RequireAuth` 밖에 두며 Permission을 정의하지 않는다: `/login`, `/invitation`(초대 수락),
+`/password/forgot`, `/password/reset`. 메일 링크가 여는 화면이라 경로는 dozy-auth 메일 템플릿과 같아야 한다.
+
 AccessScope는 현재 `warehouseIds` 하나뿐이다. dozy-auth에는 창고 개념이 없고 담당 창고 API도 아직 없어,
 창고 관련 모드를 가진 사용자의 `warehouseIds`는 환경 변수 `VITE_WAREHOUSE_IDS`로 임시 지정한다. 매장 단위 스코프 등 새로운 축이 필요해지면 구조
 변경 근거를 [docs/adr/](adr/README.md)에 남긴다 — 여러 화면의 데이터 필터링 방식에 영향을 주는
