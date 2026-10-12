@@ -11,9 +11,9 @@ vi.mock('../../features/auth/model/useAuth')
 
 const mockedUseAuth = vi.mocked(useAuth)
 
-function renderLoginPage() {
+function renderLoginPage(state?: unknown) {
   return render(
-    <MemoryRouter initialEntries={['/login']}>
+    <MemoryRouter initialEntries={[{ pathname: '/login', state }]}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<div>home page</div>} />
@@ -47,6 +47,23 @@ describe('LoginPage', () => {
 
     expect(screen.getByLabelText('이메일')).toBeInTheDocument()
     expect(screen.getByLabelText('비밀번호')).toBeInTheDocument()
+  })
+
+  it('초대 수락·비밀번호 재설정을 마치고 넘어오면 완료 안내를 보여준다', () => {
+    mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() })
+
+    renderLoginPage({ notice: '비밀번호를 바꿨습니다. 새 비밀번호로 로그인하세요.' })
+
+    expect(screen.getByRole('status')).toHaveTextContent('비밀번호를 바꿨습니다.')
+  })
+
+  it('안내가 없으면 완료 안내를 보여주지 않고 비밀번호 찾기 링크를 보여준다', () => {
+    mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() })
+
+    renderLoginPage()
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '비밀번호를 잊으셨나요?' })).toHaveAttribute('href', '/password/forgot')
   })
 
   it('로그인 성공 시 콘솔 홈으로 이동한다', async () => {

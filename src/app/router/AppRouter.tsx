@@ -7,6 +7,9 @@ import { AppLayout } from '../../shared/ui/AppLayout'
 import { InventoryPage } from '../../pages/inventory/InventoryPage'
 import { AccessDeniedPage } from '../../pages/access-denied/AccessDeniedPage'
 import { LoginPage } from '../../pages/login/LoginPage'
+import { InvitationPage } from '../../pages/invitation/InvitationPage'
+import { ForgotPasswordPage } from '../../pages/password-forgot/ForgotPasswordPage'
+import { ResetPasswordPage } from '../../pages/password-reset/ResetPasswordPage'
 import { WarehouseMapPage } from '../../pages/warehouse-map/WarehouseMapPage'
 import { ModeHomePage } from '../../pages/mode-home/ModeHomePage'
 import { actorModeIds } from '../../features/auth/model/actorModes'
@@ -29,6 +32,10 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="login" element={<LoginPage />} />
+      {/* 메일 링크가 여는 화면이라 로그인 없이 접근한다 */}
+      <Route path="invitation" element={<InvitationPage />} />
+      <Route path="password/forgot" element={<ForgotPasswordPage />} />
+      <Route path="password/reset" element={<ResetPasswordPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route index element={<RequirePermission permission={permissions.dashboardRead}><ModeHomePage /></RequirePermission>} />
