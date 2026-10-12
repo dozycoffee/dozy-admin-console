@@ -16,13 +16,13 @@ const operationsNavigation: Array<{ label: string; to: string; permission: Permi
 const warehouseManagerNavigation = [...operationsNavigation, { label: '입고 관리', to: '/inbounds', permission: permissions.inboundRead }, { label: '출고 관리', to: '/outbounds', permission: permissions.outboundRead }, { label: '폐기 관리', to: '/disposals', permission: permissions.disposalRead }, { label: '반품 관리', to: '/returns', permission: permissions.returnRead }]
 
 const navigationByMode: Record<ActorModeId, Array<{ label: string; to: string; permission: Permission }>> = {
-  [actorModeIds.accountAdministrator]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }, { label: '직원 관리', to: '/employees', permission: permissions.accountRead }, { label: 'role 관리', to: '/roles', permission: permissions.accountRead }],
+  [actorModeIds.accountAdministrator]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }, { label: '직원 관리', to: '/employees', permission: permissions.accountRead }, { label: 'role 관리', to: '/roles', permission: permissions.accountRead }, { label: '감사 로그', to: '/audit-logs', permission: permissions.accountManage }],
   [actorModeIds.merchandiser]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }],
   [actorModeIds.warehouseManager]: warehouseManagerNavigation,
   [actorModeIds.headquartersInventoryManager]: operationsNavigation,
 }
 
-type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'logout'
+type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'audit' | 'logout'
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, string> = {
     dashboard: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
@@ -34,6 +34,7 @@ function NavIcon({ name }: { name: NavIconName }) {
     return: 'M9 7 4 12l5 5M4 12h11a5 5 0 0 1 0 10h-3',
     employees: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1M17 11a2.5 2.5 0 1 0 0-5M21 19v-.5a4 4 0 0 0-3-3.9',
     roles: 'M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6zM9 12l2 2 4-4',
+    audit: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
     logout: 'M10 5H5v14h5M14 8l4 4-4 4M18 12H9',
   }
   return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name]} /></svg>
@@ -78,7 +79,7 @@ export function AppLayout() {
                 state={allowed ? undefined : { from: item.to, permission: item.permission }}
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
-                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/inbounds' ? 'inbound' : item.to === '/outbounds' ? 'outbound' : item.to === '/disposals' ? 'disposal' : item.to === '/returns' ? 'return' : item.to === '/employees' ? 'employees' : item.to === '/roles' ? 'roles' : 'map'} />
+                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/inbounds' ? 'inbound' : item.to === '/outbounds' ? 'outbound' : item.to === '/disposals' ? 'disposal' : item.to === '/returns' ? 'return' : item.to === '/employees' ? 'employees' : item.to === '/roles' ? 'roles' : item.to === '/audit-logs' ? 'audit' : 'map'} />
                 <span className="nav-link-label">{item.label}</span>
                 {!allowed && <small aria-label="접근 제한">잠김</small>}
               </NavLink>

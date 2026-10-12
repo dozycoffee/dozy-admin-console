@@ -503,3 +503,29 @@ a { color: inherit; text-decoration: none; }
 .account-password input { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
 .account-password .login-hint { color: #9b918c; }
 .account-password .login-error { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fbecea; color: #9c3b2e; font-size: 13px; }
+
+/* 감사 로그 */
+.audit-filters, .audit-list-panel { min-height: 0; margin-bottom: 16px; padding: 20px 26px; }
+.audit-period { margin: 0; padding: 0; border: 0; }
+.audit-period legend { margin-bottom: 8px; padding: 0; color: #6f6862; font-size: 12px; }
+.audit-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.audit-presets button { padding: 7px 12px; border: 1px solid #e4ddd9; border-radius: 99px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
+.audit-presets button.active { border-color: #4b2f25; background: #4b2f25; color: #fff; }
+.audit-range, .audit-filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+.audit-filters label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
+.audit-filters input:not([type="checkbox"]), .audit-filters select { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
+.audit-actions { margin-top: 12px; }
+.audit-actions summary { cursor: pointer; color: #5a4d47; font-size: 13px; font-weight: 700; }
+.audit-actions fieldset { margin: 10px 0 0; padding: 8px 12px; border: 1px solid #ece7e3; border-radius: 8px; }
+.audit-actions legend { padding: 0 6px; color: #9b918c; font-size: 11px; }
+.audit-actions fieldset label { display: inline-flex; align-items: center; gap: 6px; margin: 4px 14px 4px 0; color: #5a4d47; }
+.audit-filters .inbound-form-actions { margin-top: 12px; }
+.audit-table-wrap { margin-top: 14px; overflow-x: auto; }
+.audit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.audit-table th { padding: 8px 10px; border-bottom: 1px solid #e4ddd9; color: #9b918c; font-size: 11px; font-weight: 800; text-align: left; white-space: nowrap; }
+.audit-table td { padding: 9px 10px; border-bottom: 1px solid #f1ece8; vertical-align: top; }
+.audit-table td small { display: block; color: #9b918c; font-size: 11px; }
+.audit-table td b { margin-right: 4px; color: #786d68; font-size: 11px; font-weight: 800; }
+.audit-none { color: #c9c3be; }
+.audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
+.audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }

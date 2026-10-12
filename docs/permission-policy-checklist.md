@@ -37,7 +37,7 @@
 | `return.write` | 반품 접수 등록, 검수 시작, 품목 검수, 반품 완료 | `/returns`의 등록·작업 버튼 |
 | `account.read` | 직원 목록·상세, role·audience 조회 | 계정 관리자 모드의 `/employees`, `/roles` |
 | `account.write` | 직원 초대, 초대 재발송·취소, 정보 수정, 정지·해제·비활성화, 재설정 메일 발송, role 등록·수정·삭제 | `/employees`, `/roles`의 등록·작업 버튼 |
-| `account.manage` | owner 전용 계정 관리 — owner·admin 계정 변경 (admin은 불가, GOV-02), audience 추가 | `/employees` 상세의 작업 버튼, `/roles`의 audience 추가 (`auth:owner`에만 매핑) |
+| `account.manage` | owner 전용 계정 관리 — owner·admin 계정 변경 (admin은 불가, GOV-02), audience 추가, 감사 로그 조회 | `/employees` 상세의 작업 버튼, `/roles`의 audience 추가, `/audit-logs` (`auth:owner`에만 매핑) |
 
 새 Permission을 추가하면 이 표도 함께 갱신한다.
 
