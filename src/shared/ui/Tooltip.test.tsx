@@ -40,4 +40,11 @@ describe('Tooltip', () => {
     const anchor = screen.getByRole('button', { name: '부여' }).parentElement!
     expect(anchor).toHaveAccessibleDescription('권한이 없습니다.')
   })
+
+  it('label을 주면 글자 없는 배지 래퍼에 읽을 이름을 붙인다', () => {
+    render(<Tooltip content="규칙입니다." label="code 입력 규칙"><span aria-hidden="true">?</span></Tooltip>)
+
+    const anchor = screen.getByRole('img', { name: 'code 입력 규칙' })
+    expect(anchor).toHaveAccessibleDescription('규칙입니다.')
+  })
 })

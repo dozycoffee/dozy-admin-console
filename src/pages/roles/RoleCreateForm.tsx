@@ -2,6 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import { CODE_PATTERN, type Audience } from '../../features/role/model/roleSchemas'
 import { useCreateRole } from '../../features/role/model/useRoles'
+import { FieldTip } from '../../shared/ui/FieldTip'
+
+const CODE_RULE = 'code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다.'
 
 type Props = { audiences: Audience[]; writable: boolean }
 
@@ -33,13 +36,16 @@ export function RoleCreateForm({ audiences, writable }: Props) {
             {audiences.map((item) => <option key={item.id} value={item.code}>{item.name} ({item.code})</option>)}
           </select>
         </label>
-        <label>code
-          <input value={code} disabled={disabled} onChange={(event) => setCode(event.target.value)} placeholder="예: warehouse_manager" autoComplete="off" aria-invalid={codeInvalid} />
-        </label>
+        <div className="employee-invite-field field-with-tip">
+          <label>code
+            <input value={code} disabled={disabled} onChange={(event) => setCode(event.target.value)} placeholder="예: warehouse_manager" autoComplete="off" aria-invalid={codeInvalid} />
+          </label>
+          <FieldTip label="code 입력 규칙">{CODE_RULE + ' 등록한 뒤에는 code와 서비스를 바꿀 수 없습니다.'}</FieldTip>
+        </div>
         <label>이름<input value={name} disabled={disabled} onChange={(event) => setName(event.target.value)} autoComplete="off" /></label>
         <label>설명 (선택)<input value={description} disabled={disabled} onChange={(event) => setDescription(event.target.value)} autoComplete="off" /></label>
       </div>
-      <p className={codeInvalid ? 'inbound-error' : 'employee-hint'}>code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있으며, 등록한 뒤에는 code와 서비스를 바꿀 수 없습니다.</p>
+      {codeInvalid && <p className="inbound-error">{CODE_RULE}</p>}
       <div className="inbound-form-actions">
         <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{create.isPending ? '등록 중...' : 'role 등록'}</button>
       </div>

@@ -17,6 +17,7 @@ function setup(state: Record<string, unknown> = {}, writable = true) {
 
 beforeEach(() => vi.clearAllMocks())
 
+
 describe('RoleCreateForm', () => {
   it('서비스·code·이름이 모두 올바르기 전에는 등록할 수 없다', async () => {
     setup()
@@ -74,5 +75,28 @@ describe('RoleCreateForm', () => {
 
     expect(screen.getByLabelText('code')).toBeDisabled()
     expect(screen.getByRole('button', { name: 'role 등록' })).toBeDisabled()
+  })
+
+  it('code 규칙은 항상 보이는 문장 대신 code 옆 배지의 툴팁으로 안내한다', async () => {
+    setup()
+    const user = userEvent.setup()
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument() // 평소에는 규칙 문장이 보이지 않는다
+    expect(document.querySelector('p.employee-hint')).toBeNull()
+
+    await user.hover(screen.getByRole('img', { name: 'code 입력 규칙' }))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다. 등록한 뒤에는 code와 서비스를 바꿀 수 없습니다.')
+  })
+
+  it('code가 규칙에 맞지 않으면 입력칸 아래에 규칙을 보여주고 고치면 사라진다', async () => {
+    setup()
+    const user = userEvent.setup()
+
+    await user.type(screen.getByLabelText('code'), 'Bad Code')
+    expect(screen.getByText('code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다.', { selector: 'p' })).toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('code'))
+    await user.type(screen.getByLabelText('code'), 'good_code')
+    expect(screen.queryByText('code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다.', { selector: 'p' })).not.toBeInTheDocument()
   })
 })
