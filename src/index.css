@@ -556,3 +556,13 @@ a { color: inherit; text-decoration: none; }
 .owner-candidates label:has(input:checked) { border-color: #9c3b2e; background: #fff7f5; }
 .owner-candidates span { flex: 1; min-width: 0; }
 .owner-candidates small { color: #9b918c; }
+
+/* 폼 모달 */
+.form-modal { display: flex; flex-direction: column; width: min(100%, 560px); max-height: calc(100vh - 48px); border: 1px solid #e4ddd9; border-radius: 14px; background: #fffdfb; box-shadow: 0 24px 60px rgb(63 42 32 / 22%); outline: none; }
+.form-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px 14px; border-bottom: 1px solid #ece7e3; }
+.form-modal-header h2 { margin: 0; color: #33241e; font-size: 18px; letter-spacing: -.03em; }
+.form-modal-close { width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: #786d68; font-size: 22px; line-height: 1; cursor: pointer; }
+.form-modal-close:hover { background: #f3efec; }
+.form-modal-body { padding: 18px 24px 22px; overflow-y: auto; }
+/* 제목 오른쪽에 보조 표시(예: 단계)를 붙이는 영역 */
+.form-modal-title { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
