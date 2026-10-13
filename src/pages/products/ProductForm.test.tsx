@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
-import type { Category, OptionGroup, Product, ProductGroup } from '../../features/catalog/model/catalogSchemas'
+import type { Category, OptionGroup, Product, ProductGroup, Tag } from '../../features/catalog/model/catalogSchemas'
 import { useCreateProduct, useUpdateProduct } from '../../features/catalog/model/useProductMutations'
 import { ProductForm } from './ProductForm'
 
@@ -11,6 +11,7 @@ vi.mock('../../features/catalog/model/useProductMutations')
 const categories: Category[] = [
   { id: 1, name: '음료', parentId: null }, { id: 2, name: '비어 있는 대분류', parentId: null }, { id: 5, name: '커피', parentId: 1 }, { id: 6, name: '티', parentId: 1 },
 ]
+const tags: Tag[] = [{ id: 1, name: '신메뉴' }, { id: 2, name: '베스트' }, { id: 3, name: '시즌한정' }]
 const groups: ProductGroup[] = [{ id: 1, name: '여름 시즌' }, { id: 2, name: '겨울 시즌' }]
 const optionGroups: OptionGroup[] = [
   { id: 7, name: '사이즈', selectionType: 'SINGLE', required: true, options: [], version: 1 },
@@ -34,8 +35,8 @@ beforeEach(() => {
   vi.mocked(useUpdateProduct).mockReturnValue({ ...idle, mutate: updateMutate } as never)
 })
 
-const renderCreate = () => render(<ProductForm categories={categories} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
-const renderEdit = () => render(<ProductForm product={existing} initialTagNames={['베스트']} categories={categories} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
+const renderCreate = () => render(<ProductForm categories={categories} tags={tags} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
+const renderEdit = () => render(<ProductForm product={existing} initialTagNames={['베스트']} categories={categories} tags={tags} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
 
 describe('ProductForm 등록', () => {
   it('입력을 정리해 등록 요청으로 보낸다', async () => {
@@ -46,14 +47,15 @@ describe('ProductForm 등록', () => {
     await user.selectOptions(screen.getByLabelText('카테고리'), '커피')
     await user.type(screen.getByLabelText('기준가 (원)'), '5000')
     await user.click(screen.getByLabelText(/^재고형/))
-    await user.type(screen.getByLabelText('태그 (선택)'), ' 신메뉴, 베스트 ,신메뉴')
+    await user.click(screen.getByRole('button', { name: '신메뉴' }))
+    await user.type(screen.getByLabelText('태그 이름 입력'), '  말차 {Enter}')
     await user.click(screen.getByLabelText('겨울 시즌'))
     await user.click(screen.getByLabelText(/샷 추가/))
     await user.click(screen.getByLabelText(/사이즈/))
     await user.click(screen.getByRole('button', { name: '상품 등록하기' }))
 
     expect(createMutate).toHaveBeenCalledWith({
-      name: '콜드브루', categoryId: 5, basePrice: 5000, description: null, imageUrl: null, tagNames: ['신메뉴', '베스트'], groupIds: [2], tracksInventory: true, optionGroupIds: [8, 7],
+      name: '콜드브루', categoryId: 5, basePrice: 5000, description: null, imageUrl: null, tagNames: ['신메뉴', '말차'], groupIds: [2], tracksInventory: true, optionGroupIds: [8, 7],
     }, expect.any(Object))
   })
 
@@ -100,6 +102,13 @@ describe('ProductForm 등록', () => {
     expect(screen.getByText(/0 이상의 정수/)).toBeInTheDocument()
   })
 
+  it('소분류가 하나도 없으면 안내하고 등록하지 못하게 한다', () => {
+    render(<ProductForm categories={[{ id: 1, name: '음료', parentId: null }]} tags={tags} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('지정할 수 있는 소분류가 없어')
+    expect(screen.getByRole('button', { name: '상품 등록하기' })).toBeDisabled()
+  })
+
   it('재고 관리 여부를 등록 후 바꿀 수 없다고 안내한다', () => {
     renderCreate()
 
@@ -137,7 +146,8 @@ describe('ProductForm 수정', () => {
     expect(screen.getByLabelText('상품명')).toHaveValue('아이스 아메리카노')
     expect(screen.getByLabelText('카테고리')).toHaveValue('5')
     expect(screen.getByLabelText('기준가 (원)')).toHaveValue('4500')
-    expect(screen.getByLabelText('태그 (선택)')).toHaveValue('베스트')
+    expect(screen.getByRole('button', { name: '베스트' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '신메뉴' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByLabelText('겨울 시즌')).toBeChecked()
     expect(screen.queryByText('재고 관리')).not.toBeInTheDocument()
     expect(screen.queryByText('옵션 그룹 (선택)')).not.toBeInTheDocument()

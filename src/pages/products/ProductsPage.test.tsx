@@ -256,7 +256,7 @@ describe('ProductsPage 쓰기', () => {
 
     const dialog = screen.getByRole('dialog', { name: '상품 수정 · 아이스 아메리카노' })
     expect(within(dialog).getByLabelText('상품명')).toHaveValue('아이스 아메리카노')
-    expect(within(dialog).getByLabelText('태그 (선택)')).toHaveValue('베스트')
+    expect(within(dialog).getByRole('button', { name: '베스트' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('등록에 성공하면 필터를 풀고 1페이지에서 새 상품을 선택해 안내한다', async () => {

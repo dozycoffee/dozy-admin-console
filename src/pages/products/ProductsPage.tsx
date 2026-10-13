@@ -59,11 +59,12 @@ export function ProductsPage() {
   return <>
     <header className="page-header inbound-page-header">
       <div><p>MERCHANDISING</p><h1>상품 관리</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => setAddOpen(true)}>상품 등록</button>}
+      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" disabled={!categoriesQuery.data} onClick={() => setAddOpen(true)}>상품 등록</button>}
     </header>
     <Modal open={addOpen} title="상품 등록" onClose={() => setAddOpen(false)}>
       <ProductForm
         categories={categories}
+        tags={tagsQuery.data ?? []}
         groups={groupsQuery.data ?? []}
         optionGroups={optionGroupsQuery.data ?? []}
         onCancel={() => setAddOpen(false)}

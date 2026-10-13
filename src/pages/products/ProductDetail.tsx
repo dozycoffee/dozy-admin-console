@@ -130,6 +130,7 @@ export function ProductDetail({ product, categories, tags, groups, optionGroups,
         product={product}
         initialTagNames={tagNames?.names}
         categories={categories}
+        tags={tags ?? []}
         groups={groups}
         optionGroups={optionGroups}
         onDone={() => { setEditOpen(false); notify('상품 정보를 저장했습니다.') }}

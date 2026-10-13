@@ -1,10 +1,11 @@
 import { useRef, useState, type FormEvent, type RefObject } from 'react'
 import { groupCategories } from '../../features/catalog/model/categoryLabel'
 import { toCatalogErrorMessage } from '../../features/catalog/model/catalogErrors'
-import type { Category, OptionGroup, Product, ProductGroup } from '../../features/catalog/model/catalogSchemas'
-import { emptyToNull, parseTagNames, validateProduct, type ProductField } from '../../features/catalog/model/productValidation'
+import type { Category, OptionGroup, Product, ProductGroup, Tag } from '../../features/catalog/model/catalogSchemas'
+import { emptyToNull, validateProduct, type ProductField } from '../../features/catalog/model/productValidation'
 import { useCreateProduct, useUpdateProduct } from '../../features/catalog/model/useProductMutations'
 import { ApiError } from '../../shared/api/ApiError'
+import { TagPicker } from './TagPicker'
 
 type Props = {
   /** 있으면 수정, 없으면 등록이다. */
@@ -12,6 +13,8 @@ type Props = {
   /** 수정할 때 입력칸에 채울 태그 이름(상품은 태그를 id로만 갖는다). */
   initialTagNames?: string[]
   categories: readonly Category[]
+  /** 이미 있는 태그. 목록에서 골라 재사용한다. */
+  tags: readonly Tag[]
   groups: readonly ProductGroup[]
   optionGroups: readonly OptionGroup[]
   onDone: (saved: Product) => void
@@ -24,7 +27,7 @@ type Props = {
  * 상품 등록·수정 폼(모달 안에서 쓴다). 수정은 입력한 값 전체로 상품을 교체하며 화면에서 보던 버전을 함께 보낸다.
  * 재고 관리 여부와 옵션 그룹 연결은 등록할 때만 정하고 수정 요청으로는 바꿀 수 없다.
  */
-export function ProductForm({ product, initialTagNames = [], categories, groups, optionGroups, onDone, onCancel, onConflict }: Props) {
+export function ProductForm({ product, initialTagNames = [], categories, tags: existingTags, groups, optionGroups, onDone, onCancel, onConflict }: Props) {
   const editing = product !== undefined
   const create = useCreateProduct()
   const update = useUpdateProduct()
@@ -35,7 +38,7 @@ export function ProductForm({ product, initialTagNames = [], categories, groups,
   const [tracksInventory, setTracksInventory] = useState(product?.tracksInventory ?? false)
   const [description, setDescription] = useState(product?.description ?? '')
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? '')
-  const [tags, setTags] = useState(initialTagNames.join(', '))
+  const [tagNames, setTagNames] = useState<string[]>(initialTagNames)
   const [groupIds, setGroupIds] = useState<number[]>(product?.groupIds ?? [])
   const [optionGroupIds, setOptionGroupIds] = useState<number[]>([])
   // 오류는 필드를 벗어났거나(blur) 제출해 본 뒤에만 보여준다. 입력 중에는 띄우지 않는다.
@@ -49,6 +52,8 @@ export function ProductForm({ product, initialTagNames = [], categories, groups,
   const locked = mutation.isPending
   // 소분류만 고를 수 있다(대분류를 지정하면 서버가 거부한다).
   const categoryGroups = groupCategories(categories).filter(({ children }) => children.length > 0)
+  // 지정할 수 있는 소분류가 하나도 없으면 상품을 등록할 수 없다(요구사항 1.6).
+  const noCategory = categoryGroups.length === 0
 
   const toggle = (setter: (update: (current: number[]) => number[]) => void, id: number) =>
     setter((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]))
@@ -68,7 +73,7 @@ export function ProductForm({ product, initialTagNames = [], categories, groups,
       basePrice: Number(basePrice.trim()),
       description: emptyToNull(description),
       imageUrl: emptyToNull(imageUrl),
-      tagNames: parseTagNames(tags),
+      tagNames,
       groupIds,
     }
     const handlers = {
@@ -121,11 +126,8 @@ export function ProductForm({ product, initialTagNames = [], categories, groups,
           <label>이미지 URL (선택)<input value={imageUrl} disabled={locked} placeholder="https://cdn.example.com/p/12.png" onChange={(event) => setImageUrl(event.target.value)} autoComplete="off" /></label>
           <small className="field-error" aria-hidden="true" />
         </div>
-        <div className="employee-invite-field">
-          <label>태그 (선택)<input value={tags} disabled={locked} placeholder="신메뉴, 베스트" onChange={(event) => setTags(event.target.value)} autoComplete="off" /></label>
-          <small className="employee-hint">쉼표로 구분합니다. 없는 태그는 새로 만들어집니다.</small>
-        </div>
       </div>
+      <TagPicker tags={existingTags} selected={tagNames} onChange={setTagNames} disabled={locked} />
       <fieldset className="employee-role-picker" disabled={locked}>
         <legend>상품 그룹 (선택)</legend>
         {groups.length === 0 && <p>등록된 상품 그룹이 없습니다.</p>}
@@ -137,10 +139,11 @@ export function ProductForm({ product, initialTagNames = [], categories, groups,
         {optionGroups.map((group) => <label key={group.id}><input type="checkbox" checked={optionGroupIds.includes(group.id)} onChange={() => toggle(setOptionGroupIds, group.id)} />{group.name}{optionGroupIds.includes(group.id) && <small>{optionGroupIds.indexOf(group.id) + 1}번째</small>}</label>)}
         <p className="employee-hint">선택한 순서가 노출 순서입니다.</p>
       </fieldset>}
+      {noCategory && <p className="inbound-error" role="alert">지정할 수 있는 소분류가 없어 상품을 저장할 수 없습니다. 먼저 카테고리(대분류와 소분류)를 등록하세요.</p>}
       {!editing && <p className="employee-hint">등록한 상품은 "판매 대기" 상태로 만들어지며, 활성화해야 판매됩니다.</p>}
       <div className="inbound-form-actions">
         <button type="button" className="inbound-action-button employee-secondary" disabled={locked} onClick={onCancel}>취소</button>
-        <button type="submit" className="inbound-action-button" disabled={locked}>{locked ? '저장 중...' : editing ? '저장' : '상품 등록하기'}</button>
+        <button type="submit" className="inbound-action-button" disabled={locked || noCategory}>{locked ? '저장 중...' : editing ? '저장' : '상품 등록하기'}</button>
       </div>
       {mutation.isError && !conflict && <p className="inbound-error" role="alert">{toCatalogErrorMessage(mutation.error)}</p>}
     </form>

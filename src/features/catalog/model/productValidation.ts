@@ -14,9 +14,13 @@ export function validateProduct({ name, categoryId, basePrice }: { name: string;
   return errors
 }
 
-/** 쉼표로 이은 태그 입력을 이름 배열로 바꾼다. 공백을 다듬고 빈 이름과 중복은 버린다(처음 나온 순서 유지). */
-export function parseTagNames(raw: string): string[] {
-  return [...new Set(raw.split(',').map((name) => name.trim()).filter((name) => name !== ''))]
+/**
+ * 입력한 태그 이름을 선택 목록에 더한다. 공백을 다듬고 빈 이름과 이미 고른 이름은 무시한다.
+ * 같은 이름의 태그가 이미 있으면 서버가 새로 만들지 않고 그 태그를 쓰므로(요구사항 1.7) 이름이 같은지만 보면 된다.
+ */
+export function addTagName(selected: readonly string[], input: string): string[] {
+  const name = input.trim()
+  return name === '' || selected.includes(name) ? [...selected] : [...selected, name]
 }
 
 /** 태그 id를 이름으로 바꿔 입력칸 값으로 만든다. 이름을 찾지 못한 id는 `unresolved`로 알려, 모르는 채 태그를 잃지 않게 한다. */

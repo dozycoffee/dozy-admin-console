@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyToNull, parseTagNames, tagNamesOf, validateProduct } from './productValidation'
+import { addTagName, emptyToNull, tagNamesOf, validateProduct } from './productValidation'
 
 describe('validateProduct', () => {
   it('문제가 없으면 오류가 없다', () => {
@@ -18,10 +18,20 @@ describe('validateProduct', () => {
   })
 })
 
-describe('parseTagNames', () => {
-  it('쉼표로 나누고 공백을 다듬으며 빈 이름과 중복은 버린다', () => {
-    expect(parseTagNames(' 신메뉴, 베스트 ,, 신메뉴 ')).toEqual(['신메뉴', '베스트'])
-    expect(parseTagNames('')).toEqual([])
+describe('addTagName', () => {
+  it('이름을 다듬어 맨 뒤에 더한다', () => {
+    expect(addTagName(['신메뉴'], '  베스트 ')).toEqual(['신메뉴', '베스트'])
+  })
+
+  it('빈 입력과 이미 고른 이름은 무시한다', () => {
+    expect(addTagName(['신메뉴'], '   ')).toEqual(['신메뉴'])
+    expect(addTagName(['신메뉴'], '신메뉴')).toEqual(['신메뉴'])
+  })
+
+  it('원래 배열을 바꾸지 않는다', () => {
+    const selected = ['신메뉴']
+    addTagName(selected, '베스트')
+    expect(selected).toEqual(['신메뉴'])
   })
 })
 
