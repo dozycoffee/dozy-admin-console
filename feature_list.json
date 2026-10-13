@@ -243,5 +243,12 @@
     "description": "dozy-auth /admin/system-clients 기반 system client 목록·등록(clientId 형식 svc-{서비스명} 검증, 일반 role 선택)·secret 재발급(기존 secret 즉시 무효 안내)과 role 부여·회수·폐기(계정 비활성화, 사유 입력) 화면(/system-clients, account.read/write). secret은 응답에서 한 번만 받으므로 화면에 한 번만 보여주고(복사 버튼, 저장 확인 후 닫기) mutation 캐시에 남기지 않는다.",
     "status": "completed",
     "dependencies": ["auth-role-management"]
+  },
+  {
+    "id": "admin-ui-polish",
+    "name": "계정 관리 화면 UI 개선 (직원·role·시스템 클라이언트)",
+    "description": "직원 관리·role 관리·시스템 클라이언트 화면의 UI를 일관되게 개선한다(dozy-auth API 변경 없음). 폼은 모달로 열어 화면이 밀리지 않게 하고, 비활성화 사유는 툴팁으로, 성공 안내는 공용 토스트로 안내한다. 입력 오류는 필드 아래 문구로 보여주고 규칙은 라벨 옆 배지 툴팁으로 안내한다. 확인·사유 모달과 토스트는 body에 그려 화면 기준 위치로 띄우고, 화면 문구의 audience를 '서비스', system client를 '시스템 클라이언트'로 통일한다. 이슈 #69, PR #66·#67·#68. 나머지 화면(owner 양도·내 계정·감사 로그)의 성공 안내·입력 안내 통일은 후속.",
+    "status": "completed",
+    "dependencies": ["auth-employee-roles", "auth-system-clients"]
   }
 ]
