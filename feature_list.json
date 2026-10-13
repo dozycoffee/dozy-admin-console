@@ -269,7 +269,7 @@
     "id": "catalog-product-write",
     "name": "Catalog 상품 등록·수정·상태 전환",
     "description": "상품 등록(DRAFT 생성), 정보 수정(If-Match 낙관적 잠금, VERSION_CONFLICT 시 최신 내용 재조회 안내), 활성화·단종, DRAFT 삭제를 모달·토스트 패턴으로 구현한다.",
-    "status": "pending",
+    "status": "in_progress",
     "dependencies": ["catalog-product-list"]
   },
   {

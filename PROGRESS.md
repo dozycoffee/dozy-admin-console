@@ -3,7 +3,7 @@
 ## 현재 상태
 
 `feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 697개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 760개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -13,7 +13,7 @@
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
 | 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
-| MD | 상품 관리 `/products`(목록·상세, 읽기 전용), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
+| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
   `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
@@ -52,6 +52,18 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-14 (Catalog 상품 등록·수정·상태 전환)
+
+- 이슈 #81, 같은 브랜치(`feat/catalog-product-list`)에서 이어서 `catalog-product-write` 구현(여러 항목을 한 PR로 머지하기로 해 브랜치를 나누지 않았다). 항목마다 이슈는 따로 둔다
+- **등록(`POST /products`):** 모달 폼. 상품명·카테고리(소분류만)·기준가·재고 관리 여부·설명·이미지 URL·태그(쉼표로 구분한 이름, 없는 태그는 서버가 만든다)·상품 그룹·옵션 그룹(선택한 순서가 노출 순서). 재고 관리 여부는 등록 뒤 바꿀 수 없다고 폼에 안내한다. 항상 `DRAFT`로 만들어지고 성공하면 필터를 풀고 1페이지에서 새 상품을 선택하며 토스트에 SKU를 보여준다
+- **수정(`PUT /products/{id}`):** 재고 관리 여부·옵션 그룹을 뺀 값 전체를 교체한다. `If-Match: "{version}"`에 화면이 보던 `version`을 보낸다(`useUpdateProduct`). 설명·이미지를 비우면 `null`로 보내 지운다. 태그는 상품이 id로만 갖고 있어 태그 목록으로 이름을 채우므로, 태그를 못 받았거나 id를 이름으로 못 바꾸면 태그를 잃지 않도록 수정을 막고 툴팁으로 이유를 알린다
+- **낙관적 잠금:** 409 `VERSION_CONFLICT`이면 폼에 오류를 쓰지 않고 모달을 닫은 뒤 오류 토스트로 "다른 사용자가 먼저 수정했습니다. 최신 내용을 불러왔으니 확인한 뒤 다시 수정해 주세요."를 알린다. 모든 쓰기 mutation은 성공·실패와 관계없이 상품 목록을 다시 받으므로(`onSettled`) 상세가 최신 `version`으로 바뀐다. 서버는 자동 재시도하지 않으므로 콘솔도 값을 덮어쓰지 않고 관리자가 다시 판단하게 한다
+- **상태 전환·삭제:** 활성화(`DRAFT`·`DISCONTINUED`)·단종(`ACTIVE`)·삭제(`DRAFT`만, 되돌릴 수 없음)는 확인 모달을 거친다. 상태상 불가한 버튼은 숨기지 않고 항상 같은 자리에 비활성화하며 사유를 툴팁으로 알린다(직원 상세와 같은 패턴). `catalog.write`가 없으면 "상품 등록" 버튼은 숨기고 상세의 작업 버튼은 모두 비활성화한다
+- **오류:** `CATEGORY_NOT_ASSIGNABLE`·`INVALID_MONEY_AMOUNT`·`DUPLICATE_OPTION_GROUP_LINK`·`PRODUCT_NOT_DELETABLE`·`INVALID_PRODUCT_STATUS_TRANSITION` 문구를 추가했다. 입력 오류는 필드를 벗어나거나 제출했을 때 필드 아래에 보이고 첫 오류 필드로 포커스를 옮긴다(`productValidation.ts`)
+- **목 모드 쓰기:** `catalogMockStore.ts`가 등록·수정·상태 전환·삭제를 메모리에서 흉내 낸다(version 증가, `If-Match` 불일치 409에 `currentVersion`, 헤더 없으면 428, 태그 재사용·생성, 대분류 거부 등). 새로고침하면 처음 상태로 돌아간다
+- 검증: build/lint/test(760) 통과. **목 모드**에서 Chrome으로 등록(검증 문구·포커스, 새 태그·옵션 그룹 순서 표시) → 활성화 → 정보 수정 → 수정 모달을 연 채 같은 상품을 다른 쪽에서 먼저 수정해 `VERSION_CONFLICT`(오류 토스트, 모달 닫힘, 상세가 최신 버전·값으로 갱신) → 단종 → 삭제와 버튼 활성·비활성 규칙·툴팁을 확인했고 콘솔 에러는 없었다. **실서버로는 확인하지 못했다.** 특히 `If-Match`·`ETag`가 CORS에서 실제로 통하는지, 오류 `code`가 명세와 같은지는 목으로 알 수 없다
+- 알려진 한계: 판매 범위·옵션 그룹 연결·예외 변경은 아직 없다(`catalog-option-groups`). 이미지는 URL 입력만 있고 업로드는 없다. 상품 삭제는 SKU를 되살리지 않는다
 
 ### 2026-10-13 (Catalog 연동 기반과 상품 조회 화면)
 
