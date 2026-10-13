@@ -39,7 +39,7 @@ export function useRotateClientSecret() {
   )
 }
 
-/** system client에는 일반 role만 부여할 수 있다(GOV-06). 계정 API를 직원과 함께 쓴다. */
+/** 시스템 클라이언트에는 일반 role만 부여할 수 있다(GOV-06). 계정 API를 직원과 함께 쓴다. */
 export function useGrantClientRole() {
   return useClientMutation(async ({ principalId, role }: { principalId: string; role: string }) => {
     await authHttpClient.post(`/admin/principals/${principalId}/roles`, { roles: [role] })
@@ -52,7 +52,7 @@ export function useRevokeClientRole() {
   })
 }
 
-/** system client 폐기는 계정 비활성화로 한다(CLI-04). 되돌릴 수 없고 clientId는 `deleted-{id}`로 바뀐다(ACC-04). */
+/** 시스템 클라이언트 폐기는 계정 비활성화로 한다(CLI-04). 되돌릴 수 없고 clientId는 `deleted-{id}`로 바뀐다(ACC-04). */
 export function useDeactivateSystemClient() {
   return useClientMutation(async ({ principalId, reason }: { principalId: string; reason: string }) => {
     await authHttpClient.post(`/admin/principals/${principalId}/deactivate`, { reason })

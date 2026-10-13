@@ -11,8 +11,8 @@ describe('SecretReveal', () => {
   it('secret을 읽기 전용으로 보여주고 한 번만 볼 수 있다고 경고한다', () => {
     render(<SecretReveal secret={secret} onClose={vi.fn()} />)
 
-    expect(screen.getByLabelText('client secret')).toHaveValue('Zr8qL2mX-secret')
-    expect(screen.getByLabelText('client secret')).toHaveAttribute('readonly')
+    expect(screen.getByLabelText('클라이언트 secret')).toHaveValue('Zr8qL2mX-secret')
+    expect(screen.getByLabelText('클라이언트 secret')).toHaveAttribute('readonly')
     expect(screen.getByText(/지금 한 번만 볼 수 있습니다/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'svc-store의 secret' })).toBeInTheDocument()
   })

@@ -33,7 +33,7 @@ function setup(clients: Record<string, unknown>, granted: Permission[] = [permis
 beforeEach(() => vi.clearAllMocks())
 
 describe('SystemClientsPage', () => {
-  it('system client 목록을 보여준다', () => {
+  it('시스템 클라이언트 목록을 보여준다', () => {
     setup({ data: [client] })
 
     expect(screen.getByRole('heading', { name: 'Store 서비스' })).toBeInTheDocument()
@@ -41,12 +41,12 @@ describe('SystemClientsPage', () => {
 
   it('목록이 비었거나 로딩·에러일 때 각각 안내한다', () => {
     setup({ data: [] })
-    expect(screen.getByText('등록된 system client가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('등록된 시스템 클라이언트가 없습니다.')).toBeInTheDocument()
   })
 
   it('로딩 중과 에러를 안내한다', () => {
     setup({ isLoading: true, data: undefined })
-    expect(screen.getByText('system client 목록을 불러오는 중입니다...')).toBeInTheDocument()
+    expect(screen.getByText('시스템 클라이언트 목록을 불러오는 중입니다...')).toBeInTheDocument()
   })
 
   it('목록 조회가 실패하면 에러 안내를 보여준다', () => {
@@ -58,7 +58,7 @@ describe('SystemClientsPage', () => {
   it('쓰기 권한이 없으면 등록 버튼을 숨긴다', () => {
     setup({ data: [client] }, [permissions.accountRead])
 
-    expect(screen.queryByRole('button', { name: 'client 등록' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '클라이언트 등록' })).not.toBeInTheDocument()
   })
 
   it('등록하면 secret을 한 번 보여주고 등록 폼을 닫는다', async () => {
@@ -66,28 +66,28 @@ describe('SystemClientsPage', () => {
     registerMutate.mockImplementation((_body, options) => options.onSuccess({ principalId: 'p-2', clientId: 'svc-order', clientSecret: 'Zr8qL2mX-new' }))
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: 'client 등록' }))
+    await user.click(screen.getByRole('button', { name: '클라이언트 등록' }))
     await user.type(screen.getByLabelText('clientId'), 'svc-order')
     await user.type(screen.getByLabelText('이름'), '주문 서비스')
-    await user.click(screen.getByRole('button', { name: 'system client 등록' }))
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
 
-    expect(screen.getByLabelText('client secret')).toHaveValue('Zr8qL2mX-new')
-    expect(screen.queryByRole('button', { name: 'system client 등록' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('클라이언트 secret')).toHaveValue('Zr8qL2mX-new')
+    expect(screen.queryByRole('button', { name: '시스템 클라이언트 등록' })).not.toBeInTheDocument()
   })
 
   it('secret은 저장했다고 확인하고 닫으면 화면에서 사라진다', async () => {
     setup({ data: [client] })
     registerMutate.mockImplementation((_body, options) => options.onSuccess({ principalId: 'p-2', clientId: 'svc-order', clientSecret: 'Zr8qL2mX-new' }))
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'client 등록' }))
+    await user.click(screen.getByRole('button', { name: '클라이언트 등록' }))
     await user.type(screen.getByLabelText('clientId'), 'svc-order')
     await user.type(screen.getByLabelText('이름'), '주문 서비스')
-    await user.click(screen.getByRole('button', { name: 'system client 등록' }))
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
 
     await user.click(screen.getByLabelText('secret을 안전한 곳에 저장했습니다'))
     await user.click(screen.getByRole('button', { name: '닫기' }))
 
-    expect(screen.queryByLabelText('client secret')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('클라이언트 secret')).not.toBeInTheDocument()
     expect(screen.queryByText('Zr8qL2mX-new')).not.toBeInTheDocument()
   })
 })

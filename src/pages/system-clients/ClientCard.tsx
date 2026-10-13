@@ -29,7 +29,7 @@ export function ClientCard({ client, allRoles, writable, onRotated }: Props) {
   const error = mutations.find((mutation) => mutation.isError)?.error
   const active = client.status === 'ACTIVE'
   const deactivated = client.status === 'DEACTIVATED'
-  // system client에는 일반 role만 부여할 수 있고(GOV-06) 정지·비활성화 상태에는 부여할 수 없다(GOV-07).
+  // 시스템 클라이언트에는 일반 role만 부여할 수 있고(GOV-06) 정지·비활성화 상태에는 부여할 수 없다(GOV-07).
   const options = assignableRoles(allRoles, client.roles, false)
   const names = new Map(allRoles.map((role) => [role.fullCode, role.name]))
 
@@ -57,7 +57,7 @@ export function ClientCard({ client, allRoles, writable, onRotated }: Props) {
             {!deactivated && <button type="button" className="employee-role-remove" aria-label={`${role} 회수`} disabled={!writable || busy} onClick={() => start(() => revoke.mutate({ principalId: client.principalId, role }))}>×</button>}
           </li>)}
         </ul>
-        : <p className="employee-no-roles">{deactivated ? '비활성화되어 role이 모두 회수되었습니다.' : '부여된 role이 없습니다. 이 client로 발급한 토큰으로는 어떤 서비스도 호출할 수 없습니다.'}</p>}
+        : <p className="employee-no-roles">{deactivated ? '비활성화되어 role이 모두 회수되었습니다.' : '부여된 role이 없습니다. 이 클라이언트로 발급한 토큰으로는 어떤 서비스도 호출할 수 없습니다.'}</p>}
       {active && <div className="employee-role-grant">
         <label>role 추가
           <select value={selectedRole} disabled={!writable || busy} onChange={(event) => setSelectedRole(event.target.value)}>
@@ -67,9 +67,9 @@ export function ClientCard({ client, allRoles, writable, onRotated }: Props) {
         </label>
         <button type="button" className="inbound-action-button" disabled={!writable || busy || selectedRole === ''} onClick={() => start(() => grant.mutate({ principalId: client.principalId, role: selectedRole }, { onSuccess: () => setSelectedRole('') }))}>부여</button>
       </div>}
-      {client.status === 'SUSPENDED' && <p className="employee-hint">정지된 client에는 role을 부여할 수 없습니다.</p>}
+      {client.status === 'SUSPENDED' && <p className="employee-hint">정지된 클라이언트에는 role을 부여할 수 없습니다.</p>}
       {deactivated
-        ? <p className="employee-hint">폐기된 client입니다. clientId는 새로 등록해 다시 쓸 수 있습니다.</p>
+        ? <p className="employee-hint">폐기된 클라이언트입니다. clientId는 새로 등록해 다시 쓸 수 있습니다.</p>
         : <div className="employee-actions">
           <button type="button" className="inbound-action-button" disabled={!writable || busy || !active} onClick={() => start(() => setRotateOpen(true))}>secret 재발급</button>
           <button type="button" className="inbound-action-button employee-danger" disabled={!writable || busy} onClick={() => start(() => setDeactivateOpen(true))}>폐기</button>
@@ -80,7 +80,7 @@ export function ClientCard({ client, allRoles, writable, onRotated }: Props) {
       <ConfirmModal
         open={rotateOpen}
         title="secret을 재발급할까요?"
-        description="기존 secret은 즉시 무효가 됩니다. 이 client를 쓰는 서비스에 새 secret을 반영해야 하며, 이미 발급된 토큰은 최대 10분까지 유효합니다."
+        description="기존 secret은 즉시 무효가 됩니다. 이 클라이언트를 쓰는 서비스에 새 secret을 반영해야 하며, 이미 발급된 토큰은 최대 10분까지 유효합니다."
         confirmLabel="재발급"
         onCancel={() => setRotateOpen(false)}
         onConfirm={() => {
@@ -90,7 +90,7 @@ export function ClientCard({ client, allRoles, writable, onRotated }: Props) {
       />
       <ReasonModal
         open={deactivateOpen}
-        title="이 client를 폐기할까요?"
+        title="이 클라이언트를 폐기할까요?"
         description="되돌릴 수 없습니다. secret이 지워지고 모든 role이 회수되며 clientId가 deleted-로 시작하는 값으로 바뀝니다."
         confirmLabel="폐기"
         onCancel={() => setDeactivateOpen(false)}

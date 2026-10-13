@@ -532,7 +532,7 @@ a { color: inherit; text-decoration: none; }
 .audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
 .audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }
 
-/* system client */
+/* 시스템 클라이언트 */
 .client-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .client-card { min-height: 0; margin-top: 0; padding: 20px 26px; }
 .client-card.deactivated { opacity: .7; }
@@ -588,7 +588,7 @@ a { color: inherit; text-decoration: none; }
 }
 .employee-workspace .inbound-list-item > small { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
 .employee-detail-body { padding: 0 18px; }
-/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(system client 카드는 기존대로) */
+/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(시스템 클라이언트 카드는 기존대로) */
 .employee-workspace .employee-role-grant label { flex: 0 1 380px; }
 /* 직원 상세: 초대 만료·로그인 잠금 같은 상태 안내 박스 */
 .employee-notices { display: grid; gap: 8px; margin: 14px 0 4px; }

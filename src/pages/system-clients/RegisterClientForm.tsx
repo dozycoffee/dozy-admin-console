@@ -16,7 +16,7 @@ export function RegisterClientForm({ writable, onRegistered }: Props) {
   const [clientId, setClientId] = useState('')
   const [name, setName] = useState('')
   const [selected, setSelected] = useState<string[]>([])
-  // system role(auth:owner, auth:admin)은 system client에 부여할 수 없다(GOV-06).
+  // system role(auth:owner, auth:admin)은 시스템 클라이언트에 부여할 수 없다(GOV-06).
   const assignable = roles.data?.filter((role) => !role.isSystem) ?? []
   const clientIdInvalid = clientId !== '' && !isValidClientId(clientId)
   const valid = isValidClientId(clientId) && name.trim() !== '' && name.trim().length <= CLIENT_NAME_MAX_LENGTH
@@ -44,7 +44,7 @@ export function RegisterClientForm({ writable, onRegistered }: Props) {
 
   return (
     <form className="panel employee-invite" onSubmit={submit}>
-      <div className="panel-heading"><div><p className="eyebrow">NEW SYSTEM CLIENT</p><h2>system client 등록</h2></div></div>
+      <div className="panel-heading"><div><p className="eyebrow">NEW SYSTEM CLIENT</p><h2>시스템 클라이언트 등록</h2></div></div>
       <div className="employee-invite-grid">
         <label>clientId
           <input value={clientId} disabled={disabled} onChange={(event) => setClientId(event.target.value)} placeholder="예: svc-store" autoComplete="off" aria-invalid={clientIdInvalid} />
@@ -65,7 +65,7 @@ export function RegisterClientForm({ writable, onRegistered }: Props) {
         ))}
       </fieldset>
       <div className="inbound-form-actions">
-        <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{register.isPending ? '등록 중...' : 'system client 등록'}</button>
+        <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{register.isPending ? '등록 중...' : '시스템 클라이언트 등록'}</button>
       </div>
       {register.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(register.error)}</p>}
     </form>

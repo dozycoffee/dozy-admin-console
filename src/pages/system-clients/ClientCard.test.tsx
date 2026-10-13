@@ -55,21 +55,21 @@ describe('ClientCard 표시', () => {
     expect(screen.getByText(/어떤 서비스도 호출할 수 없습니다/)).toBeInTheDocument()
   })
 
-  it('폐기된 client는 작업 버튼 없이 안내만 보여준다', () => {
+  it('폐기된 클라이언트는 작업 버튼 없이 안내만 보여준다', () => {
     setup({ ...base, status: 'DEACTIVATED', clientId: 'deleted-p-1', roles: [], secretRotatedAt: null })
 
-    expect(screen.getByText(/폐기된 client입니다/)).toBeInTheDocument()
+    expect(screen.getByText(/폐기된 클라이언트입니다/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'secret 재발급' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '폐기' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('role 추가')).not.toBeInTheDocument()
   })
 
-  it('정지된 client는 재발급·role 부여를 할 수 없다', () => {
+  it('정지된 클라이언트는 재발급·role 부여를 할 수 없다', () => {
     setup({ ...base, status: 'SUSPENDED' })
 
     expect(screen.getByRole('button', { name: 'secret 재발급' })).toBeDisabled()
     expect(screen.queryByLabelText('role 추가')).not.toBeInTheDocument()
-    expect(screen.getByText('정지된 client에는 role을 부여할 수 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('정지된 클라이언트에는 role을 부여할 수 없습니다.')).toBeInTheDocument()
   })
 })
 

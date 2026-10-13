@@ -39,7 +39,7 @@ describe('RegisterClientForm', () => {
   it('올바른 clientId와 이름이 있어야 등록할 수 있다', async () => {
     setup()
     const user = userEvent.setup()
-    const submit = screen.getByRole('button', { name: 'system client 등록' })
+    const submit = screen.getByRole('button', { name: '시스템 클라이언트 등록' })
     expect(submit).toBeDisabled()
 
     await user.type(screen.getByLabelText('clientId'), 'store')
@@ -58,11 +58,11 @@ describe('RegisterClientForm', () => {
 
     await user.type(screen.getByLabelText('clientId'), 'svc-store')
     await user.type(screen.getByLabelText('이름'), ' Store 서비스 ')
-    await user.click(screen.getByRole('button', { name: 'system client 등록' }))
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
     expect(mutate.mock.calls[0][0]).toEqual({ clientId: 'svc-store', name: 'Store 서비스' })
 
     await user.click(screen.getByLabelText(/파트너 조회/))
-    await user.click(screen.getByRole('button', { name: 'system client 등록' }))
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
     expect(mutate.mock.calls[1][0]).toEqual({ clientId: 'svc-store', name: 'Store 서비스', roles: ['auth:partner_reader'] })
   })
 
@@ -73,7 +73,7 @@ describe('RegisterClientForm', () => {
 
     await user.type(screen.getByLabelText('clientId'), 'svc-store')
     await user.type(screen.getByLabelText('이름'), 'Store 서비스')
-    await user.click(screen.getByRole('button', { name: 'system client 등록' }))
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
 
     expect(onRegistered).toHaveBeenCalledWith({ clientId: 'svc-store', clientSecret: 'Zr8qL2mX' })
     expect(reset).toHaveBeenCalled()
@@ -90,6 +90,6 @@ describe('RegisterClientForm', () => {
     setup({}, false)
 
     expect(screen.getByLabelText('clientId')).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'system client 등록' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '시스템 클라이언트 등록' })).toBeDisabled()
   })
 })

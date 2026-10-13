@@ -20,15 +20,15 @@ export function SystemClientsPage() {
 
   return <>
     <header className="page-header inbound-page-header">
-      <div><p>ACCOUNT ADMINISTRATION</p><h1>system client</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-expanded={registering} onClick={() => setRegistering((value) => !value)}>{registering ? '등록 닫기' : 'client 등록'}</button>}
+      <div><p>ACCOUNT ADMINISTRATION</p><h1>시스템 클라이언트</h1></div>
+      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-expanded={registering} onClick={() => setRegistering((value) => !value)}>{registering ? '등록 닫기' : '클라이언트 등록'}</button>}
     </header>
-    <p className="employee-hint role-intro">system client는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스만 호출할 수 있습니다.</p>
+    <p className="employee-hint role-intro">시스템 클라이언트는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스만 호출할 수 있습니다.</p>
     {revealed && <SecretReveal secret={revealed} onClose={() => setRevealed(null)} />}
     {registering && <RegisterClientForm writable={writable} onRegistered={(secret) => { setRevealed(secret); setRegistering(false) }} />}
-    {clients.isLoading && <section className="panel"><p>system client 목록을 불러오는 중입니다...</p></section>}
+    {clients.isLoading && <section className="panel"><p>시스템 클라이언트 목록을 불러오는 중입니다...</p></section>}
     {clients.isError && <section className="panel"><p className="inbound-error" role="alert">{toAdminErrorMessage(clients.error)}</p></section>}
-    {clients.data && clients.data.length === 0 && <section className="panel"><p className="inbound-empty">등록된 system client가 없습니다.</p></section>}
+    {clients.data && clients.data.length === 0 && <section className="panel"><p className="inbound-empty">등록된 시스템 클라이언트가 없습니다.</p></section>}
     <ul className="client-list">
       {clients.data?.map((client) => <ClientCard key={client.principalId} client={client} allRoles={roles.data ?? []} writable={writable} onRotated={setRevealed} />)}
     </ul>

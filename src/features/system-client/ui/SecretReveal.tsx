@@ -7,7 +7,7 @@ type Props = {
 }
 
 /**
- * system client secret을 한 번만 보여준다. 서버에는 해시만 남아 다시 볼 수 없으므로
+ * 시스템 클라이언트 secret을 한 번만 보여준다. 서버에는 해시만 남아 다시 볼 수 없으므로
  * 복사해 안전한 곳에 저장했다고 확인해야 닫을 수 있다.
  */
 export function SecretReveal({ secret, onClose }: Props) {
@@ -29,7 +29,7 @@ export function SecretReveal({ secret, onClose }: Props) {
       <div className="panel-heading"><div><p className="eyebrow">CLIENT SECRET</p><h2 id="secret-reveal-title">{secret.clientId}의 secret</h2></div></div>
       <p className="secret-warning">이 secret은 지금 한 번만 볼 수 있습니다. 닫으면 다시 확인할 수 없고, 잃어버리면 재발급해야 합니다.</p>
       <div className="secret-box">
-        <input readOnly value={secret.clientSecret} aria-label="client secret" onFocus={(event) => event.target.select()} />
+        <input readOnly value={secret.clientSecret} aria-label="클라이언트 secret" onFocus={(event) => event.target.select()} />
         <button type="button" className="inbound-action-button" onClick={copy}>복사</button>
       </div>
       {copied === 'done' && <p className="employee-success" role="status">클립보드에 복사했습니다.</p>}
