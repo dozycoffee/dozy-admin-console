@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import { useCreateRole } from '../../features/role/model/useRoles'
 import { RoleCreateForm } from './RoleCreateForm'
 
@@ -10,9 +11,11 @@ vi.mock('../../features/role/model/useRoles')
 const audiences = [{ id: 1, code: 'wms', name: '창고 관리', description: null }, { id: 4, code: 'auth', name: '인증', description: null }]
 const mutate = vi.fn()
 
+const notify = vi.fn()
+
 function setup(state: Record<string, unknown> = {}, writable = true) {
   vi.mocked(useCreateRole).mockReturnValue({ mutate, isPending: false, isError: false, isSuccess: false, ...state } as never)
-  render(<RoleCreateForm audiences={audiences} writable={writable} />)
+  render(<ToastContext.Provider value={{ notify }}><RoleCreateForm audiences={audiences} writable={writable} /></ToastContext.Provider>)
 }
 
 beforeEach(() => vi.clearAllMocks())
@@ -75,6 +78,21 @@ describe('RoleCreateForm', () => {
 
     expect(screen.getByLabelText('code')).toBeDisabled()
     expect(screen.getByRole('button', { name: 'role 등록' })).toBeDisabled()
+  })
+
+  it('등록에 성공하면 토스트로 알리고 입력을 비운다', async () => {
+    setup()
+    mutate.mockImplementation((_body, options) => options.onSuccess())
+    const user = userEvent.setup()
+    await user.selectOptions(screen.getByLabelText('서비스'), 'wms')
+    await user.type(screen.getByLabelText('code'), 'warehouse_manager')
+    await user.type(screen.getByLabelText('이름'), '창고 관리자')
+
+    await user.click(screen.getByRole('button', { name: 'role 등록' }))
+
+    expect(notify).toHaveBeenCalledWith('role을 등록했습니다. 등록만으로는 아무에게도 권한이 생기지 않습니다.')
+    expect(screen.getByLabelText('code')).toHaveValue('')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
   it('code 규칙은 항상 보이는 문장 대신 code 옆 배지의 툴팁으로 안내한다', async () => {

@@ -12,6 +12,7 @@ import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBa
 import { ReasonModal } from '../../features/employee/ui/ReasonModal'
 import { Modal } from '../../shared/ui/Modal'
 import { Tooltip } from '../../shared/ui/Tooltip'
+import { useToast } from '../../shared/ui/toastContext'
 import { EmployeeRoles } from './EmployeeRoles'
 
 export type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
@@ -28,6 +29,7 @@ type ReasonAction = 'suspend' | 'deactivate'
 
 export function EmployeeDetail({ principalId, writable, confirm }: Props) {
   const { can } = useAuth()
+  const { notify } = useToast()
   const detailQuery = useEmployee(principalId)
   const resend = useResendInvitation()
   const cancel = useCancelInvitation()
@@ -97,19 +99,17 @@ export function EmployeeDetail({ principalId, writable, confirm }: Props) {
       <div className="employee-actions">
         {gate('edit', <button type="button" className="inbound-action-button employee-secondary" disabled={!canAct('edit')} onClick={() => start(() => setEditOpen(true))}>정보 수정</button>)}
         {status === 'PENDING' && <>
-          {gate('invitation', <button type="button" className="inbound-action-button" disabled={!canAct('invitation')} onClick={() => confirm({ title: '초대 메일을 다시 보낼까요?', description: '이전 초대 링크는 무효가 되고 새 링크가 발송됩니다.', confirmLabel: '재발송', run: () => start(() => resend.mutate(employee.principalId)) })}>초대 재발송</button>)}
+          {gate('invitation', <button type="button" className="inbound-action-button" disabled={!canAct('invitation')} onClick={() => confirm({ title: '초대 메일을 다시 보낼까요?', description: '이전 초대 링크는 무효가 되고 새 링크가 발송됩니다.', confirmLabel: '재발송', run: () => start(() => resend.mutate(employee.principalId, { onSuccess: (sent) => notify(`초대 메일을 다시 보냈습니다. 새 초대는 ${formatDateTime(sent.invitationExpiresAt)}까지 유효합니다.`) })) })}>초대 재발송</button>)}
           {gate('invitation', <button type="button" className="inbound-action-button employee-danger" disabled={!canAct('invitation')} onClick={() => confirm({ title: '초대를 취소할까요?', description: '계정이 비활성화되며 되돌릴 수 없습니다. 같은 이메일로 다시 초대할 수 있습니다.', confirmLabel: '초대 취소', run: () => start(() => cancel.mutate(employee.principalId)) })}>초대 취소</button>)}
         </>}
         {status === 'ACTIVE' && <>
-          {gate('password-reset', <button type="button" className="inbound-action-button" disabled={!canAct('password-reset')} onClick={() => confirm({ title: '비밀번호 재설정 메일을 보낼까요?', description: '메일만 발송하며 현재 비밀번호와 세션은 바뀌지 않습니다. 계정 탈취가 의심되면 먼저 정지하세요.', confirmLabel: '메일 발송', run: () => start(() => passwordReset.mutate(employee.principalId)) })}>재설정 메일 발송</button>)}
+          {gate('password-reset', <button type="button" className="inbound-action-button" disabled={!canAct('password-reset')} onClick={() => confirm({ title: '비밀번호 재설정 메일을 보낼까요?', description: '메일만 발송하며 현재 비밀번호와 세션은 바뀌지 않습니다. 계정 탈취가 의심되면 먼저 정지하세요.', confirmLabel: '메일 발송', run: () => start(() => passwordReset.mutate(employee.principalId, { onSuccess: () => notify('비밀번호 재설정 메일을 보냈습니다.') })) })}>재설정 메일 발송</button>)}
           {gate('suspend', <button type="button" className="inbound-action-button employee-danger" disabled={!canAct('suspend')} onClick={() => start(() => setReasonAction('suspend'))}>정지</button>)}
         </>}
         {status === 'SUSPENDED' && gate('reactivate', <button type="button" className="inbound-action-button" disabled={!canAct('reactivate')} onClick={() => confirm({ title: '정지를 해제할까요?', description: '정지할 때 폐기된 세션은 되살아나지 않으므로 해제 후 다시 로그인해야 합니다. 계정 탈취로 정지했다면 해제 후 재설정 메일을 보내세요.', confirmLabel: '정지 해제', run: () => start(() => reactivate.mutate(employee.principalId)) })}>정지 해제</button>)}
         {(status === 'ACTIVE' || status === 'SUSPENDED') && gate('deactivate', <button type="button" className="inbound-action-button employee-danger" disabled={!canAct('deactivate')} onClick={() => start(() => setReasonAction('deactivate'))}>비활성화</button>)}
       </div>
 
-      {resend.isSuccess && <p className="employee-success" role="status">초대 메일을 다시 보냈습니다. 새 초대는 {formatDateTime(resend.data.invitationExpiresAt)}까지 유효합니다.</p>}
-      {passwordReset.isSuccess && <p className="employee-success" role="status">비밀번호 재설정 메일을 보냈습니다.</p>}
       {actionError && <p className="inbound-error" role="alert">{toAdminErrorMessage(actionError)}</p>}
     </div>
 

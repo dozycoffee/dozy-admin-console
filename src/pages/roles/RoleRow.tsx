@@ -3,6 +3,7 @@ import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import type { Role } from '../../features/role/model/roleSchemas'
 import { useUpdateRole } from '../../features/role/model/useRoles'
 import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/toastContext'
 
 type Props = {
   role: Role
@@ -13,6 +14,7 @@ type Props = {
 
 export function RoleRow({ role, writable, deleting, onDelete }: Props) {
   const update = useUpdateRole()
+  const { notify } = useToast()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(role.name)
   const [description, setDescription] = useState(role.description ?? '')
@@ -35,7 +37,7 @@ export function RoleRow({ role, writable, deleting, onDelete }: Props) {
       setEditing(false)
       return
     }
-    update.mutate({ roleId: role.id, body }, { onSuccess: () => setEditing(false) })
+    update.mutate({ roleId: role.id, body }, { onSuccess: () => { setEditing(false); notify('role을 수정했습니다.') } })
   }
 
   return (

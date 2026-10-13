@@ -8,6 +8,7 @@ import { assignableRoles, grantBlockedReason, revokeBlockedReason } from '../../
 import { useGrantRoles, useRevokeRole } from '../../features/employee/model/useEmployees'
 import { useRoles } from '../../features/role/model/useRoles'
 import { Tooltip } from '../../shared/ui/Tooltip'
+import { useToast } from '../../shared/ui/toastContext'
 import type { PendingConfirm } from './EmployeeDetail'
 
 type Props = {
@@ -21,6 +22,7 @@ const ADMIN_ROLE = 'auth:admin'
 /** 직원 상세의 role 영역: 부여된 role 표시, 회수, 새 role 부여. */
 export function EmployeeRoles({ employee, writable, confirm }: Props) {
   const { can, user } = useAuth()
+  const { notify } = useToast()
   const isOwner = can(permissions.accountManage)
   const roles = useRoles()
   const grant = useGrantRoles()
@@ -34,10 +36,14 @@ export function EmployeeRoles({ employee, writable, confirm }: Props) {
   const grantDisabledReason = grantReason ?? (writable ? null : NO_WRITE_REASON)
   const error = grant.error ?? revoke.error
 
+  function notifyChanged() {
+    notify('role을 변경했습니다. 직원의 다음 로그인·토큰 갱신(최대 10분)부터 권한에 반영됩니다.')
+  }
+
   function startGrant(roleCode: string) {
     grant.reset()
     revoke.reset()
-    grant.mutate({ principalId: employee.principalId, roles: [roleCode] }, { onSuccess: () => setSelected('') })
+    grant.mutate({ principalId: employee.principalId, roles: [roleCode] }, { onSuccess: () => { setSelected(''); notifyChanged() } })
   }
 
   function requestGrant() {
@@ -63,7 +69,7 @@ export function EmployeeRoles({ employee, writable, confirm }: Props) {
       run: () => {
         grant.reset()
         revoke.reset()
-        revoke.mutate({ principalId: employee.principalId, role: roleCode })
+        revoke.mutate({ principalId: employee.principalId, role: roleCode }, { onSuccess: notifyChanged })
       },
     })
   }
@@ -96,7 +102,6 @@ export function EmployeeRoles({ employee, writable, confirm }: Props) {
         <button type="button" className="inbound-action-button" disabled={grantDisabledReason !== null || busy || selected === ''} onClick={requestGrant}>부여</button>
       </div>
     </Tooltip>
-    {(grant.isSuccess || revoke.isSuccess) && <p className="employee-success" role="status">role을 변경했습니다. 직원의 다음 로그인·토큰 갱신(최대 10분)부터 권한에 반영됩니다.</p>}
     {error && <p className="inbound-error" role="alert">{toAdminErrorMessage(error)}</p>}
   </>
 }

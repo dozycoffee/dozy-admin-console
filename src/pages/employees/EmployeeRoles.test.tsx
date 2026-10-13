@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type CurrentUser, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail, EmployeeStatus } from '../../features/employee/model/employeeSchemas'
@@ -29,6 +30,7 @@ const employee = (roles: string[], status: EmployeeStatus = 'ACTIVE'): EmployeeD
 
 const grantMutate = vi.fn()
 const revokeMutate = vi.fn()
+const notify = vi.fn()
 
 type SetupOptions = { granted?: Permission[]; writable?: boolean; viewerId?: string; grantState?: Record<string, unknown>; revokeState?: Record<string, unknown> }
 
@@ -40,7 +42,9 @@ function setup(target: EmployeeDetail, { granted = ownerPermissions, writable = 
   const user: CurrentUser = { id: viewerId, name: '보는 사람', actorModes: [], permissions: granted, scope: { warehouseIds: [] } }
   render(
     <AuthContext.Provider value={{ user, isLoading: false, activeActorMode: null, can: (permission) => granted.includes(permission), selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <EmployeeRoles employee={target} writable={writable} confirm={confirm} />
+      <ToastContext.Provider value={{ notify }}>
+        <EmployeeRoles employee={target} writable={writable} confirm={confirm} />
+      </ToastContext.Provider>
     </AuthContext.Provider>,
   )
   return confirm
@@ -188,10 +192,26 @@ describe('EmployeeRoles 회수', () => {
 })
 
 describe('EmployeeRoles 결과 안내', () => {
-  it('성공하면 다음 토큰 갱신부터 반영된다고 안내한다', () => {
-    setup(employee([]), { grantState: { isSuccess: true } })
+  it('부여에 성공하면 다음 토큰 갱신부터 반영된다고 토스트로 알린다', async () => {
+    setup(employee([]))
+    grantMutate.mockImplementation((_variables, options) => options.onSuccess())
+    const user = userEvent.setup()
 
-    expect(screen.getByRole('status')).toHaveTextContent('다음 로그인·토큰 갱신(최대 10분)부터')
+    await user.selectOptions(screen.getByLabelText('role 추가'), 'wms:warehouse_manager')
+    await user.click(screen.getByRole('button', { name: '부여' }))
+
+    expect(notify).toHaveBeenCalledWith(expect.stringContaining('다음 로그인·토큰 갱신(최대 10분)부터'))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('회수에 성공해도 같은 안내를 토스트로 알린다', async () => {
+    const confirm = setup(employee(['wms:warehouse_manager']), { granted: adminPermissions })
+    revokeMutate.mockImplementation((_variables, options) => options.onSuccess())
+    await userEvent.setup().click(screen.getByRole('button', { name: 'wms:warehouse_manager 회수' }))
+
+    confirm.mock.calls[0][0].run()
+
+    expect(notify).toHaveBeenCalledWith(expect.stringContaining('role을 변경했습니다'))
   })
 
   it('실패하면 에러 code별 안내를 보여준다', () => {

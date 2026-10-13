@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { Role } from '../../features/role/model/roleSchemas'
@@ -16,6 +17,7 @@ const manager: Role = { id: 11, audience: 'wms', code: 'warehouse_manager', full
 const unused: Role = { id: 12, audience: 'wms', code: 'viewer', fullCode: 'wms:viewer', name: '조회자', description: null, isSystem: false, grantedCount: 0 }
 
 const deleteMutate = vi.fn()
+const notify = vi.fn()
 const idle = { mutate: vi.fn(), reset: vi.fn(), isPending: false, isError: false, isSuccess: false } as never
 
 function setup(roles: Role[] = [owner, manager, unused], granted: Permission[] = [permissions.accountRead, permissions.accountWrite, permissions.accountManage], deleteState: Record<string, unknown> = {}) {
@@ -27,7 +29,9 @@ function setup(roles: Role[] = [owner, manager, unused], granted: Permission[] =
   vi.mocked(useCreateAudience).mockReturnValue(idle)
   render(
     <AuthContext.Provider value={{ user: null, isLoading: false, activeActorMode: null, can: (permission) => granted.includes(permission), selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <RolesPage />
+      <ToastContext.Provider value={{ notify }}>
+        <RolesPage />
+      </ToastContext.Provider>
     </AuthContext.Provider>,
   )
 }
@@ -114,6 +118,31 @@ describe('RolesPage', () => {
 
     expect(deleteMutate).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('삭제에 성공하면 화면 아래 문장 대신 토스트로 알린다', async () => {
+    setup()
+    deleteMutate.mockImplementationOnce((_variables, options) => options.onSuccess())
+    const user = userEvent.setup()
+
+    await user.click(within(row('조회자')).getByRole('button', { name: '삭제' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '삭제' }))
+
+    expect(notify).toHaveBeenCalledWith('role을 삭제했습니다.')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('부여된 직원에게서 모두 회수하고 삭제하면 회수한 인원을 토스트로 알린다', async () => {
+    setup()
+    deleteMutate.mockImplementationOnce((_variables, options) => options.onError(new ApiError('in use', { status: 409, code: 'ROLE_IN_USE' })))
+    deleteMutate.mockImplementationOnce((_variables, options) => options.onSuccess())
+    const user = userEvent.setup()
+    await user.click(within(row('창고 관리자')).getByRole('button', { name: '삭제' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '삭제' }))
+
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '모두 회수하고 삭제' }))
+
+    expect(notify).toHaveBeenCalledWith(expect.stringMatching(/^role을 삭제했습니다\. 부여된 \d+명에게서 회수했습니다\.$/))
   })
 
   it('ROLE_IN_USE가 아닌 삭제 에러는 안내만 하고 다시 묻지 않는다', async () => {

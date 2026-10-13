@@ -4,6 +4,7 @@ import { CODE_PATTERN, type Audience } from '../../features/role/model/roleSchem
 import { useCreateAudience } from '../../features/role/model/useRoles'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { FieldTip } from '../../shared/ui/FieldTip'
+import { useToast } from '../../shared/ui/toastContext'
 
 const CODE_RULE = 'code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다.'
 
@@ -12,6 +13,7 @@ type Props = { audiences: Audience[]; canCreate: boolean }
 /** audience(토큰을 받는 서비스) 목록. 추가는 owner만 할 수 있다. */
 export function AudiencePanel({ audiences, canCreate }: Props) {
   const create = useCreateAudience()
+  const { notify } = useToast()
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -29,7 +31,7 @@ export function AudiencePanel({ audiences, canCreate }: Props) {
     setConfirmOpen(false)
     create.mutate(
       { code, name: name.trim(), ...(description.trim() && { description: description.trim() }) },
-      { onSuccess: () => { setCode(''); setName(''); setDescription('') } },
+      { onSuccess: () => { setCode(''); setName(''); setDescription(''); notify('서비스를 추가했습니다.') } },
     )
   }
 
@@ -52,7 +54,6 @@ export function AudiencePanel({ audiences, canCreate }: Props) {
         : <p className="employee-hint">서비스 추가는 owner만 할 수 있습니다.</p>}
       {canCreate && codeInvalid && <p className="inbound-error">{CODE_RULE}</p>}
       {create.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(create.error)}</p>}
-      {create.isSuccess && <p className="employee-success" role="status">서비스를 추가했습니다.</p>}
       <ConfirmModal
         open={confirmOpen}
         title={`"${name.trim()}" 서비스를 추가할까요?`}

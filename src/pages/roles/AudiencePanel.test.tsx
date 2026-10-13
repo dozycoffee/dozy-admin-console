@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import { useCreateAudience } from '../../features/role/model/useRoles'
 import { AudiencePanel } from './AudiencePanel'
 
@@ -10,9 +11,11 @@ vi.mock('../../features/role/model/useRoles')
 const audiences = [{ id: 1, code: 'wms', name: '창고 관리', description: null }, { id: 4, code: 'auth', name: '인증', description: null }]
 const mutate = vi.fn()
 
+const notify = vi.fn()
+
 function setup(canCreate: boolean, state: Record<string, unknown> = {}) {
   vi.mocked(useCreateAudience).mockReturnValue({ mutate, isPending: false, isError: false, isSuccess: false, ...state } as never)
-  render(<AudiencePanel audiences={audiences} canCreate={canCreate} />)
+  render(<ToastContext.Provider value={{ notify }}><AudiencePanel audiences={audiences} canCreate={canCreate} /></ToastContext.Provider>)
 }
 
 beforeEach(() => vi.clearAllMocks())
@@ -49,6 +52,7 @@ describe('AudiencePanel', () => {
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '추가' }))
 
     expect(mutate.mock.calls[0][0]).toEqual({ code: 'order', name: '주문' })
+    expect(notify).toHaveBeenCalledWith('서비스를 추가했습니다.')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByLabelText('code')).toHaveValue('')
   })

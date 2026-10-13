@@ -3,6 +3,7 @@ import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import { CODE_PATTERN, type Audience } from '../../features/role/model/roleSchemas'
 import { useCreateRole } from '../../features/role/model/useRoles'
 import { FieldTip } from '../../shared/ui/FieldTip'
+import { useToast } from '../../shared/ui/toastContext'
 
 const CODE_RULE = 'code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있습니다.'
 
@@ -10,6 +11,7 @@ type Props = { audiences: Audience[]; writable: boolean }
 
 export function RoleCreateForm({ audiences, writable }: Props) {
   const create = useCreateRole()
+  const { notify } = useToast()
   const [audience, setAudience] = useState('')
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
@@ -22,7 +24,7 @@ export function RoleCreateForm({ audiences, writable }: Props) {
     event.preventDefault()
     create.mutate(
       { audience, code, name: name.trim(), ...(description.trim() && { description: description.trim() }) },
-      { onSuccess: () => { setCode(''); setName(''); setDescription('') } },
+      { onSuccess: () => { setCode(''); setName(''); setDescription(''); notify('role을 등록했습니다. 등록만으로는 아무에게도 권한이 생기지 않습니다.') } },
     )
   }
 
@@ -50,7 +52,6 @@ export function RoleCreateForm({ audiences, writable }: Props) {
         <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{create.isPending ? '등록 중...' : 'role 등록'}</button>
       </div>
       {create.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(create.error)}</p>}
-      {create.isSuccess && <p className="employee-success" role="status">role을 등록했습니다. 등록만으로는 아무에게도 권한이 생기지 않습니다.</p>}
     </form>
   )
 }

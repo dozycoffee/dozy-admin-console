@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import type { Role } from '../../features/role/model/roleSchemas'
 import { useUpdateRole } from '../../features/role/model/useRoles'
 import { RoleRow } from './RoleRow'
@@ -11,11 +12,12 @@ vi.mock('../../features/role/model/useRoles')
 const role: Role = { id: 11, audience: 'wms', code: 'warehouse_manager', fullCode: 'wms:warehouse_manager', name: '창고 관리자', description: '입출고 관리', isSystem: false, grantedCount: 3 }
 const systemRole: Role = { id: 1, audience: 'auth', code: 'owner', fullCode: 'auth:owner', name: 'Owner', description: null, isSystem: true, grantedCount: 1 }
 const mutate = vi.fn()
+const notify = vi.fn()
 
 function setup(target: Role, { writable = true, state = {} as Record<string, unknown> } = {}) {
   vi.mocked(useUpdateRole).mockReturnValue({ mutate, reset: vi.fn(), isPending: false, isError: false, ...state } as never)
   const onDelete = vi.fn()
-  render(<ul><RoleRow role={target} writable={writable} deleting={false} onDelete={onDelete} /></ul>)
+  render(<ToastContext.Provider value={{ notify }}><ul><RoleRow role={target} writable={writable} deleting={false} onDelete={onDelete} /></ul></ToastContext.Provider>)
   return onDelete
 }
 
@@ -66,6 +68,7 @@ describe('RoleRow', () => {
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     expect(mutate.mock.calls[0][0]).toEqual({ roleId: 11, body: { name: '창고 책임자' } })
+    expect(notify).toHaveBeenCalledWith('role을 수정했습니다.')
     expect(screen.queryByLabelText('이름')).not.toBeInTheDocument()
   })
 
