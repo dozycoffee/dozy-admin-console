@@ -734,3 +734,6 @@ a { color: inherit; text-decoration: none; }
 .audit-raw summary { cursor: pointer; color: #8f7b72; font-size: 12px; font-weight: 700; }
 .audit-raw pre { margin: 8px 0; padding: 10px; border-radius: 8px; background: #f6f3f1; font: 500 11.5px/1.6 "IBM Plex Mono", ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 600px) { .audit-rows > div { grid-template-columns: 1fr; gap: 2px; } }
+/* 사이드바의 내 계정 메뉴: 업무 메뉴와 구분선으로 나누고, 업무 메뉴의 미끄러지는 선택 표시가 없어 활성일 때 배경을 직접 칠한다 */
+.account-nav { margin-top: 14px; padding-top: 14px; border-top: 1px solid #423029; }
+.account-nav .nav-link.active { background: #674638; }
