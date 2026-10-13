@@ -532,10 +532,12 @@ a { color: inherit; text-decoration: none; }
 .audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
 .audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }
 
-/* system client */
+/* 시스템 클라이언트 */
 .client-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .client-card { min-height: 0; margin-top: 0; padding: 20px 26px; }
-.client-card.deactivated { opacity: .7; }
+/* 폐기된 카드는 opacity 대신 옅은 배경·글씨로 구분한다. opacity가 1 미만이면 카드가 자체 쌓임 맥락이 되어 안의 툴팁이 같이 흐려지고 다른 카드 뒤로 가려진다 */
+.client-card.deactivated { background: #f9f7f5; }
+.client-card.deactivated h2, .client-card.deactivated .employee-fields dd, .client-card.deactivated .employee-no-roles { color: #8d827c; }
 .client-card .employee-fields { margin: 12px 0; }
 .secret-reveal { min-height: 0; margin-bottom: 16px; padding: 20px 26px; border-color: #e0c27a; background: #fffaf0; }
 .secret-warning { margin: 0 0 12px; color: #8a5a00; font-size: 13px; font-weight: 700; }
@@ -588,7 +590,7 @@ a { color: inherit; text-decoration: none; }
 }
 .employee-workspace .inbound-list-item > small { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
 .employee-detail-body { padding: 0 18px; }
-/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(system client 카드는 기존대로) */
+/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(시스템 클라이언트 카드는 기존대로) */
 .employee-workspace .employee-role-grant label { flex: 0 1 380px; }
 /* 직원 상세: 초대 만료·로그인 잠금 같은 상태 안내 박스 */
 .employee-notices { display: grid; gap: 8px; margin: 14px 0 4px; }
@@ -636,7 +638,7 @@ a { color: inherit; text-decoration: none; }
 .toast button { border: 0; background: none; color: #25683a; font-size: 18px; line-height: 1; cursor: pointer; }
 /* 입력칸 라벨 옆의 "?" 배지: 입력 규칙 같은 설명을 호버·포커스 때만 보여준다 */
 .field-with-tip { position: relative; }
-.field-with-tip > .field-tip { position: absolute; top: -1px; left: 38px; }
+.field-with-tip > .field-tip { position: absolute; top: -1px; left: var(--tip-left, 38px); }
 .field-tip-badge { display: inline-grid; width: 15px; height: 15px; place-items: center; border-radius: 50%; background: #e6ddd8; color: #7b6f69; font-size: 10px; font-weight: 800; line-height: 1; cursor: help; }
 .field-tip:hover .field-tip-badge, .field-tip:focus-visible .field-tip-badge { background: #cdbfb7; color: #4b2f25; }
 /* role 목록: 서비스 필터를 바꿀 때 항목이 나타나고 사라지는 것을 부드럽게(View Transitions). 목록만 전환하고 나머지 화면은 그대로 둔다 */
@@ -644,3 +646,20 @@ a { color: inherit; text-decoration: none; }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 ::view-transition-group(role-list) { animation-duration: .25s; animation-timing-function: ease; }
 ::view-transition-old(role-list), ::view-transition-new(role-list) { animation-duration: .25s; }
+/* 시스템 클라이언트 카드: 섹션 제목을 직원 상세처럼 진하게 하고 정보와 role 사이에 구분선을 둔다 */
+.client-card .employee-section-title { margin: 22px 0 10px; color: var(--ink); font-size: 15px; font-weight: 800; }
+.client-card .employee-fields + .employee-section-title { margin-top: 22px; padding-top: 22px; border-top: 1px solid #ece7e3; }
+.client-card .employee-actions { margin-top: 18px; }
+.client-card .employee-role-grant label { flex: 0 1 380px; }
+/* 시스템 클라이언트 카드: 헤더를 눌러 상세를 펴고 접는다. 접어도 이름·clientId·role 수·상태는 보인다 */
+.client-heading { position: relative; }
+.client-card.collapsed .client-heading { margin-bottom: 0; }
+.client-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; text-align: left; }
+.client-toggle::after { content: ''; position: absolute; inset: 0; } /* 헤더 전체를 누를 수 있게 한다 */
+.client-toggle:focus-visible { outline: 2px solid #aa826e; outline-offset: 4px; border-radius: 4px; }
+.client-chevron { width: 7px; height: 7px; border-right: 2px solid #9b918c; border-bottom: 2px solid #9b918c; transform: rotate(45deg); transition: transform .18s; }
+.client-toggle[aria-expanded="false"] .client-chevron { transform: rotate(-45deg); }
+.client-heading-meta { display: flex; align-items: center; gap: 12px; }
+.client-role-count { color: #9b918c; font-size: 12px; font-weight: 700; }
+.client-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 10px; color: #786d68; font-size: 12px; font-weight: 700; }
+.client-toolbar .inbound-action-button { margin-top: 0; padding: 6px 12px; font-size: 12px; }

@@ -31,9 +31,9 @@ export const auditActionGroups: ReadonlyArray<{ label: string; actions: Readonly
     { code: 'ROLE_DELETED', label: 'role 삭제' },
     { code: 'AUDIENCE_CREATED', label: '서비스 추가' },
   ] },
-  { label: 'system client·owner', actions: [
-    { code: 'SYSTEM_CLIENT_REGISTERED', label: 'system client 등록' },
-    { code: 'CLIENT_SECRET_ROTATED', label: 'client secret 재발급' },
+  { label: '시스템 클라이언트·owner', actions: [
+    { code: 'SYSTEM_CLIENT_REGISTERED', label: '시스템 클라이언트 등록' },
+    { code: 'CLIENT_SECRET_ROTATED', label: '클라이언트 secret 재발급' },
     { code: 'OWNER_TRANSFER_REQUESTED', label: 'owner 양도 요청' },
     { code: 'OWNER_TRANSFER_CANCELLED', label: 'owner 양도 취소' },
     { code: 'OWNER_TRANSFERRED', label: 'owner 양도 완료' },

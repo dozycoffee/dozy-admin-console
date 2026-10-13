@@ -6,8 +6,12 @@ import { useRoles } from '../../features/role/model/useRoles'
 import type { RevealedSecret } from '../../features/system-client/model/systemClientSchemas'
 import { useSystemClients } from '../../features/system-client/model/useSystemClients'
 import { SecretReveal } from '../../features/system-client/ui/SecretReveal'
+import { Modal } from '../../shared/ui/Modal'
 import { ClientCard } from './ClientCard'
 import { RegisterClientForm } from './RegisterClientForm'
+
+/** 이 개수 이하면 처음부터 모든 카드를 펼쳐 보여준다 */
+const FEW_CLIENTS = 3
 
 export function SystemClientsPage() {
   const { can } = useAuth()
@@ -17,20 +21,33 @@ export function SystemClientsPage() {
   const [registering, setRegistering] = useState(false)
   // secret은 이 상태에만 두고 한 번 보여준 뒤 버린다. 새로고침하거나 화면을 떠나면 사라진다.
   const [revealed, setRevealed] = useState<RevealedSecret | null>(null)
+  // 클라이언트가 많아지면 카드를 접어 두고 필요한 것만 펼친다. 처음에는 적을 때(FEW_CLIENTS 이하)만 모두 펼쳐 둔다.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const items = clients.data ?? []
+  const defaultExpanded = items.length <= FEW_CLIENTS
+  const isExpanded = (id: string) => expanded[id] ?? defaultExpanded
+  const setAll = (value: boolean) => setExpanded(Object.fromEntries(items.map((client) => [client.principalId, value])))
 
   return <>
     <header className="page-header inbound-page-header">
-      <div><p>ACCOUNT ADMINISTRATION</p><h1>system client</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-expanded={registering} onClick={() => setRegistering((value) => !value)}>{registering ? '등록 닫기' : 'client 등록'}</button>}
+      <div><p>ACCOUNT ADMINISTRATION</p><h1>시스템 클라이언트</h1></div>
+      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => setRegistering(true)}>클라이언트 등록</button>}
     </header>
-    <p className="employee-hint role-intro">system client는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스만 호출할 수 있습니다.</p>
+    <p className="employee-hint role-intro">시스템 클라이언트는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스만 호출할 수 있습니다.</p>
     {revealed && <SecretReveal secret={revealed} onClose={() => setRevealed(null)} />}
-    {registering && <RegisterClientForm writable={writable} onRegistered={(secret) => { setRevealed(secret); setRegistering(false) }} />}
-    {clients.isLoading && <section className="panel"><p>system client 목록을 불러오는 중입니다...</p></section>}
+    <Modal open={registering} title="시스템 클라이언트 등록" onClose={() => setRegistering(false)}>
+      <RegisterClientForm writable={writable} onCancel={() => setRegistering(false)} onRegistered={(secret) => { setRevealed(secret); setRegistering(false) }} />
+    </Modal>
+    {clients.isLoading && <section className="panel"><p>시스템 클라이언트 목록을 불러오는 중입니다...</p></section>}
     {clients.isError && <section className="panel"><p className="inbound-error" role="alert">{toAdminErrorMessage(clients.error)}</p></section>}
-    {clients.data && clients.data.length === 0 && <section className="panel"><p className="inbound-empty">등록된 system client가 없습니다.</p></section>}
+    {clients.data && clients.data.length === 0 && <section className="panel"><p className="inbound-empty">등록된 시스템 클라이언트가 없습니다.</p></section>}
+    {items.length > 1 && <div className="client-toolbar">
+      <span>{items.length}개</span>
+      <button type="button" className="inbound-action-button employee-secondary" onClick={() => setAll(true)}>모두 펴기</button>
+      <button type="button" className="inbound-action-button employee-secondary" onClick={() => setAll(false)}>모두 접기</button>
+    </div>}
     <ul className="client-list">
-      {clients.data?.map((client) => <ClientCard key={client.principalId} client={client} allRoles={roles.data ?? []} writable={writable} onRotated={setRevealed} />)}
+      {items.map((client) => <ClientCard key={client.principalId} client={client} allRoles={roles.data ?? []} writable={writable} onRotated={setRevealed} expanded={isExpanded(client.principalId)} onToggle={() => setExpanded((current) => ({ ...current, [client.principalId]: !isExpanded(client.principalId) }))} />)}
     </ul>
   </>
 }

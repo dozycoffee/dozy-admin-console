@@ -24,7 +24,7 @@ describe('useSystemClients', () => {
   })
 })
 
-describe('system client mutation', () => {
+describe('시스템 클라이언트 mutation', () => {
   it('등록은 POST /admin/system-clients로 보내고 secret이 든 응답을 돌려준다', async () => {
     const postSpy = vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: { principalId: 'p-1', clientId: 'svc-store', clientSecret: 'Zr8qL2mX' } })
     const { result } = renderHook(() => useRegisterSystemClient(), { wrapper: createQueryClientWrapper() })
@@ -84,7 +84,7 @@ describe('system client mutation', () => {
     expect(postSpy).toHaveBeenCalledWith('/admin/principals/p-1/deactivate', { reason: '서비스 종료' })
   })
 
-  it('성공하면 system client 목록과 role 쿼리를 갱신한다', async () => {
+  it('성공하면 시스템 클라이언트 목록과 role 쿼리를 갱신한다', async () => {
     vi.spyOn(authHttpClient, 'post').mockResolvedValue({ data: undefined })
     const queryClient = new QueryClient()
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries')

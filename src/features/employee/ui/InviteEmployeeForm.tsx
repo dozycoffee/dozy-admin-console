@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRoles } from '../../role/model/useRoles'
 import { toAdminErrorMessage } from '../../auth/model/adminErrors'
+import { groupByAudience } from '../../role/model/groupRoles'
 import { validateInvite, type InviteField } from '../model/inviteValidation'
 import type { InviteStep } from '../model/inviteSteps'
 import { useInviteEmployee } from '../model/useEmployees'
@@ -14,13 +15,6 @@ type Props = {
   onCancel: () => void
   /** 단계가 바뀔 때(처음 열 때 포함) 부른다. 모달 제목 옆에 단계를 보여주는 데 쓴다. */
   onStepChange?: (step: InviteStep) => void
-}
-
-/** role 선택지를 audience별로 묶는다. audience와 그 안의 role은 입력 순서(서버가 내려준 순서)를 유지한다. */
-function groupByAudience<T extends { audience: string }>(items: readonly T[]): [string, T[]][] {
-  const groups = new Map<string, T[]>()
-  for (const item of items) groups.set(item.audience, [...(groups.get(item.audience) ?? []), item])
-  return [...groups]
 }
 
 /**

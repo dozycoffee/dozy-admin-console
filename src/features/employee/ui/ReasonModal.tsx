@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export const REASON_MAX_LENGTH = 500
 
@@ -25,7 +26,8 @@ export function ReasonModal({ open, title, description, confirmLabel, onConfirm,
   }, [open, onCancel])
 
   if (!open) return null
-  return (
+  // body에 그려서 라우트 전환 애니메이션 등 상위 요소의 transform에 영향을 받지 않게 한다(position: fixed가 화면 기준으로 동작)
+  return createPortal(
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel() }}>
       <section className="confirm-modal reason-modal" role="dialog" aria-modal="true" aria-labelledby="reason-modal-title">
         <h2 id="reason-modal-title">{title}</h2>
@@ -39,6 +41,7 @@ export function ReasonModal({ open, title, description, confirmLabel, onConfirm,
           <button type="button" className="button" disabled={!valid} onClick={() => { onConfirm(trimmed); setReason('') }}>{confirmLabel}</button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   )
 }

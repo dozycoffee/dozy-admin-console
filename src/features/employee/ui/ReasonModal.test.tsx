@@ -52,4 +52,13 @@ describe('ReasonModal', () => {
 
     expect(onCancel).toHaveBeenCalledTimes(2)
   })
+
+  it('호출한 위치가 아니라 body에 그려 상위 요소의 transform에 영향을 받지 않는다', () => {
+    const onCancel = vi.fn()
+    render(<section data-testid="page"><ReasonModal open title="폐기할까요?" confirmLabel="폐기" onConfirm={vi.fn()} onCancel={onCancel} /></section>)
+
+    const dialog = screen.getByRole('dialog')
+    expect(screen.getByTestId('page')).not.toContainElement(dialog)
+    expect(dialog.closest('.modal-backdrop')?.parentElement).toBe(document.body)
+  })
 })

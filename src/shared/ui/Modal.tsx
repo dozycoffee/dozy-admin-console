@@ -9,6 +9,8 @@ type ModalProps = PropsWithChildren<{
   onClose: () => void
   /** 배경을 눌러 닫을지 여부. 입력 폼에서는 실수로 입력을 잃지 않도록 기본값을 false로 둔다. */
   closeOnBackdrop?: boolean
+  /** false이면 닫기 버튼을 숨기고 Esc로도 닫히지 않는다. 확인을 거쳐야만 닫아야 하는 모달(예: 한 번만 보이는 secret)에서 쓴다. */
+  dismissible?: boolean
 }>
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -17,13 +19,15 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * 폼을 담는 모달. Esc와 닫기 버튼으로 닫고, 열려 있는 동안 키보드 포커스가 모달 안에 머물며,
  * 닫으면 열기 전에 포커스가 있던 요소로 돌아간다. `body`에 그려서 상위 요소의 transform 등에 영향을 받지 않는다.
  */
-export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = false, children }: ModalProps) {
+export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = false, dismissible = true, children }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLElement>(null)
   const onCloseRef = useRef(onClose)
+  const dismissibleRef = useRef(dismissible)
 
   useEffect(() => {
     onCloseRef.current = onClose
+    dismissibleRef.current = dismissible
   })
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onCloseRef.current()
+        if (dismissibleRef.current) onCloseRef.current()
         return
       }
       if (event.key !== 'Tab') return
@@ -72,7 +76,7 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
             <h2 id={titleId}>{title}</h2>
             {titleAddon}
           </div>
-          <button type="button" className="form-modal-close" data-modal-close aria-label="닫기" onClick={onClose}>×</button>
+          {dismissible && <button type="button" className="form-modal-close" data-modal-close aria-label="닫기" onClick={onClose}>×</button>}
         </header>
         <div className="form-modal-body">{children}</div>
       </section>
