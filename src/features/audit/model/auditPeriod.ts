@@ -23,6 +23,13 @@ export function localInputToIso(value: string): string | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
+/** ISO 시각을 `datetime-local` 입력칸에 넣을 값(사용자 로컬 시간, 분 단위)으로 바꾼다. */
+export function isoToLocalInput(iso: string): string {
+  const date = new Date(iso)
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 /** 직접 입력한 기간의 문제를 안내 문구로 돌려준다(문제가 없으면 null). */
 export function validatePeriod(from: string | undefined, to: string | undefined, now: Date): string | null {
   const start = from ? new Date(from).getTime() : undefined

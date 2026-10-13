@@ -107,7 +107,7 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) { .mode-modal-backdrop { padding: 22px; }.mode-modal { padding: 22px 0; }.mode-modal-grid { grid-template-columns: 1fr; margin-top: 30px; }.mode-option { min-height: 155px; }.mode-modal-close { top: -12px; } }
 @media (max-width: 800px) { .mode-home-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .mode-option { animation: none; transition: none; } }
-.content { padding: 48px; max-width: 1440px; width: 100%; }
+.content { min-width: 0; padding: 48px; max-width: 1440px; width: 100%; } /* min-width: 0: 안의 넓은 요소(표 등)가 화면 전체를 가로로 밀어내지 않고 자기 스크롤 영역 안에서 스크롤되게 한다 */
 @keyframes route-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .route-transition { animation: route-enter .22s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .route-transition { animation: none; } .nav-active-slider { transition: none; } }
@@ -509,10 +509,8 @@ a { color: inherit; text-decoration: none; }
 /* 감사 로그 */
 .audit-filters, .audit-list-panel { min-height: 0; margin-bottom: 16px; padding: 20px 26px; }
 .audit-period { margin: 0; padding: 0; border: 0; }
-.audit-period legend { margin-bottom: 8px; padding: 0; color: #6f6862; font-size: 12px; }
-.audit-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.audit-presets button { padding: 7px 12px; border: 1px solid #e4ddd9; border-radius: 99px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
-.audit-presets button.active { border-color: #4b2f25; background: #4b2f25; color: #fff; }
+/* 기간은 시작·종료 입력칸을 묶는 항목 제목이라 라벨(시작·종료)보다 진하고 크게 하고, 입력 규칙은 "?" 배지 툴팁으로 안내한다 */
+.audit-period legend { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 0; color: #33241e; font-size: 13px; font-weight: 800; }
 .audit-range, .audit-filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
 .audit-filters label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
 .audit-filters input:not([type="checkbox"]), .audit-filters select { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
@@ -529,8 +527,6 @@ a { color: inherit; text-decoration: none; }
 .audit-table td small { display: block; color: #9b918c; font-size: 11px; }
 .audit-table td b { margin-right: 4px; color: #786d68; font-size: 11px; font-weight: 800; }
 .audit-none { color: #c9c3be; }
-.audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
-.audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }
 
 /* 시스템 클라이언트 */
 .client-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
@@ -663,3 +659,78 @@ a { color: inherit; text-decoration: none; }
 .client-role-count { color: #9b918c; font-size: 12px; font-weight: 700; }
 .client-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 10px; color: #786d68; font-size: 12px; font-weight: 700; }
 .client-toolbar .inbound-action-button { margin-top: 0; padding: 6px 12px; font-size: 12px; }
+/* 감사 로그 action 분류별 색: 연한 배경 + 진한 글씨로 구분하고, 분류 이름은 글자로도 보여준다 */
+.audit-cat-session { --cat-bg: #e8f1ff; --cat-fg: #2864ac; --cat-dot: #4a8de0; }
+.audit-cat-password { --cat-bg: #f2edf9; --cat-fg: #7350a0; --cat-dot: #9a73c8; }
+.audit-cat-account { --cat-bg: #e7f6ef; --cat-fg: #287751; --cat-dot: #3fae7b; }
+.audit-cat-role { --cat-bg: #fff4dd; --cat-fg: #9a671f; --cat-dot: #e0a03d; }
+.audit-cat-client { --cat-bg: #fbe9e5; --cat-fg: #a04a3a; --cat-dot: #d9715c; }
+.audit-category { display: inline-block; margin-bottom: 4px; padding: 2px 8px; border-radius: 99px; background: var(--cat-bg); color: var(--cat-fg); font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+.audit-table td > strong { display: block; }
+.audit-category-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cat-dot); }
+.audit-actions legend.audit-cat-session, .audit-actions legend.audit-cat-password, .audit-actions legend.audit-cat-account, .audit-actions legend.audit-cat-role, .audit-actions legend.audit-cat-client { color: var(--cat-fg); font-weight: 800; }
+.toast.error { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
+.toast.error button { color: #9c3b3b; }
+.tooltip-actionable { cursor: pointer; }
+/* 감사 로그: 행위자·대상 id 칩(올리면 바로 툴팁, 클릭하면 복사), 상세 모달, 열 폭 */
+.audit-table td > strong { display: block; }
+.audit-id { display: inline-flex; align-items: center; gap: 6px; }
+.audit-table td .audit-id b { margin-right: 0; }
+.audit-id-chip { border-radius: 6px; }
+.audit-id-chip code { padding: 2px 7px; border-radius: 6px; background: #f3efec; color: #6f6862; font: 600 11px/1.5 "IBM Plex Mono", ui-monospace, monospace; transition: background .12s, color .12s; }
+.audit-id-chip:hover code, .audit-id-chip:focus-visible code { background: #e6d7cf; color: #4b2f25; }
+.audit-view { padding: 4px 10px; border: 1px solid #e4ddd9; border-radius: 6px; background: #fff; color: #6f4a3b; font-size: 12px; font-weight: 700; cursor: pointer; }
+.audit-view:hover { border-color: #aa826e; background: #faf6f3; }
+/* 감사 로그 필터: 조회·초기화 옆에 빠른 조회(누르면 바로 조회)를 나란히 둔다 */
+.audit-submit-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.audit-submit-main { display: flex; gap: 8px; }
+.audit-submit-main .inbound-action-button { margin-top: 0; }
+.audit-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.audit-quick > span { margin-right: 4px; color: #9b918c; font-size: 12px; font-weight: 700; }
+.audit-quick button { padding: 7px 12px; border: 1px solid #e4ddd9; border-radius: 99px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
+.audit-quick button:hover { border-color: #aa826e; }
+.audit-quick button.active { border-color: #4b2f25; background: #4b2f25; color: #fff; }
+/* 모달: 열고 닫을 때 가볍게 나타나고 사라진다(작은 이동·확대와 투명도). 동작 줄이기 설정에서는 애니메이션이 없다 */
+@keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes modal-pop-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes modal-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(4px) scale(.99); } }
+.modal-backdrop { animation: modal-fade-in .16s ease-out both; }
+.modal-backdrop > .form-modal, .modal-backdrop > .confirm-modal { animation: modal-pop-in .18s ease-out both; }
+.modal-backdrop.closing { pointer-events: none; animation: modal-fade-out .14s ease-in both; }
+.modal-backdrop.closing > .form-modal, .modal-backdrop.closing > .confirm-modal { animation: modal-pop-out .14s ease-in both; }
+@media (prefers-reduced-motion: reduce) { .modal-backdrop, .modal-backdrop > .form-modal, .modal-backdrop > .confirm-modal { animation: none; } }
+/* 감사 로그 표: 열 폭을 전체 폭의 비율로 정한다(시각 18 : action 18 : 행위자 18 : 대상 19 : IP 20 : 상세 7). 화면 폭에 따라 열이 같은 비율로 늘고 줄며,
+   표가 담을 수 있는 최소 폭(820px)보다 좁아지면 표가 자기 영역 안에서 가로로 스크롤된다. */
+.audit-table { table-layout: fixed; min-width: 820px; }
+.audit-table th, .audit-table td { white-space: nowrap; }
+/* action 이름이 길면 줄바꿈하고, IP는 길어질 수 있어(IPv6는 최대 39자) 칸을 넘지 않도록 줄바꿈한다 */
+.audit-table td:nth-child(2) { white-space: normal; }
+.audit-table td:nth-child(2) .audit-category { white-space: nowrap; }
+.audit-table td:nth-child(5) { white-space: normal; overflow-wrap: anywhere; }
+.audit-table th:nth-child(1), .audit-table td:nth-child(1) { width: 18%; padding-left: 0; }
+.audit-table th:nth-child(2), .audit-table td:nth-child(2) { width: 18%; }
+.audit-table th:nth-child(3), .audit-table td:nth-child(3) { width: 18%; }
+.audit-table th:nth-child(4), .audit-table td:nth-child(4) { width: 19%; }
+.audit-table th:nth-child(5), .audit-table td:nth-child(5) { width: 20%; }
+.audit-table th:nth-child(6), .audit-table td:nth-child(6) { width: 7%; }
+.audit-id-chip .tooltip-bubble { max-width: none; white-space: pre; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; }
+/* 감사 로그 상세 모달: 라벨-값 목록으로 단순하게 */
+.audit-modal { width: min(100%, 600px); }
+.audit-mono { padding: 2px 7px; border-radius: 6px; background: #f3efec; color: #6f6862; font: 600 11px/1.5 "IBM Plex Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+.audit-rows { display: grid; margin: 0; }
+.audit-rows > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #f1ece8; }
+.audit-rows > div:last-child { border-bottom: 0; }
+.audit-rows dt { color: #9b918c; font-size: 12px; font-weight: 700; }
+.audit-rows dd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.audit-rows .audit-category { margin-bottom: 0; }
+.audit-party-type { color: #786d68; font-size: 12px; font-weight: 800; }
+.audit-copy { padding: 2px 9px; border: 1px solid #e4ddd9; border-radius: 6px; background: #fff; color: #6f4a3b; font-size: 11px; font-weight: 700; cursor: pointer; }
+.audit-copy:hover { border-color: #aa826e; background: #faf6f3; }
+.audit-section-title { margin: 14px 0 4px; padding-top: 14px; border-top: 1px solid #ece7e3; color: #33241e; font-size: 13px; font-weight: 800; }
+.audit-empty { margin: 6px 0 0; color: #9b918c; font-size: 13px; }
+.audit-value { padding: 2px 8px; border-radius: 6px; background: #f3efec; color: #5a4d47; font-size: 12px; }
+.audit-raw { margin-top: 12px; }
+.audit-raw summary { cursor: pointer; color: #8f7b72; font-size: 12px; font-weight: 700; }
+.audit-raw pre { margin: 8px 0; padding: 10px; border-radius: 8px; background: #f6f3f1; font: 500 11.5px/1.6 "IBM Plex Mono", ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .audit-rows > div { grid-template-columns: 1fr; gap: 2px; } }

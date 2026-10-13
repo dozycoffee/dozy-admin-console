@@ -250,5 +250,12 @@
     "description": "직원 관리·role 관리·시스템 클라이언트 화면의 UI를 일관되게 개선한다(dozy-auth API 변경 없음). 폼은 모달로 열어 화면이 밀리지 않게 하고, 비활성화 사유는 툴팁으로, 성공 안내는 공용 토스트로 안내한다. 입력 오류는 필드 아래 문구로 보여주고 규칙은 라벨 옆 배지 툴팁으로 안내한다. 확인·사유 모달과 토스트는 body에 그려 화면 기준 위치로 띄우고, 화면 문구의 audience를 '서비스', system client를 '시스템 클라이언트'로 통일한다. 이슈 #69, PR #66·#67·#68. 나머지 화면(owner 양도·내 계정·감사 로그)의 성공 안내·입력 안내 통일은 후속.",
     "status": "completed",
     "dependencies": ["auth-employee-roles", "auth-system-clients"]
+  },
+  {
+    "id": "audit-log-ui-polish",
+    "name": "감사 로그 화면 UI 개선",
+    "description": "감사 로그 화면(/audit-logs)을 개선한다(dozy-auth API 변경 없음). action을 분류별 색 칩으로 구분하고 서버 코드는 상세로 옮기며, 행위자·대상 id는 앞 6·뒤 4자리 칩(즉시 툴팁, 클릭 복사)으로 보여준다. 상세는 모달에서 전체 id와 detail 항목(한글 이름)·원본 JSON으로 보여주고, 기간 필터에 빠른 조회(누른 시각 기준으로 시작·종료를 채우고 바로 조회)와 초기화를 둔다. 표 열 폭은 비율로 정하고 IPv4·IPv6가 길어도 칸을 넘지 않게 한다. 공용 Tooltip의 클릭 동작, 복사 훅, 오류 토스트, 모달 열고 닫는 애니메이션을 추가했다. 이슈 #71.",
+    "status": "completed",
+    "dependencies": ["auth-audit-logs", "admin-ui-polish"]
   }
 ]

@@ -78,4 +78,17 @@ describe('ToastProvider', () => {
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
+
+  it('error 종류는 경고 알림(role=alert)으로 보여준다', async () => {
+    function ErrorTrigger() {
+      const { notify } = useToast()
+      return <button type="button" onClick={() => notify('복사하지 못했습니다.', 'error')}>실패</button>
+    }
+    render(<ToastProvider><ErrorTrigger /></ToastProvider>)
+
+    await userEvent.setup({ advanceTimers: vi.advanceTimersByTime }).click(screen.getByRole('button', { name: '실패' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('복사하지 못했습니다.')
+    expect(screen.getByRole('alert')).toHaveClass('toast', 'error')
+  })
 })

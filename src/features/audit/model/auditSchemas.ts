@@ -1,19 +1,22 @@
 import { z } from 'zod'
 
+/** action 분류. 화면에서 분류별 색(`audit-cat-{id}`)으로 구분한다. */
+export type AuditCategoryId = 'session' | 'password' | 'account' | 'role' | 'client'
+
 /** dozy-auth 감사 action(domain.md AUD-01). 서버가 모르는 값은 400이라 이 목록 안에서만 고른다. */
-export const auditActionGroups: ReadonlyArray<{ label: string; actions: ReadonlyArray<{ code: string; label: string }> }> = [
-  { label: '로그인·세션', actions: [
+export const auditActionGroups: ReadonlyArray<{ id: AuditCategoryId; label: string; actions: ReadonlyArray<{ code: string; label: string }> }> = [
+  { id: 'session', label: '로그인·세션', actions: [
     { code: 'LOGIN_SUCCEEDED', label: '로그인 성공' },
     { code: 'LOGIN_FAILED', label: '로그인 실패' },
     { code: 'ACCOUNT_LOCKED', label: '계정 잠금' },
     { code: 'SESSION_REVOKED', label: '세션 폐기' },
   ] },
-  { label: '비밀번호', actions: [
+  { id: 'password', label: '비밀번호', actions: [
     { code: 'PASSWORD_CHANGED', label: '비밀번호 변경' },
     { code: 'PASSWORD_RESET', label: '비밀번호 재설정' },
     { code: 'PASSWORD_RESET_REQUESTED', label: '재설정 메일 발송(관리자)' },
   ] },
-  { label: '계정', actions: [
+  { id: 'account', label: '계정', actions: [
     { code: 'EMPLOYEE_INVITED', label: '직원 초대' },
     { code: 'INVITATION_ACCEPTED', label: '초대 수락' },
     { code: 'PARTNER_SIGNED_UP', label: '파트너 가입' },
@@ -23,7 +26,7 @@ export const auditActionGroups: ReadonlyArray<{ label: string; actions: Readonly
     { code: 'ACCOUNT_REACTIVATED', label: '정지 해제' },
     { code: 'ACCOUNT_DEACTIVATED', label: '계정 비활성화' },
   ] },
-  { label: 'role·서비스', actions: [
+  { id: 'role', label: 'role·서비스', actions: [
     { code: 'ROLE_GRANTED', label: 'role 부여' },
     { code: 'ROLE_REVOKED', label: 'role 회수' },
     { code: 'ROLE_DEFINED', label: 'role 등록' },
@@ -31,7 +34,7 @@ export const auditActionGroups: ReadonlyArray<{ label: string; actions: Readonly
     { code: 'ROLE_DELETED', label: 'role 삭제' },
     { code: 'AUDIENCE_CREATED', label: '서비스 추가' },
   ] },
-  { label: '시스템 클라이언트·owner', actions: [
+  { id: 'client', label: '시스템 클라이언트·owner', actions: [
     { code: 'SYSTEM_CLIENT_REGISTERED', label: '시스템 클라이언트 등록' },
     { code: 'CLIENT_SECRET_ROTATED', label: '클라이언트 secret 재발급' },
     { code: 'OWNER_TRANSFER_REQUESTED', label: 'owner 양도 요청' },
@@ -41,6 +44,13 @@ export const auditActionGroups: ReadonlyArray<{ label: string; actions: Readonly
 ]
 
 const actionLabels = new Map(auditActionGroups.flatMap((group) => group.actions.map((action) => [action.code, action.label])))
+
+const actionCategories = new Map(auditActionGroups.flatMap((group) => group.actions.map((action) => [action.code, { id: group.id, label: group.label }] as const)))
+
+/** action이 속한 분류(목록에 없는 새 action이면 null). */
+export function auditActionCategory(code: string): { id: AuditCategoryId; label: string } | null {
+  return actionCategories.get(code) ?? null
+}
 
 /** 화면에 보일 action 이름. 목록에 없는 새 action은 코드를 그대로 보여준다. */
 export function auditActionLabel(code: string): string {
