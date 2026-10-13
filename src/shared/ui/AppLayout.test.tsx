@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -106,5 +106,75 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: /owner 양도/ })).toHaveAttribute('href', '/owner')
     expect(screen.getByRole('link', { name: /감사 로그/ })).toHaveAttribute('href', '/audit-logs')
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
+  })
+
+  describe('내 계정 메뉴', () => {
+    const modes = [actorModeIds.accountAdministrator, actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager, actorModeIds.merchandiser]
+
+    function renderWith(mode: (typeof modes)[number] | null, { can = () => true as boolean, path = '/' }: { can?: () => boolean; path?: string } = {}) {
+      return render(
+        <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: mode, can, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route index element={<div>page content</div>} />
+                <Route path="account" element={<div>account page</div>} />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+        </AuthContext.Provider>,
+      )
+    }
+
+    it.each(modes)('%s 모드에서도 메뉴 아래에 내 계정이 있고 /account로 연결된다', (mode) => {
+      renderWith(mode)
+
+      const nav = screen.getByRole('navigation', { name: '개인' })
+      expect(within(nav).getByRole('link', { name: '내 계정' })).toHaveAttribute('href', '/account')
+    })
+
+    it('권한이 하나도 없어도 보이고 잠김 표시가 없다', () => {
+      renderWith(actorModeIds.accountAdministrator, { can: () => false })
+
+      const link = within(screen.getByRole('navigation', { name: '개인' })).getByRole('link', { name: '내 계정' })
+      expect(link).toHaveAttribute('href', '/account')
+      expect(link).not.toHaveTextContent('잠김')
+    })
+
+    it('업무 메뉴와 따로 두어 업무 메뉴 목록에는 들어 있지 않다', () => {
+      renderWith(actorModeIds.accountAdministrator)
+
+      const workNav = screen.getAllByRole('navigation').find((nav) => !nav.classList.contains('account-nav'))!
+      expect(within(workNav).queryByRole('link', { name: '내 계정' })).not.toBeInTheDocument()
+    })
+
+    it('내 계정 화면에서는 메뉴가 활성 표시가 된다', () => {
+      renderWith(actorModeIds.accountAdministrator, { path: '/account' })
+
+      expect(within(screen.getByRole('navigation', { name: '개인' })).getByRole('link', { name: '내 계정' })).toHaveClass('active')
+    })
+
+    it('업무 모드를 아직 고르지 않았다면 메뉴를 보여주지 않는다', () => {
+      renderWith(null)
+
+      expect(screen.queryByRole('navigation', { name: '개인' })).not.toBeInTheDocument()
+    })
+
+    it('사이드바를 접으면 내 계정 메뉴에 툴팁(title)이 붙는다', async () => {
+      const user = userEvent.setup()
+      renderWith(actorModeIds.accountAdministrator)
+      const link = () => within(screen.getByRole('navigation', { name: '개인' })).getByRole('link', { name: '내 계정' })
+      expect(link()).not.toHaveAttribute('title')
+
+      await user.click(screen.getByRole('button', { name: '사이드바 접기' }))
+
+      expect(link()).toHaveAttribute('title', '내 계정')
+    })
+
+    it('사용자 이름 링크도 그대로 내 계정으로 간다', () => {
+      renderWith(actorModeIds.accountAdministrator)
+
+      expect(screen.getByRole('link', { name: '테스트 사용자' })).toHaveAttribute('href', '/account')
+    })
   })
 })
