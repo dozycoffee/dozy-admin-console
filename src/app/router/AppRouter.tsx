@@ -28,10 +28,12 @@ import { OwnerTransferPage } from '../../pages/owner/OwnerTransferPage'
 import { AcceptOwnerTransferPage } from '../../pages/owner-transfer/AcceptOwnerTransferPage'
 import { ReturnManagementPage } from '../../pages/returns/ReturnManagementPage'
 import { ReturnHistoryPage } from '../../pages/returns/ReturnHistoryPage'
+import { ProductsPage } from '../../pages/products/ProductsPage'
 
 const inventoryModes = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager] as const
 const warehouseOperationsModes = [actorModeIds.warehouseManager] as const
 const accountAdministrationModes = [actorModeIds.accountAdministrator] as const
+const merchandisingModes = [actorModeIds.merchandiser] as const
 
 export function AppRouter() {
   return (
@@ -56,6 +58,7 @@ export function AppRouter() {
           <Route path="disposals/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnHistoryPage /></RequirePermission></RequireActorMode>} />
+          <Route path="products" element={<RequireActorMode allowedModes={merchandisingModes}><RequirePermission permission={permissions.catalogRead}><ProductsPage /></RequirePermission></RequireActorMode>} />
           <Route path="employees" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><EmployeesPage /></RequirePermission></RequireActorMode>} />
           <Route path="roles" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><RolesPage /></RequirePermission></RequireActorMode>} />
           <Route path="system-clients" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><SystemClientsPage /></RequirePermission></RequireActorMode>} />

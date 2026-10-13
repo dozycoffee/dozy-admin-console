@@ -438,6 +438,13 @@ a { color: inherit; text-decoration: none; }
 .employee-status-active { background: #e1f3e6; color: #25683a; }
 .employee-status-suspended { background: #fde4e1; color: #9c3b3b; }
 .employee-status-deactivated { background: #ececec; color: #6b6b6b; }
+.product-status-draft { background: #fff3d6; color: #8a5a00; }
+.product-status-active { background: #e1f3e6; color: #25683a; }
+.product-status-discontinued { background: #ececec; color: #6b6b6b; }
+.product-scope { margin: 0; }
+.product-option-groups { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
+.product-option-groups small { display: block; margin-top: 2px; color: #6f6862; }
+.product-version { margin: 24px 0 0; color: #9b918c; font-size: 12px; }
 .employee-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 16px 0; }
 .employee-fields dt { font-size: 11px; font-weight: 800; color: #9b918c; }
 .employee-fields dd { margin: 3px 0 0; overflow-wrap: anywhere; }

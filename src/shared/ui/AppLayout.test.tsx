@@ -14,9 +14,9 @@ const stubUser: AuthContextValue['user'] = {
   scope: { warehouseIds: [1, 2] },
 }
 
-function renderAppLayout(logout: () => void) {
+function renderAppLayout(logout: () => void, mode: (typeof actorModeIds)[keyof typeof actorModeIds] = actorModeIds.warehouseManager) {
   return render(
-    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.warehouseManager, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
+    <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: mode, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout }}>
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<AppLayout />}>
@@ -35,6 +35,13 @@ describe('AppLayout', () => {
     expect(screen.getByText('테스트 사용자')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /대시보드/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /재고 현황/ })).toBeInTheDocument()
+  })
+
+  it('MD 모드에는 상품 관리 메뉴가 있다', () => {
+    renderAppLayout(vi.fn(), actorModeIds.merchandiser)
+
+    expect(screen.getByRole('link', { name: /상품 관리/ })).toHaveAttribute('href', '/products')
+    expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
 
   it('사용자 이름은 내 계정 화면으로 가는 링크다', () => {
