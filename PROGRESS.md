@@ -2,59 +2,53 @@
 
 ## 현재 상태
 
-문서 체계(AGENT.md/CLAUDE.md/docs/ADR), `httpClient` 공통 에러 처리
-(`http-client-error-handling`), GitHub 이슈/PR 템플릿(`github-issue-pr-templates`), Vitest 테스트
-러너(`testing-setup`), GitHub Actions CI(`ci-pipeline`), `inventory-dashboard-data`,
-`zod-response-validation`, `auth-login-ui-mock-backend`에 이어 `remove-catalog-feature`,
-`generalize-msw-mocks`, `warehouse-floor-plan-dashboard`, `inventory-location-panel-cleanup`,
-`inventory-location-table-alignment`, `warehouse-capacity-md-zone-mock`,
-`warehouse-location-pillar`까지 완료했다. 남은 상태:
+`feature_list.json`의 항목은 모두 완료했고 남은 `pending`은 없다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
+창고 업무는 dozy-wms-api 실 API로 연동되어 있다(테스트 513개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
-- **새 F Zone(MD 상품)은 아직 프런트 mock 레이어에만 존재한다.** `inventorySchemas`의
-  `zoneCodeSchema`/`zoneCodeLabels`는 F를 인식하지만, 실제 dozy-wms-api
-  `/api/inventories/zone-summary`는 여전히 A~E(합계 850)만 반환한다 — `InventoryPage`의 "Zone별
-  요약" 카드(실 API 연동)는 F를 보여주지 않고, Dashboard/평면도/Location별 재고(전부 mock)만
-  F Zone·확대된 총 용량(5,000)을 보여준다. 실제로 F Zone을 운영하려면 dozy-wms-api DB에 Zone(F)
-  생성 + API 응답 반영이 먼저 필요함 — 사용자가 이미 이 결정을 알고 "프런트 mock만 우선 갱신"으로
-  범위를 좁힌 상태라 지금 당장 막힌 건 아님
+### 구현 현황
 
-- 창고 평면도(`WarehouseFloorPlan.tsx`)와 Dashboard의 Zone별 재고 현황 카드는 아직 전용 mock
-  데이터(`warehouseMockData.ts`)를 쓴다. `InventoryPage`의 "Zone별 요약"처럼 실 zone-summary
-  API로 옮기는 작업은 아직 없음
+| 모드 | 화면 | 연동 |
+|---|---|---|
+| 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
+| 계정 관리자 | 직원 관리 `/employees`(목록·상세·초대·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·audience `/roles`, system client `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
+| 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
+| 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
+| MD | 모드 홈 골격만 | 별도 catalog MSA가 미구현이라 화면 없음 (Catalog 화면은 제거함) |
 
-- dozy-wms-api CORS는 해결된 상태다(2026-10-01 세션에서 프리플라이트 OK 확인). 아래 로그인 항목의 dozy-auth도
-  허용 origin 설정(`AUTH_CORS_ALLOWED_ORIGINS`)이 필요하다
-- **로그인은 dozy-auth 실서비스로 연동했다**(`auth-real-login`). internal realm 이메일+비밀번호 로그인,
-  access token은 메모리에만 보관하고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014).
-  업무 API가 401 `UNAUTHENTICATED`를 주면 `httpClient`가 토큰을 갱신하고 한 번 재시도하며, 갱신까지
-  실패하면 로그아웃 상태로 돌아간다. auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로
-  변환한다 — 이 파일의 role 이름(`wms:warehouse_manager` 등)은 임시로 정한 것이라 운영 role 정의와 맞춰야 한다.
-  dozy-auth가 시드하는 role은 `auth:owner`/`auth:admin`뿐이다. 창고 범위(`AccessScope.warehouseIds`)는
-  auth에 창고 개념이 없어 `VITE_WAREHOUSE_IDS`로 임시 지정한다. MSW 핸들러는 비어 있다
-- Catalog 화면은 완전히 제거했다. **`catalog-crud`도 그에 따라 목록에서 제거** — CatalogPage가
-  가리키던 완제품(아메리카노 등) 상품 마스터는 dozy-wms-api의 `/api/products`(원부자재)와는 다른
-  별도 catalog MSA에서 처리될 예정이며 아직 미구현 상태라, 연동할 API가 없는 미완성 화면을 계속
-  띄워두는 대신 지우고 나중에 API가 준비되면 화면부터 새로 만들기로 했다. `permissions.ts`의
-  `catalogRead`/`catalogWrite`, `AppLayout`의 "상품 관리" 메뉴, `product` 모델
-  (`productSchemas`/`useActiveProducts`)도 함께 제거. 같은 맥락에서 대응 화면이 없던
-  `usersManage` 권한과 "사용자·권한" 메뉴도 정리(계정 관리 화면은 이후 직원 관리·role 관리 등 `auth-*` 화면으로
-  나눠 구현했다)
-- Inventory/Dashboard는 dozy-wms-api 실 API(zone-summary/warehouses/products)로 연동 완료.
-  `AccessScope.warehouseIds`를 `string[]`(슬러그) → `number[]`(dozy-wms-api Long id)로 변경했고,
-  mock 값은 로컬 dev DB에 실제 등록한 창고 id를 가리킨다 — 다른 개발 DB에서는 이 값을 맞춰야 함
-- 이슈/PR은 `.github/ISSUE_TEMPLATE`(feature/bug/refactor)·`.github/PULL_REQUEST_TEMPLATE.md`
-  구조를 따르고, 라벨과 GitHub 네이티브 Issue Type(Feature/Bug/Task)을 맞춰 붙인다
-  (`docs/git-workflow.md` "이슈/PR 템플릿·라벨·타입" 절 참고)
-- 테스트는 Vitest + Testing Library, 소스 파일 옆에 co-location(`*.test.ts(x)`)하는 컨벤션.
-  `vite.config.ts`의 `test.coverage.exclude`에서 `pages/catalog`, `pages/access-denied`만 제외
-  (로직 없는 정적 화면) — `pages/inventory`, `pages/dashboard`는 실 API 연동으로 로직이 생겨
-  커버리지 집계 대상에 포함시킴
-- `.github/workflows/ci.yml`에서 PR/main push마다 lint·typecheck·build·commitlint·
-  test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
-  (feat/fix/refactor/test/docs/chore/perf)만 허용
+- **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
+  `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
+  owner 전용 기능은 `account.manage`(`auth:owner`에만 매핑), 프런트 권한 체크는 UX용이며 최종 판단은 서버다.
+- **dozy-auth 연동 화면의 공통 규칙**: 에러는 `code`로만 분기하고 안내 문구는 콘솔이 정한다(`adminErrors.ts` 등). 1회용 secret·토큰은 화면 state에만 두고 캐시에 남기지 않는다.
+  관리 API의 보호 규칙(owner·admin 보호 등)은 화면에서 버튼 비활성화로 미리 반영하되 서버 응답(`PROTECTED_ACCOUNT` 등)도 안내한다.
 
-`feature_list.json`에 남은 `pending` 항목은 없다. dozy-auth 연동 화면(로그인, 직원·role·audience·system client 관리, 감사 로그, 초대·비밀번호 복구, 내 계정, owner 양도)은 모두 구현했다.
-dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+### 알려진 한계·미해결
+
+- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`wms:hq_inventory_manager`·`catalog:merchandiser`는 운영 role 정의와 맞춰야 한다. dozy-auth가 시드하는 role은
+  `auth:owner`/`auth:admin`뿐이라 나머지는 `/roles`에서 등록해야 한다.
+- **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관련 모드를 가진 사용자에게 `VITE_WAREHOUSE_IDS`를 준다.
+- **dozy-wms-api는 아직 토큰을 검증하지 않는다**(dozy-wms-api ADR-0010의 `CurrentAccessScopeProvider`·`warehouseIds` 교차검증은 인증 연동 때 처리 예정). WMS는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+- **일부 창고 데이터는 프런트 mock이다.** 창고 평면도(`WarehouseFloorPlan.tsx`)·대시보드 Zone 카드(`warehouseMockData.ts`)와 `InventoryPage`의 Location별 재고는 mock이다. 새 F Zone(MD 상품)도 이 mock 레이어에만 있고
+  실제 `zone-summary`는 A~E만 돌려준다 — 운영하려면 dozy-wms-api에 Zone(F)을 먼저 만들어야 한다.
+- **직원의 본인 정보(이름·전화번호·주소) 수정은 의도적으로 제외했다.** 관리자가 직원 관리 화면에서 고친다.
+- **role이 없는 직원**은 로그인하면 `/access-denied`로 이동한다(모드가 하나도 없음). owner 양도 수락 화면(`/owner-transfer`)은 콘솔 셸 밖이라 role이 없어도 열 수 있다.
+- **owner 양도**: dozy-auth에 진행 중인 양도 조회 API가 없어 요청 후 상태는 볼 수 없다(취소 버튼은 항상 보인다).
+- dozy-auth 관리 API의 `VALIDATION_FAILED`는 원인(기간·UUID·형식)을 구분하지 않아 화면은 한 문구로 안내한다.
+
+### 개발 환경
+
+- **dozy-wms-api**: `http://localhost:8080`(`VITE_API_BASE_URL`). 로컬 DB에 창고·Zone·작업구역(입고·출고·반품·폐기 처리장)·상품이 시드되어 있어야 하고 창고 id를 `VITE_WAREHOUSE_IDS`에 넣는다.
+- **dozy-auth**: Docker가 필요하다. 8080 충돌을 피해 `SERVER_PORT=8081 AUTH_ISSUER_BASE_URL=http://localhost:8081 AUTH_CORS_ALLOWED_ORIGINS=http://localhost:5173 AUTH_APP_URL_INTERNAL=http://localhost:5173
+  ./gradlew :auth-server:bootRun --args='--spring.profiles.active=local'`(dozy-auth 저장소에서)로 띄우고 콘솔 `.env`에 `VITE_AUTH_BASE_URL=http://localhost:8081`을 둔다.
+  첫 기동 때 owner 초대 메일이 Mailpit(`http://localhost:8025`)으로 가며, 링크가 콘솔의 `/invitation`을 연다. 처음에는 role이 `auth:owner`/`auth:admin`뿐이라 업무 role을 `/roles`에서 등록하고
+  직원을 초대해 부여해야 창고 모드 등을 쓸 수 있다.
+- MSW 핸들러는 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다.
+- UI 확인은 `npm run dev`(5173)와 위 서버들로 한다. 헤드리스 브라우저(Playwright)로도 확인할 수 있고 MSW 서비스 워커가 필요하지 않다.
+
+### 컨벤션
+
+- 이슈/PR은 `.github/ISSUE_TEMPLATE`·`.github/PULL_REQUEST_TEMPLATE.md` 구조를 따르고 라벨과 네이티브 Issue Type을 맞춘다(`docs/git-workflow.md`). 커밋은 Conventional Commits 7개 타입만(`commitlint.config.mjs`).
+- 테스트는 Vitest + Testing Library로 소스 파일 옆에 co-location(`*.test.ts(x)`)한다. `vite.config.ts`의 `test.coverage.exclude`는 `app/**`, `mocks/**`, `pages/access-denied` 등 로직 없는 파일만 뺀다.
+- 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
 
@@ -291,17 +285,9 @@ dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지
 
 ## 다음 세션에서 할 일
 
-- 새 작업은 `feature_list.json`에 항목을 먼저 등록한다. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 정의한다
-- `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
-- 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
-- dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
-  ProductService.DELETED_BY_SYSTEM의 CurrentAccessScopeProvider 교체, warehouseIds 필터와
-  AccessScope의 교차검증)은 실제 인증이 붙는 시점에 auth-real-login과 함께 처리해야 함을 기억할 것
-- 새 작업을 시작하기 전 `docs/git-workflow.md`를 다시 읽고 이슈 → 브랜치 → PR 순서를 지킬 것
-  (이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성)
-- `feature_list.json`에서 해당 항목을 `in_progress`로 전환하고, 완료 시 `completed` + PROGRESS.md 갱신
-- 새 API 연동 작업에서 로직이 생기면 그 파일 옆에 co-location으로 테스트를 같이 추가하고,
-  필요하면 `vite.config.ts`의 `test.coverage.exclude`에서 해당 경로를 빼서 커버리지 집계에 포함
-- UI를 브라우저로 검증하려면 `.claude/launch.json`의 `dozy-wms-api` 항목으로 백엔드를 먼저
-  `preview_start` attach해야 한다(등록 안 된 포트는 브라우저 도구가 접근 못 함). 로컬 `.env`도
-  있어야 `VITE_API_BASE_URL`이 올바르게 잡힌다
+- 새 작업은 `feature_list.json`에 항목을 먼저 등록하고 `docs/git-workflow.md`의 이슈 → 브랜치 → PR 순서를 지킨다(이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성). 작업 중에는 `in_progress`, 끝나면 `completed`로 바꾸고 PROGRESS.md를 갱신한다
+- 화면은 해당 모드의 `navigationByMode`·`AppRouter`에 함께 등록하고 `permissions.ts`·권한 정책 체크리스트에 Permission을 정의한다
+- `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다. 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
+- 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다. dozy-wms-api가 토큰 검증을 붙이면 role·scope 연동을 함께 확인한다
+- 창고 평면도·대시보드 Zone 카드·Location별 재고를 실 `zone-summary`/재고 API로 옮기는 작업은 아직 없다(F Zone은 dozy-wms-api에 Zone이 생긴 뒤)
+- 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다
