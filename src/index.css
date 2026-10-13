@@ -556,3 +556,78 @@ a { color: inherit; text-decoration: none; }
 .owner-candidates label:has(input:checked) { border-color: #9c3b2e; background: #fff7f5; }
 .owner-candidates span { flex: 1; min-width: 0; }
 .owner-candidates small { color: #9b918c; }
+
+/* 폼 모달 */
+.form-modal { display: flex; flex-direction: column; width: min(100%, 560px); max-height: calc(100vh - 48px); border: 1px solid #e4ddd9; border-radius: 14px; background: #fffdfb; box-shadow: 0 24px 60px rgb(63 42 32 / 22%); outline: none; }
+.form-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px 14px; border-bottom: 1px solid #ece7e3; }
+.form-modal-header h2 { margin: 0; color: #33241e; font-size: 18px; letter-spacing: -.03em; }
+.form-modal-close { width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: #786d68; font-size: 22px; line-height: 1; cursor: pointer; }
+.form-modal-close:hover { background: #f3efec; }
+.form-modal-body { padding: 18px 24px 22px; overflow-y: auto; }
+/* 제목 오른쪽에 보조 표시(예: 단계)를 붙이는 영역 */
+.form-modal-title { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
+/* 비활성화 사유 등 짧은 안내를 호버·포커스 때 보여주는 툴팁 */
+.tooltip-anchor { position: relative; display: inline-flex; max-width: 100%; border-radius: 8px; }
+.tooltip-anchor:focus-visible { outline: 2px solid #aa826e; outline-offset: 2px; }
+.tooltip-bubble { display: flex; align-items: flex-start; gap: 8px; position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: max-content; max-width: min(300px, 70vw); padding: 8px 11px; border-radius: 7px; background: #3b2a24; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; text-align: left; box-shadow: 0 6px 16px rgb(38 32 27 / 22%); pointer-events: none; }
+.tooltip-bubble[hidden] { display: none; }
+/* 문구 앞의 정보(i) 아이콘 */
+.tooltip-bubble::before { content: 'i'; flex: none; display: inline-grid; width: 15px; height: 15px; margin-top: 1px; place-items: center; border-radius: 50%; background: #e6d7cf; color: #3b2a24; font-size: 10px; font-style: italic; font-weight: 800; line-height: 1; }
+/* 직원 관리: 목록·상세 카드를 고정 높이로 두어 내용 양에 따라 이전/다음 버튼 위치가 바뀌지 않게 한다.
+   목록은 한 페이지에 5명으로 정해져 있고 항목 높이를 일정하게(긴 이메일은 한 줄 말줄임) 유지해 카드 안에 스크롤 없이 들어가게 한다.
+   상세 카드는 내용이 넘칠 때만(role이 매우 많은 경우 등) 카드 안에서 스크롤한다. */
+@media (min-width: 1101px) {
+  .employee-workspace { align-items: start; min-height: 0; }
+  .employee-workspace > .inbound-list-panel, .employee-workspace > .inbound-detail-panel { height: 680px; min-height: 0; }
+  .employee-workspace > .inbound-list-panel { display: flex; flex-direction: column; }
+  .employee-workspace .inbound-list { flex: 1; align-content: start; }
+  .employee-workspace .inbound-pagination { flex-shrink: 0; }
+  .employee-workspace > .inbound-detail-panel { overflow-y: auto; }
+}
+.employee-workspace .inbound-list-item > small { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
+.employee-detail-body { padding: 0 18px; }
+/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(system client 카드는 기존대로) */
+.employee-workspace .employee-role-grant label { flex: 0 1 380px; }
+/* 직원 상세: 초대 만료·로그인 잠금 같은 상태 안내 박스 */
+.employee-notices { display: grid; gap: 8px; margin: 14px 0 4px; }
+.employee-notice { display: grid; gap: 3px; padding: 11px 14px; border: 1px solid; border-radius: 8px; }
+.employee-notice strong { font-size: 13px; }
+.employee-notice-detail { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 12px; }
+.employee-notice-detail > span { opacity: .75; }
+.employee-notice-detail time { font-size: 13px; font-weight: 700; }
+.employee-notice-detail em { font-style: normal; font-weight: 700; }
+.employee-notice-detail em::before { margin-right: 8px; content: '·'; opacity: .6; }
+.employee-notice.compact { display: flex; align-items: baseline; gap: 12px; width: fit-content; min-width: 340px; max-width: 100%; padding: 10px 18px; font-size: 13px; }
+.employee-notice.compact > span { opacity: .75; font-size: 12px; }
+.employee-notice.compact time { font-weight: 700; }
+.employee-notice.warning { border-color: #f0dca8; background: #fff3d6; color: #8a5a00; }
+.employee-notice.danger { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
+.employee-detail-body .employee-fields { margin-top: 8px; }
+/* 직원 상세의 섹션 제목은 라벨(dt)보다 한 단계 진하고 크게, 섹션 사이에는 얇은 구분선을 둔다 */
+.employee-detail-body .employee-section-title { margin: 24px 0 10px; color: var(--ink); font-size: 15px; font-weight: 800; }
+.employee-detail-body .employee-fields + .employee-section-title { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ece7e3; }
+.employee-detail-body .employee-no-roles { margin-bottom: 4px; }
+/* role 추가 행(select+부여)을 감싼 툴팁 래퍼: 행이 줄어들어 버튼이 세로로 꺾이지 않게 select(380px)+간격+버튼 폭으로 둔다 */
+.employee-role-grant-anchor { display: flex; width: 100%; max-width: 470px; }
+.employee-role-grant-anchor .employee-role-grant { flex: 1; }
+.employee-role-grant .inbound-action-button { flex: none; white-space: nowrap; }
+.form-modal .employee-edit { margin: 0; padding: 0; border: 0; }
+.form-modal .inbound-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.form-modal .inbound-form-actions .inbound-action-button { margin-top: 0; }
+.form-modal .employee-invite { min-height: 0; margin: 0; padding: 0; }
+.form-modal .employee-invite-grid { grid-template-columns: 1fr; }
+/* 입력 오류: 필드 테두리를 빨갛게 하고 아래에 이유를 보여준다 */
+.employee-invite input[aria-invalid="true"] { border-color: #c5534a; background: #fffafa; }
+/* 오류 문구 자리는 항상 확보해 두어, 오류가 뜨고 사라져도 모달 크기가 변하지 않게 한다 */
+.employee-invite-field { display: grid; align-content: start; gap: 4px; }
+.employee-invite .field-error { min-height: 16px; color: #9c3b3b; font-size: 12px; line-height: 16px; }
+.form-modal .employee-invite-grid { gap: 2px; }
+.form-modal .employee-role-picker { margin-top: 0; max-height: 320px; overflow-y: auto; }
+/* 모달 제목 오른쪽의 단계 표시(예: 직원 추가 | 1 / 2 기본 정보) */
+.form-modal-step { display: inline-flex; align-items: baseline; gap: 6px; padding-left: 14px; border-left: 1px solid #dcd5d0; color: #6f6862; font-size: 13px; white-space: nowrap; }
+.form-modal-step b { color: #4b2f25; font-weight: 800; }
+/* 직원 추가 모달: audience별 role 묶음 */
+.employee-role-group + .employee-role-group { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ece7e3; }
+.employee-role-audience { margin: 0 0 4px; color: #6f6862; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+.employee-added { position: fixed; top: 24px; right: 28px; z-index: 1100; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; max-width: 420px; margin: 0; padding: 12px 16px; border: 1px solid #c9e4d1; border-radius: 10px; background: #e8f4ec; box-shadow: 0 10px 30px rgb(63 42 32 / 16%); }
+.employee-added button { border: 0; background: none; color: #25683a; font-size: 18px; line-height: 1; cursor: pointer; }

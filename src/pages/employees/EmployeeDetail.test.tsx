@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
@@ -58,6 +58,12 @@ function setup(employee: EmployeeDetailData, { granted = ownerPermissions, writa
 
 const buttonNames = () => Array.from(document.querySelectorAll('.employee-actions button')).map((button) => button.textContent)
 
+/** 버튼이 비활성일 때 툴팁 래퍼가 가진 사유(없으면 빈 문자열) */
+const reasonOf = (name: string) => {
+  const anchor = screen.getByRole('button', { name }).closest('.tooltip-anchor')
+  return anchor?.querySelector('[role=tooltip]')?.textContent ?? ''
+}
+
 beforeEach(() => vi.clearAllMocks())
 
 describe('EmployeeDetail 상태별 작업', () => {
@@ -79,11 +85,14 @@ describe('EmployeeDetail 상태별 작업', () => {
     expect(buttonNames()).toEqual(['정보 수정', '초대 재발송', '초대 취소'])
   })
 
-  it('비활성화된 직원은 변경할 수 없다고 안내하고 작업 버튼이 없다', () => {
+  it('비활성화된 직원은 정보 수정 버튼이 비활성이고 툴팁으로 이유를 안내한다', async () => {
     setup(detail('DEACTIVATED'))
 
-    expect(screen.getByText('비활성화된 계정은 변경할 수 없습니다.')).toBeInTheDocument()
-    expect(buttonNames()).toEqual([])
+    expect(buttonNames()).toEqual(['정보 수정'])
+    expect(screen.getByRole('button', { name: '정보 수정' })).toBeDisabled()
+    expect(reasonOf('정보 수정')).toBe('비활성화된 계정은 변경할 수 없습니다.')
+    await userEvent.setup().hover(screen.getByRole('button', { name: '정보 수정' }).parentElement!)
+    expect(screen.getByRole('tooltip')).toHaveTextContent('비활성화된 계정은 변경할 수 없습니다.')
   })
 })
 
@@ -155,14 +164,19 @@ describe('EmployeeDetail 작업 실행', () => {
     for (const mutation of Object.values(mutations).filter((value) => value !== mutations.update)) expect(mutation.reset).toHaveBeenCalled()
   })
 
-  it('정보 수정을 누르면 수정 폼을 보여주고 작업 버튼을 숨긴다', async () => {
+  it('정보 수정을 누르면 모달로 수정 폼을 보여주고 Esc로 닫는다', async () => {
     setup(detail('ACTIVE'))
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: '정보 수정' }))
 
-    expect(screen.getByLabelText('이름')).toHaveValue('김도윤')
-    expect(screen.queryByRole('button', { name: '정지' })).not.toBeInTheDocument()
+    const dialog = screen.getByRole('dialog', { name: '정보 수정 · 김도윤' })
+    expect(within(dialog).getByLabelText('이름')).toHaveValue('김도윤')
+    // 작업 버튼은 화면에 그대로 있다(수정 폼이 카드 안을 대체하지 않는다)
+    expect(screen.getByRole('button', { name: '정지' })).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('재설정 메일을 보내면 성공 안내를 보여준다', () => {
@@ -195,7 +209,7 @@ describe('EmployeeDetail owner·admin 보호', () => {
     setup(detail('ACTIVE', ['auth:admin']), { granted: adminPermissions })
 
     for (const name of ['정보 수정', '재설정 메일 발송', '정지', '비활성화']) expect(screen.getByRole('button', { name })).toBeDisabled()
-    expect(screen.getByText('owner·admin 계정은 owner만 변경할 수 있습니다.')).toBeInTheDocument()
+    for (const name of ['정보 수정', '재설정 메일 발송', '정지', '비활성화']) expect(reasonOf(name)).toBe('owner·admin 계정은 owner만 변경할 수 있습니다.')
   })
 
   it('owner는 admin 계정을 변경할 수 있다', () => {
@@ -210,14 +224,62 @@ describe('EmployeeDetail owner·admin 보호', () => {
     expect(screen.getByRole('button', { name: '정지' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '비활성화' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '정보 수정' })).toBeEnabled()
-    expect(screen.getByText(/먼저 owner를 양도해야 합니다/)).toBeInTheDocument()
+    expect(reasonOf('정지')).toMatch(/먼저 owner를 양도해야 합니다/)
+    expect(reasonOf('비활성화')).toMatch(/먼저 owner를 양도해야 합니다/)
+    expect(reasonOf('정보 수정')).toBe('')
   })
 
   it('일반 직원에게는 admin도 모든 작업을 할 수 있고 안내가 없다', () => {
     setup(detail('ACTIVE'), { granted: adminPermissions })
 
     expect(screen.getByRole('button', { name: '정지' })).toBeEnabled()
-    expect(screen.queryByText(/owner만 변경할 수 있습니다/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument()
+  })
+})
+
+describe('EmployeeDetail 상태 안내 박스', () => {
+  it('기본 정보(이메일·전화번호·주소·등록일)는 모든 직원에게 같은 제목 아래 보여준다', () => {
+    setup({ ...detail('ACTIVE'), phone: '010-1234-5678', address: '서울시' })
+
+    expect(screen.getByRole('heading', { name: '기본 정보' })).toBeInTheDocument()
+    for (const label of ['이메일', '전화번호', '주소', '등록일']) expect(screen.getByText(label)).toBeInTheDocument()
+    expect(screen.getByText('010-1234-5678')).toBeInTheDocument()
+  })
+
+  it('활성 직원에게는 상태 안내 박스가 없다', () => {
+    setup(detail('ACTIVE'))
+
+    expect(document.querySelector('.employee-notices')).toBeNull()
+  })
+
+  it('유효한 초대 대기 직원에게는 만료일만 한 줄의 작은 박스로 기본 정보와 분리해 보여준다', () => {
+    setup(detail('PENDING'))
+
+    const notice = document.querySelector('.employee-notice.warning')!
+    expect(notice).toHaveClass('compact')
+    expect(notice).toHaveTextContent('초대 만료')
+    // 상태는 헤더 배지가 알려 주므로 박스에서 "초대 대기 중"을 반복하지 않는다
+    expect(notice).not.toHaveTextContent('초대 대기 중')
+    expect(notice.querySelector('strong')).toBeNull()
+    expect(document.querySelector('.employee-fields')!.textContent).not.toContain('초대 만료')
+  })
+
+  it('만료된 초대는 경고 톤으로 바꾸고 재발송을 안내한다', () => {
+    setup({ ...detail('PENDING'), invitation: { expiresAt: '2020-01-01T00:00:00Z' } })
+
+    const notice = document.querySelector('.employee-notice.danger')!
+    expect(notice).toHaveTextContent('초대가 만료되었습니다')
+    expect(notice).toHaveTextContent('초대를 재발송하세요')
+    expect(notice).not.toHaveClass('compact')
+    expect(document.querySelector('.employee-notice.warning')).toBeNull()
+  })
+
+  it('로그인 잠금은 상태 안내 박스로 보여준다', () => {
+    setup({ ...detail('ACTIVE'), lockedUntil: '2099-01-01T00:00:00Z' })
+
+    const notice = document.querySelector('.employee-notice.danger')!
+    expect(notice).toHaveTextContent('로그인 잠금')
+    expect(document.querySelector('.employee-fields')!.textContent).not.toContain('로그인 잠금')
   })
 })
 
