@@ -45,12 +45,28 @@ describe('RolesPage', () => {
     expect(screen.getByText('wms:warehouse_manager')).toBeInTheDocument()
   })
 
-  it('서비스 필터를 고르면 그 서비스로 role을 조회한다', async () => {
+  it('서비스 필터를 고르면 API를 다시 부르지 않고 그 서비스의 role만 보여준다', async () => {
     setup()
+    const callsBefore = vi.mocked(useRoles).mock.calls.length
 
     await userEvent.setup().selectOptions(screen.getByLabelText('서비스', { selector: '.role-filter select' }), 'wms')
 
-    expect(vi.mocked(useRoles)).toHaveBeenLastCalledWith('wms')
+    expect(screen.queryByText('auth:owner')).not.toBeInTheDocument()
+    expect(screen.getByText('wms:warehouse_manager')).toBeInTheDocument()
+    // 필터와 무관하게 항상 전체 목록을 요청한다(필터를 바꿔도 새 요청이 생기지 않아 목록이 비었다 다시 그려지지 않는다)
+    expect(vi.mocked(useRoles).mock.calls.slice(callsBefore).every((args) => args.length === 0)).toBe(true)
+  })
+
+  it('필터를 "전체"로 돌리면 모든 role을 다시 보여준다', async () => {
+    setup()
+    const user = userEvent.setup()
+    const filter = screen.getByLabelText('서비스', { selector: '.role-filter select' })
+    await user.selectOptions(filter, 'wms')
+
+    await user.selectOptions(filter, '')
+
+    expect(screen.getByText('auth:owner')).toBeInTheDocument()
+    expect(screen.getByText('wms:warehouse_manager')).toBeInTheDocument()
   })
 
   it('role이 없으면 안내한다', () => {

@@ -5,6 +5,7 @@ import { useAuth } from '../../features/auth/model/useAuth'
 import type { Role } from '../../features/role/model/roleSchemas'
 import { useAudiences, useDeleteRole, useRoles } from '../../features/role/model/useRoles'
 import { ApiError } from '../../shared/api/ApiError'
+import { withViewTransition } from '../../shared/lib/withViewTransition'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { AudiencePanel } from './AudiencePanel'
 import { RoleCreateForm } from './RoleCreateForm'
@@ -17,11 +18,12 @@ export function RolesPage() {
   const writable = can(permissions.accountWrite)
   const [audienceFilter, setAudienceFilter] = useState('')
   const audiencesQuery = useAudiences()
-  const rolesQuery = useRoles(audienceFilter || undefined)
+  // role은 서비스 수에 비해 적고 페이지도 없어 전부 받아 두고 화면에서 거른다. 필터를 바꿀 때마다 API를 다시 부르면 목록이 비었다가 다시 그려져 깜빡인다.
+  const rolesQuery = useRoles()
   const deleteRole = useDeleteRole()
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const audiences = audiencesQuery.data ?? []
-  const roles = rolesQuery.data ?? []
+  const roles = (rolesQuery.data ?? []).filter((role) => audienceFilter === '' || role.audience === audienceFilter)
 
   function requestDelete(role: Role) {
     deleteRole.reset()
@@ -55,7 +57,7 @@ export function RolesPage() {
       <div className="panel-heading">
         <div><p className="eyebrow">ROLES</p><h2>role 목록</h2></div>
         <label className="role-filter">서비스
-          <select value={audienceFilter} onChange={(event) => setAudienceFilter(event.target.value)}>
+          <select value={audienceFilter} onChange={(event) => { const value = event.target.value; withViewTransition(() => setAudienceFilter(value)) }}>
             <option value="">전체</option>
             {audiences.map((audience) => <option key={audience.id} value={audience.code}>{audience.name} ({audience.code})</option>)}
           </select>
