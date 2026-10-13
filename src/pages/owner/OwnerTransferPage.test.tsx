@@ -136,4 +136,51 @@ describe('OwnerTransferPage', () => {
 
     expect(screen.getByText(/50명까지만 보입니다/)).toBeInTheDocument()
   })
+
+  it('선택한 대상을 다시 누르면 선택이 풀리고 양도 요청 버튼이 다시 비활성이 된다', async () => {
+    setup()
+    const user = userEvent.setup()
+    const radio = screen.getByRole('radio', { name: /김도윤/ })
+
+    await user.click(radio)
+    expect(radio).toBeChecked()
+    expect(screen.getByRole('button', { name: 'owner 양도 요청' })).toBeEnabled()
+
+    await user.click(radio)
+
+    expect(radio).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'owner 양도 요청' })).toBeDisabled()
+  })
+
+  it('선택을 푼 뒤 다시 누르면 다시 선택된다', async () => {
+    setup()
+    const user = userEvent.setup()
+    const radio = screen.getByRole('radio', { name: /김도윤/ })
+
+    await user.click(radio)
+    await user.click(radio)
+    await user.click(radio)
+
+    expect(radio).toBeChecked()
+  })
+
+  it('다른 대상을 누르면 선택이 그 대상으로 옮겨 간다(풀리지 않는다)', async () => {
+    setup()
+    const user = userEvent.setup()
+    const radios = screen.getAllByRole('radio')
+    expect(radios.length).toBeGreaterThanOrEqual(2)
+
+    await user.click(radios[0])
+    await user.click(radios[1])
+
+    expect(radios[0]).not.toBeChecked()
+    expect(radios[1]).toBeChecked()
+  })
+
+  it('목록 위에 활성 직원 안내 문구를 따로 두지 않는다(양도 전 확인 안내에 같은 내용이 있다)', () => {
+    setup()
+
+    expect(screen.queryByText(/활성 직원 중에서 한 명을 선택합니다/)).not.toBeInTheDocument()
+    expect(screen.getByText(/대상은 활성 직원이어야 합니다/)).toBeInTheDocument()
+  })
 })

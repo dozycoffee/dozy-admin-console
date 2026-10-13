@@ -22,7 +22,7 @@ const navigationByMode: Record<ActorModeId, Array<{ label: string; to: string; p
   [actorModeIds.headquartersInventoryManager]: operationsNavigation,
 }
 
-type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'clients' | 'owner' | 'audit' | 'product' | 'logout'
+type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'clients' | 'owner' | 'audit' | 'product' | 'account' | 'logout'
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, string> = {
     dashboard: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
@@ -38,6 +38,7 @@ function NavIcon({ name }: { name: NavIconName }) {
     owner: 'M5 8l4 3 3-6 3 6 4-3-2 10H7zM7 21h10',
     audit: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
     product: 'M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8M8 6l8 4',
+    account: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
     logout: 'M10 5H5v14h5M14 8l4 4-4 4M18 12H9',
   }
   return <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name]} /></svg>
@@ -89,6 +90,13 @@ export function AppLayout() {
             )
           })}
         </nav>
+        {/* 내 계정은 업무 모드와 관계없이 모두에게 필요하므로 모든 모드의 메뉴 아래에 구분선을 두고 공통으로 둔다(권한 불필요) */}
+        {activeActorMode && <nav className="sidebar-nav account-nav" aria-label="개인">
+          <NavLink to="/account" title={sidebarCollapsed ? '내 계정' : undefined} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <NavIcon name="account" />
+            <span className="nav-link-label">내 계정</span>
+          </NavLink>
+        </nav>}
         <div className="user-card">
           <Link className="user-card-link" to="/account" title="내 계정"><strong>{user.name}</strong></Link>
           <button type="button" className="logout-button" onClick={() => setLogoutModalOpen(true)}><NavIcon name="logout" /><span>로그아웃</span></button>

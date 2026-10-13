@@ -285,5 +285,19 @@
     "description": "옵션 그룹 생성·수정·옵션 목록 교체·삭제, 상품에 옵션 그룹 연결·순서·예외 지정, 서버가 계산한 유효 옵션 구성 미리보기.",
     "status": "pending",
     "dependencies": ["catalog-product-write"]
+  },
+  {
+    "id": "owner-transfer-target-select-ui",
+    "name": "owner 양도 대상 선택 화면 개선",
+    "description": "owner 양도 화면(/owner)의 양도 대상 선택 목록을 개선한다(dozy-auth API 변경 없음). 후보는 모두 활성 직원이라 줄마다 반복되던 \"활성\" 배지를 없애고(활성 직원이어야 한다는 안내는 \"양도 전에 확인하세요\"에 있다), 이름과 이메일 사이를 띄우며, 선택된 대상을 다시 누르면 선택이 풀리게 한다(풀리면 양도 요청 버튼이 다시 비활성). 이슈 #74.",
+    "status": "completed",
+    "dependencies": ["auth-owner-transfer"]
+  },
+  {
+    "id": "sidebar-account-menu",
+    "name": "사이드바 내 계정 메뉴 추가",
+    "description": "내 계정(/account) 진입점을 사용자 이름 링크 하나에서 사이드바 메뉴로 넓힌다. 모든 업무 모드의 메뉴 아래에 구분선을 두고 권한 없이 모두에게 보이는 \"내 계정\" 항목을 공통으로 두며, 사이드바를 접어도 아이콘과 툴팁으로 접근할 수 있다. 업무 모드를 아직 고르지 않았을 때는 보이지 않는다. 기존 사용자 이름 링크는 유지한다. 이슈 #73.",
+    "status": "completed",
+    "dependencies": ["auth-my-account-pages"]
   }
 ]
