@@ -73,7 +73,8 @@ export function OwnerTransferPage() {
         {candidates.map((employee) => (
           <li key={employee.principalId}>
             <label>
-              <input type="radio" name="owner-target" value={employee.principalId} checked={targetId === employee.principalId} disabled={busy} onChange={() => setTargetId(employee.principalId)} />
+              {/* 선택된 대상을 다시 누르면 선택이 풀린다(라디오는 기본적으로 해제되지 않아 클릭에서 직접 푼다) */}
+              <input type="radio" name="owner-target" value={employee.principalId} checked={targetId === employee.principalId} disabled={busy} onChange={() => setTargetId(employee.principalId)} onClick={() => { if (targetId === employee.principalId) setTargetId('') }} />
               <span><strong>{employee.name}</strong> <small>{employee.email}</small></span>
             </label>
           </li>
