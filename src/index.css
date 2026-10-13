@@ -666,3 +666,13 @@ a { color: inherit; text-decoration: none; }
 .toast.error { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
 .toast.error button { color: #9c3b3b; }
 .tooltip-actionable { cursor: pointer; }
+/* 모달: 열고 닫을 때 가볍게 나타나고 사라진다(작은 이동·확대와 투명도). 동작 줄이기 설정에서는 애니메이션이 없다 */
+@keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes modal-pop-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes modal-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(4px) scale(.99); } }
+.modal-backdrop { animation: modal-fade-in .16s ease-out both; }
+.modal-backdrop > .form-modal, .modal-backdrop > .confirm-modal { animation: modal-pop-in .18s ease-out both; }
+.modal-backdrop.closing { pointer-events: none; animation: modal-fade-out .14s ease-in both; }
+.modal-backdrop.closing > .form-modal, .modal-backdrop.closing > .confirm-modal { animation: modal-pop-out .14s ease-in both; }
+@media (prefers-reduced-motion: reduce) { .modal-backdrop, .modal-backdrop > .form-modal, .modal-backdrop > .confirm-modal { animation: none; } }

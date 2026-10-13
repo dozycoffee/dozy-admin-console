@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Modal } from './Modal'
+import { EXIT_DURATION_MS } from './usePresence'
 
 function Harness({ closeOnBackdrop, onClose = vi.fn(), titleAddon, dismissible }: { closeOnBackdrop?: boolean; onClose?: () => void; titleAddon?: ReactNode; dismissible?: boolean }) {
   const [open, setOpen] = useState(false)
@@ -126,4 +127,47 @@ describe('Modal', () => {
     expect(onClose).not.toHaveBeenCalled()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
+
+  describe('애니메이션을 쓸 수 있는 환경', () => {
+    beforeEach(() => { vi.useFakeTimers({ shouldAdvanceTime: true }); vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query })) })
+    afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
+
+    it('닫으면 사라지는 애니메이션이 끝날 때까지 내용을 유지한 채 닫히는 중으로 남았다가 사라진다', async () => {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      render(<Harness />)
+      await user.click(screen.getByText('열기'))
+
+      await user.keyboard('{Escape}')
+      const backdrop = screen.getByRole('dialog').closest('.modal-backdrop')
+      expect(backdrop).toHaveClass('closing')
+      expect(screen.getByLabelText('이름')).toBeInTheDocument()
+
+      await act(async () => { vi.advanceTimersByTime(EXIT_DURATION_MS + 20) })
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('열 때는 닫히는 중 표시가 없다', async () => {
+      render(<Harness />)
+
+      await userEvent.setup({ advanceTimers: vi.advanceTimersByTime }).click(screen.getByText('열기'))
+
+      expect(screen.getByRole('dialog').closest('.modal-backdrop')).not.toHaveClass('closing')
+    })
+  })
+
+  it('className을 주면 대화상자에 덧붙인다', async () => {
+    render(<ModalWithClass />)
+
+    await userEvent.setup().click(screen.getByText('열기'))
+
+    expect(screen.getByRole('dialog')).toHaveClass('form-modal', 'wide')
+  })
 })
+
+function ModalWithClass() {
+  const [open, setOpen] = useState(false)
+  return <>
+    <button type="button" onClick={() => setOpen(true)}>열기</button>
+    <Modal open={open} title="넓은 모달" className="wide" onClose={() => setOpen(false)}><p>내용</p></Modal>
+  </>
+}

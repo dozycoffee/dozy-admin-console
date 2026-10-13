@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type PropsWithChildren, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { usePresence } from './usePresence'
 
 type ModalProps = PropsWithChildren<{
   open: boolean
@@ -11,6 +12,8 @@ type ModalProps = PropsWithChildren<{
   closeOnBackdrop?: boolean
   /** false이면 닫기 버튼을 숨기고 Esc로도 닫히지 않는다. 확인을 거쳐야만 닫아야 하는 모달(예: 한 번만 보이는 secret)에서 쓴다. */
   dismissible?: boolean
+  /** 대화상자(`.form-modal`)에 덧붙일 클래스. 폭 같은 모양을 바꿀 때 쓴다. */
+  className?: string
 }>
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -18,8 +21,10 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 /**
  * 폼을 담는 모달. Esc와 닫기 버튼으로 닫고, 열려 있는 동안 키보드 포커스가 모달 안에 머물며,
  * 닫으면 열기 전에 포커스가 있던 요소로 돌아간다. `body`에 그려서 상위 요소의 transform 등에 영향을 받지 않는다.
+ * 열고 닫을 때 가벼운 나타남·사라짐 애니메이션이 있고(동작 줄이기 설정에서는 없음), 사라지는 동안에도 children을 그대로 보여준다.
  */
-export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = false, dismissible = true, children }: ModalProps) {
+export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = false, dismissible = true, className, children }: ModalProps) {
+  const { visible, closing } = usePresence(open)
   const titleId = useId()
   const dialogRef = useRef<HTMLElement>(null)
   const onCloseRef = useRef(onClose)
@@ -67,10 +72,10 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
     }
   }, [open])
 
-  if (!open) return null
+  if (!visible) return null
   return createPortal(
-    <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (closeOnBackdrop && event.target === event.currentTarget) onClose() }}>
-      <section ref={dialogRef} className="form-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+    <div className={closing ? 'modal-backdrop closing' : 'modal-backdrop'} role="presentation" onMouseDown={(event) => { if (closeOnBackdrop && event.target === event.currentTarget) onClose() }}>
+      <section ref={dialogRef} className={className ? `form-modal ${className}` : 'form-modal'} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <header className="form-modal-header">
           <div className="form-modal-title">
             <h2 id={titleId}>{title}</h2>
