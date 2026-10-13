@@ -66,6 +66,56 @@ describe('LoginPage', () => {
     expect(screen.getByRole('link', { name: '비밀번호를 잊으셨나요?' })).toHaveAttribute('href', '/password/forgot')
   })
 
+  it('로그인이 필요한 화면에서 넘어왔으면 로그인한 뒤 그 화면(쿼리 포함)으로 돌아간다', async () => {
+    const login = vi.fn().mockResolvedValue(undefined)
+    mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login, logout: vi.fn() })
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: { pathname: '/owner-transfer', search: '?token=abc' } } }]}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/owner-transfer" element={<div>accept page</div>} />
+          <Route path="/" element={<div>home page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await user.type(screen.getByLabelText('이메일'), 'kim@dozycoffee.com')
+    await user.type(screen.getByLabelText('비밀번호'), 'pw')
+    await user.click(screen.getByRole('button', { name: '로그인' }))
+
+    expect(await screen.findByText('accept page')).toBeInTheDocument()
+  })
+
+  it('이미 로그인되어 있어도 돌아갈 화면이 있으면 그 화면으로 보낸다', () => {
+    mockedUseAuth.mockReturnValue({
+      user: { id: 'user-001', name: '김도윤', actorModes: [], permissions: [], scope: { warehouseIds: [] } },
+      isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn(),
+    })
+
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: { pathname: '/owner-transfer', search: '?token=abc' } } }]}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/owner-transfer" element={<div>accept page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('accept page')).toBeInTheDocument()
+  })
+
+  it('돌아갈 화면이 로그인 화면 자신이면 콘솔 홈으로 간다', () => {
+    mockedUseAuth.mockReturnValue({
+      user: { id: 'user-001', name: '김도윤', actorModes: [], permissions: [], scope: { warehouseIds: [] } },
+      isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn(),
+    })
+
+    renderLoginPage({ from: { pathname: '/login' } })
+
+    expect(screen.getByText('home page')).toBeInTheDocument()
+  })
+
   it('로그인 성공 시 콘솔 홈으로 이동한다', async () => {
     const login = vi.fn().mockResolvedValue(undefined)
     mockedUseAuth.mockReturnValue({ user: null, isLoading: false, activeActorMode: null, can: () => false, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login, logout: vi.fn() })
