@@ -37,7 +37,7 @@
 | `return.write` | 반품 접수 등록, 검수 시작, 품목 검수, 반품 완료 | `/returns`의 등록·작업 버튼 |
 | `account.read` | 직원 목록·상세, role·audience, system client 조회 | 계정 관리자 모드의 `/employees`, `/roles`, `/system-clients` |
 | `account.write` | 직원 초대, 초대 재발송·취소, 정보 수정, 정지·해제·비활성화, 재설정 메일 발송, role 등록·수정·삭제, system client 등록·secret 재발급·role 부여·폐기 | `/employees`, `/roles`, `/system-clients`의 등록·작업 버튼 |
-| `account.manage` | owner 전용 계정 관리 — owner·admin 계정 변경 (admin은 불가, GOV-02), audience 추가, 감사 로그 조회 | `/employees` 상세의 작업 버튼, `/roles`의 audience 추가, `/audit-logs` (`auth:owner`에만 매핑) |
+| `account.manage` | owner 전용 계정 관리 — owner·admin 계정 변경 (admin은 불가, GOV-02), audience 추가, 감사 로그 조회, owner 양도 요청·취소 | `/employees` 상세의 작업 버튼, `/roles`의 audience 추가, `/audit-logs`, `/owner` (`auth:owner`에만 매핑) |
 
 새 Permission을 추가하면 이 표도 함께 갱신한다.
 
@@ -55,6 +55,8 @@
 
 로그인 없이 접근하는 공개 라우트는 `RequireAuth` 밖에 두며 Permission을 정의하지 않는다: `/login`, `/invitation`(초대 수락),
 `/password/forgot`, `/password/reset`. 메일 링크가 여는 화면이라 경로는 dozy-auth 메일 템플릿과 같아야 한다.
+`/owner-transfer`(owner 양도 수락)는 로그인(`RequireAuth`)만 필요하고 액터 모드·Permission은 요구하지 않는다 — 양도 대상 직원은 아직 role이 없을 수 있고,
+서버가 대상 본인인지 확인한다. 콘솔 셸(`AppLayout`) 밖의 독립 화면이다.
 
 AccessScope는 현재 `warehouseIds` 하나뿐이다. dozy-auth에는 창고 개념이 없고 담당 창고 API도 아직 없어,
 창고 관련 모드를 가진 사용자의 `warehouseIds`는 환경 변수 `VITE_WAREHOUSE_IDS`로 임시 지정한다. 매장 단위 스코프 등 새로운 축이 필요해지면 구조

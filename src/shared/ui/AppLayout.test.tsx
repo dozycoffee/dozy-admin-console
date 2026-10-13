@@ -103,6 +103,7 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: /직원 관리/ })).toHaveAttribute('href', '/employees')
     expect(screen.getByRole('link', { name: /role 관리/ })).toHaveAttribute('href', '/roles')
     expect(screen.getByRole('link', { name: /system client/ })).toHaveAttribute('href', '/system-clients')
+    expect(screen.getByRole('link', { name: /owner 양도/ })).toHaveAttribute('href', '/owner')
     expect(screen.getByRole('link', { name: /감사 로그/ })).toHaveAttribute('href', '/audit-logs')
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
