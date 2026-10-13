@@ -24,6 +24,8 @@ import { RolesPage } from '../../pages/roles/RolesPage'
 import { AccountPage } from '../../pages/account/AccountPage'
 import { AuditLogsPage } from '../../pages/audit-logs/AuditLogsPage'
 import { SystemClientsPage } from '../../pages/system-clients/SystemClientsPage'
+import { OwnerTransferPage } from '../../pages/owner/OwnerTransferPage'
+import { AcceptOwnerTransferPage } from '../../pages/owner-transfer/AcceptOwnerTransferPage'
 import { ReturnManagementPage } from '../../pages/returns/ReturnManagementPage'
 import { ReturnHistoryPage } from '../../pages/returns/ReturnHistoryPage'
 
@@ -40,6 +42,8 @@ export function AppRouter() {
       <Route path="password/forgot" element={<ForgotPasswordPage />} />
       <Route path="password/reset" element={<ResetPasswordPage />} />
       <Route element={<RequireAuth />}>
+        {/* 양도 수락은 대상 직원이 본인으로 로그인해야 하지만 아직 role·업무 모드가 없을 수 있어 콘솔 셸 밖에 둔다 */}
+        <Route path="owner-transfer" element={<AcceptOwnerTransferPage />} />
         <Route element={<AppLayout />}>
           <Route index element={<RequirePermission permission={permissions.dashboardRead}><ModeHomePage /></RequirePermission>} />
           <Route path="inventory" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><InventoryPage /></RequirePermission></RequireActorMode>} />
@@ -55,6 +59,7 @@ export function AppRouter() {
           <Route path="employees" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><EmployeesPage /></RequirePermission></RequireActorMode>} />
           <Route path="roles" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><RolesPage /></RequirePermission></RequireActorMode>} />
           <Route path="system-clients" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountRead}><SystemClientsPage /></RequirePermission></RequireActorMode>} />
+          <Route path="owner" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountManage}><OwnerTransferPage /></RequirePermission></RequireActorMode>} />
           <Route path="audit-logs" element={<RequireActorMode allowedModes={accountAdministrationModes}><RequirePermission permission={permissions.accountManage}><AuditLogsPage /></RequirePermission></RequireActorMode>} />
           {/* 로그인한 모든 사용자의 본인 계정 화면이라 모드·권한 제한이 없다 */}
           <Route path="account" element={<AccountPage />} />

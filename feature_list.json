@@ -205,8 +205,8 @@
   {
     "id": "auth-owner-transfer",
     "name": "owner 양도 화면",
-    "description": "dozy-auth owner 양도: 현재 owner의 양도 요청(대상 ACTIVE 직원 선택, POST /admin/owner/transfer)·취소(DELETE), 대상 직원이 메일 링크(/owner-transfer?token=)로 본인 계정에 로그인한 상태에서 수락(POST /admin/owner/transfer/accept, aud 검사 예외). 진행 중 양도는 하나만 가능하고 수락하면 기존 owner는 role 없는 직원이 되며 세션이 폐기된다(GOV-09). 되돌리기 어려운 작업이라 확인 모달과 안내를 충분히 둔다. system client 관리는 auth-system-clients로 분리해 완료.",
-    "status": "pending",
+    "description": "dozy-auth owner 양도: 현재 owner의 양도 요청(활성 직원 중 대상 선택, POST /admin/owner/transfer)·취소(DELETE) 화면(/owner, account.manage)과 대상 직원이 메일 링크(/owner-transfer?token=)로 본인 계정에 로그인한 상태에서 수락하는 독립 화면(POST /admin/owner/transfer/accept). 수락하면 기존 owner는 role 없는 직원이 되고 세션이 폐기되며(GOV-09) 새 owner는 토큰을 갱신해 바로 권한을 반영한다. 로그인 화면은 로그인 후 원래 링크로 돌아간다.",
+    "status": "completed",
     "dependencies": ["auth-real-login"]
   },
   {

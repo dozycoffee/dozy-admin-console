@@ -53,9 +53,25 @@
   test+coverage를 병렬 job으로 검증. 커밋 메시지는 `commitlint.config.mjs`로 7개 타입
   (feat/fix/refactor/test/docs/chore/perf)만 허용
 
-다음에 손댈 것은 `feature_list.json`의 `pending` 항목인 `auth-owner-transfer`(owner 양도)이다. dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
+`feature_list.json`에 남은 `pending` 항목은 없다. dozy-auth 연동 화면(로그인, 직원·role·audience·system client 관리, 감사 로그, 초대·비밀번호 복구, 내 계정, owner 양도)은 모두 구현했다.
+dozy-wms-api는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 
 ## 세션 로그
+
+### 2026-10-13 (owner 양도 화면)
+
+- 이슈 #63, `feat/auth-owner-transfer` 브랜치에서 `auth-owner-transfer` 구현. 이로써 `feature_list.json`의 pending 작업이 모두 끝났다
+- `/owner`(`account.manage`, owner 전용): 양도 전 영향 안내(나는 role 없는 직원이 되고 모든 세션 폐기, 대상이 본인으로 로그인해 수락해야 함, 수락 전 취소 가능, 진행 중 양도는 하나),
+  활성 직원 중 대상 선택(본인 제외, 검색, 50명 제한 안내), 확인 모달을 거친 양도 요청(`202`, 만료 시각 안내), 양도 취소(확인 모달, 진행 중인 양도가 없으면 `NOT_FOUND` 안내).
+  dozy-auth에는 진행 중인 양도를 조회하는 API가 없어 상태는 보여주지 못한다
+- `/owner-transfer?token=`(수락): `RequireAuth`만 필요한 **콘솔 셸 밖의 독립 화면**이다. 대상 직원이 아직 role·업무 모드가 없을 수 있고(모드 선택 모달이 막으므로) 서버가 대상 본인인지 확인한다.
+  대상이 아닌 계정은 `FORBIDDEN` 안내와 "다른 계정으로 로그인", 만료·사용·취소된 링크는 `VERIFICATION_EXPIRED` 안내. 수락하면 토큰을 갱신(`refreshAccessToken`)하고 내 정보를 다시 불러와 새 owner 권한을 바로 반영한다
+- 로그인이 필요한 화면에서 넘어온 사용자는 로그인한 뒤 원래 화면(쿼리 포함)으로 돌아간다(`LoginPage`가 `location.state.from`을 복원). 이전에는 항상 `/`로 갔다
+- 검증: build/lint/test(513) 통과. 실서버(dozy-auth)에 대해 헤드리스 Chrome으로 owner: 대상 목록(본인 제외) → 요청(202) → 중복 요청 `INVALID_STATE`(409) 안내 → 취소(204) → 다시 취소 `NOT_FOUND`(404) 안내 →
+  새 요청 → 비로그인 상태로 링크 접속 시 로그인 후 수락 화면으로 복귀 → 취소된 링크는 만료 안내(410) → 다른 직원(admin) 계정은 `FORBIDDEN`(403) 안내 → 대상 본인이 수락(204) →
+  새 owner가 계정 관리자 모드를 쓸 수 있고 → 같은 링크 재사용은 만료 안내(410) → 이전 owner는 새로고침하면 로그인 화면(세션 폐기) → 새 owner가 다시 `owner@`로 양도해 owner를 원래대로 복구하고
+  role 없는 이전 owner도 수락 화면을 열 수 있음을 확인
+- 알려진 한계: 요청 후 진행 중인 양도 상태(대상·만료)는 화면을 벗어나면 보이지 않는다(조회 API 없음). 로컬 DB의 owner는 확인 후 `owner@dozycoffee.local`로 복구해 두었다
 
 ### 2026-10-12 (system client 관리 화면)
 
@@ -579,7 +595,7 @@
 
 ## 다음 세션에서 할 일
 
-- `feature_list.json`의 `auth-*` pending 항목을 순서대로 진행: owner 양도. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 새로 정의
+- 새 작업은 `feature_list.json`에 항목을 먼저 등록한다. 화면은 계정 관리자 모드에 추가하고 `permissions.ts`에 Permission을 정의한다
 - `roleMapping.ts`의 role 이름(`wms:warehouse_manager`, `wms:hq_inventory_manager`, `catalog:merchandiser`)을 운영 role 정의와 맞춘다. 로컬 auth DB에는 앞의 두 role을 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다
 - dozy-wms-api ADR-0010에서 "이번 범위에서 제외"로 명시한 항목들(auditorAware/
