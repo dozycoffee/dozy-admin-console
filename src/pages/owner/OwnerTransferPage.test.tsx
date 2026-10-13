@@ -136,4 +136,11 @@ describe('OwnerTransferPage', () => {
 
     expect(screen.getByText(/50명까지만 보입니다/)).toBeInTheDocument()
   })
+
+  it('목록 위에 활성 직원 안내 문구를 따로 두지 않는다(양도 전 확인 안내에 같은 내용이 있다)', () => {
+    setup()
+
+    expect(screen.queryByText(/활성 직원 중에서 한 명을 선택합니다/)).not.toBeInTheDocument()
+    expect(screen.getByText(/대상은 활성 직원이어야 합니다/)).toBeInTheDocument()
+  })
 })

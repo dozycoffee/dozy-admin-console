@@ -3,7 +3,6 @@ import { useAuth } from '../../features/auth/model/useAuth'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import { useEmployees } from '../../features/employee/model/useEmployees'
-import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
 import { toOwnerTransferErrorMessage } from '../../features/owner-transfer/model/ownerTransferErrors'
 import { useCancelOwnerTransfer, useRequestOwnerTransfer } from '../../features/owner-transfer/model/useOwnerTransfer'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
@@ -76,7 +75,6 @@ export function OwnerTransferPage() {
             <label>
               <input type="radio" name="owner-target" value={employee.principalId} checked={targetId === employee.principalId} disabled={busy} onChange={() => setTargetId(employee.principalId)} />
               <span><strong>{employee.name}</strong> <small>{employee.email}</small></span>
-              <EmployeeStatusBadge status={employee.status} />
             </label>
           </li>
         ))}
