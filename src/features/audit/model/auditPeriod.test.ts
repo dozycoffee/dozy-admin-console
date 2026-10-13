@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { localInputToIso, MAX_RANGE_DAYS, periodPresets, presetFrom, validatePeriod } from './auditPeriod'
+import { localInputToIso, MAX_RANGE_DAYS, periodPresets, presetFrom, validatePeriod, isoToLocalInput } from './auditPeriod'
 
 const now = new Date('2026-10-12T12:00:00Z')
 const DAY = 24 * 60 * 60 * 1000
@@ -47,4 +47,15 @@ describe('validatePeriod', () => {
     expect(validatePeriod(undefined, '2026-10-12T00:00:00Z', now)).toBeNull()
     expect(validatePeriod(undefined, undefined, now)).toBeNull()
   })
+
+describe('isoToLocalInput', () => {
+  it('ISO 시각을 datetime-local 입력값(로컬 시간, 분 단위)으로 바꾸고 다시 같은 시각으로 읽힌다', () => {
+    const iso = '2026-10-12T03:04:05.000Z'
+
+    const input = isoToLocalInput(iso)
+
+    expect(input).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    expect(new Date(input).getTime()).toBe(new Date('2026-10-12T03:04:00.000Z').getTime())
+  })
+})
 })

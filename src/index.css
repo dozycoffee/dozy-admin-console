@@ -509,10 +509,8 @@ a { color: inherit; text-decoration: none; }
 /* 감사 로그 */
 .audit-filters, .audit-list-panel { min-height: 0; margin-bottom: 16px; padding: 20px 26px; }
 .audit-period { margin: 0; padding: 0; border: 0; }
-.audit-period legend { margin-bottom: 8px; padding: 0; color: #6f6862; font-size: 12px; }
-.audit-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.audit-presets button { padding: 7px 12px; border: 1px solid #e4ddd9; border-radius: 99px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
-.audit-presets button.active { border-color: #4b2f25; background: #4b2f25; color: #fff; }
+/* 기간은 시작·종료 입력칸을 묶는 항목 제목이라 라벨(시작·종료)보다 진하고 크게 하고, 입력 규칙은 "?" 배지 툴팁으로 안내한다 */
+.audit-period legend { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 0; color: #33241e; font-size: 13px; font-weight: 800; }
 .audit-range, .audit-filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
 .audit-filters label { display: grid; gap: 4px; font-size: 12px; color: #6f6862; }
 .audit-filters input:not([type="checkbox"]), .audit-filters select { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
@@ -683,6 +681,15 @@ a { color: inherit; text-decoration: none; }
 .audit-id-chip:hover code, .audit-id-chip:focus-visible code { background: #e6d7cf; color: #4b2f25; }
 .audit-view { padding: 4px 10px; border: 1px solid #e4ddd9; border-radius: 6px; background: #fff; color: #6f4a3b; font-size: 12px; font-weight: 700; cursor: pointer; }
 .audit-view:hover { border-color: #aa826e; background: #faf6f3; }
+/* 감사 로그 필터: 조회·초기화 옆에 빠른 조회(누르면 바로 조회)를 나란히 둔다 */
+.audit-submit-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.audit-submit-main { display: flex; gap: 8px; }
+.audit-submit-main .inbound-action-button { margin-top: 0; }
+.audit-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.audit-quick > span { margin-right: 4px; color: #9b918c; font-size: 12px; font-weight: 700; }
+.audit-quick button { padding: 7px 12px; border: 1px solid #e4ddd9; border-radius: 99px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
+.audit-quick button:hover { border-color: #aa826e; }
+.audit-quick button.active { border-color: #4b2f25; background: #4b2f25; color: #fff; }
 /* 모달: 열고 닫을 때 가볍게 나타나고 사라진다(작은 이동·확대와 투명도). 동작 줄이기 설정에서는 애니메이션이 없다 */
 @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-fade-out { from { opacity: 1; } to { opacity: 0; } }
