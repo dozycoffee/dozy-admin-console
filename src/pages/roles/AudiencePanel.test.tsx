@@ -18,7 +18,7 @@ function setup(canCreate: boolean, state: Record<string, unknown> = {}) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('AudiencePanel', () => {
-  it('audience 목록을 보여준다', () => {
+  it('서비스 목록을 보여준다', () => {
     setup(false)
 
     expect(screen.getByText('창고 관리')).toBeInTheDocument()
@@ -28,15 +28,15 @@ describe('AudiencePanel', () => {
   it('owner가 아니면 추가 폼 대신 안내만 보여준다', () => {
     setup(false)
 
-    expect(screen.queryByRole('form', { name: 'audience 추가' })).not.toBeInTheDocument()
-    expect(screen.getByText('audience 추가는 owner만 할 수 있습니다.')).toBeInTheDocument()
+    expect(screen.queryByRole('form', { name: '서비스 추가' })).not.toBeInTheDocument()
+    expect(screen.getByText('서비스 추가는 owner만 할 수 있습니다.')).toBeInTheDocument()
   })
 
-  it('owner는 올바른 code와 이름으로 audience를 추가한다', async () => {
+  it('owner는 올바른 code와 이름으로 서비스를 추가한다', async () => {
     setup(true)
     mutate.mockImplementation((_body, options) => options.onSuccess())
     const user = userEvent.setup()
-    const submit = screen.getByRole('button', { name: 'audience 추가' })
+    const submit = screen.getByRole('button', { name: '서비스 추가' })
     expect(submit).toBeDisabled()
 
     await user.type(screen.getByLabelText('code'), 'Order!')
@@ -53,6 +53,6 @@ describe('AudiencePanel', () => {
   it('중복 code 에러를 안내한다', () => {
     setup(true, { isError: true, error: new ApiError('dup', { status: 409, code: 'AUDIENCE_CODE_DUPLICATED' }) })
 
-    expect(screen.getByRole('alert')).toHaveTextContent('이미 있는 audience code입니다.')
+    expect(screen.getByRole('alert')).toHaveTextContent('이미 있는 서비스 code입니다.')
   })
 })

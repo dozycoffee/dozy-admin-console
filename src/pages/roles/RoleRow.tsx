@@ -44,7 +44,7 @@ export function RoleRow({ role, writable, deleting, onDelete }: Props) {
           <p className="role-code">{role.fullCode}</p>
           <label>이름<input value={name} disabled={update.isPending} onChange={(event) => setName(event.target.value)} /></label>
           <label>설명<input value={description} disabled={update.isPending} onChange={(event) => setDescription(event.target.value)} /></label>
-          <p className="employee-hint">code와 audience는 바꿀 수 없습니다.</p>
+          <p className="employee-hint">code와 서비스는 바꿀 수 없습니다.</p>
           <div className="employee-actions">
             <button type="submit" className="inbound-action-button" disabled={update.isPending || name.trim() === ''}>{update.isPending ? '저장 중...' : '저장'}</button>
             <button type="button" className="inbound-action-button employee-secondary" disabled={update.isPending} onClick={() => setEditing(false)}>취소</button>

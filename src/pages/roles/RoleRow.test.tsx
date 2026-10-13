@@ -60,7 +60,7 @@ describe('RoleRow', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: '수정' }))
-    expect(screen.getByText(/code와 audience는 바꿀 수 없습니다/)).toBeInTheDocument()
+    expect(screen.getByText(/code와 서비스는 바꿀 수 없습니다/)).toBeInTheDocument()
     await user.clear(screen.getByLabelText('이름'))
     await user.type(screen.getByLabelText('이름'), '창고 책임자')
     await user.click(screen.getByRole('button', { name: '저장' }))

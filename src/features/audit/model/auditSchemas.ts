@@ -23,13 +23,13 @@ export const auditActionGroups: ReadonlyArray<{ label: string; actions: Readonly
     { code: 'ACCOUNT_REACTIVATED', label: '정지 해제' },
     { code: 'ACCOUNT_DEACTIVATED', label: '계정 비활성화' },
   ] },
-  { label: 'role·audience', actions: [
+  { label: 'role·서비스', actions: [
     { code: 'ROLE_GRANTED', label: 'role 부여' },
     { code: 'ROLE_REVOKED', label: 'role 회수' },
     { code: 'ROLE_DEFINED', label: 'role 등록' },
     { code: 'ROLE_UPDATED', label: 'role 수정' },
     { code: 'ROLE_DELETED', label: 'role 삭제' },
-    { code: 'AUDIENCE_CREATED', label: 'audience 추가' },
+    { code: 'AUDIENCE_CREATED', label: '서비스 추가' },
   ] },
   { label: 'system client·owner', actions: [
     { code: 'SYSTEM_CLIENT_REGISTERED', label: 'system client 등록' },
@@ -52,7 +52,7 @@ export const auditTargetTypes = ['PRINCIPAL', 'ROLE', 'AUDIENCE', 'SESSION'] as 
 export const auditTargetTypeLabels: Record<(typeof auditTargetTypes)[number], string> = {
   PRINCIPAL: '계정',
   ROLE: 'role',
-  AUDIENCE: 'audience',
+  AUDIENCE: '서비스',
   SESSION: '세션',
 }
 

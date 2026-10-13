@@ -27,7 +27,7 @@ export function RoleCreateForm({ audiences, writable }: Props) {
     <form className="panel employee-invite" onSubmit={submit}>
       <div className="panel-heading"><div><p className="eyebrow">NEW ROLE</p><h2>role 등록</h2></div></div>
       <div className="employee-invite-grid">
-        <label>audience
+        <label>서비스
           <select value={audience} disabled={disabled} onChange={(event) => setAudience(event.target.value)}>
             <option value="">선택</option>
             {audiences.map((item) => <option key={item.id} value={item.code}>{item.name} ({item.code})</option>)}
@@ -39,7 +39,7 @@ export function RoleCreateForm({ audiences, writable }: Props) {
         <label>이름<input value={name} disabled={disabled} onChange={(event) => setName(event.target.value)} autoComplete="off" /></label>
         <label>설명 (선택)<input value={description} disabled={disabled} onChange={(event) => setDescription(event.target.value)} autoComplete="off" /></label>
       </div>
-      <p className={codeInvalid ? 'inbound-error' : 'employee-hint'}>code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있으며, 등록한 뒤에는 code와 audience를 바꿀 수 없습니다.</p>
+      <p className={codeInvalid ? 'inbound-error' : 'employee-hint'}>code는 영문 소문자로 시작하고 소문자·숫자·밑줄(_)만 쓸 수 있으며, 등록한 뒤에는 code와 서비스를 바꿀 수 없습니다.</p>
       <div className="inbound-form-actions">
         <button type="submit" className="inbound-action-button" disabled={disabled || !valid}>{create.isPending ? '등록 중...' : 'role 등록'}</button>
       </div>

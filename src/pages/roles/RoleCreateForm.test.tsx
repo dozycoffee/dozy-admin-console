@@ -18,13 +18,13 @@ function setup(state: Record<string, unknown> = {}, writable = true) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('RoleCreateForm', () => {
-  it('audience·code·이름이 모두 올바르기 전에는 등록할 수 없다', async () => {
+  it('서비스·code·이름이 모두 올바르기 전에는 등록할 수 없다', async () => {
     setup()
     const user = userEvent.setup()
     const submit = screen.getByRole('button', { name: 'role 등록' })
     expect(submit).toBeDisabled()
 
-    await user.selectOptions(screen.getByLabelText('audience'), 'wms')
+    await user.selectOptions(screen.getByLabelText('서비스'), 'wms')
     await user.type(screen.getByLabelText('code'), 'Bad Code')
     await user.type(screen.getByLabelText('이름'), '창고 관리자')
     expect(submit).toBeDisabled()
@@ -39,7 +39,7 @@ describe('RoleCreateForm', () => {
     setup()
     const user = userEvent.setup()
 
-    await user.selectOptions(screen.getByLabelText('audience'), 'wms')
+    await user.selectOptions(screen.getByLabelText('서비스'), 'wms')
     await user.type(screen.getByLabelText('code'), 'warehouse_manager')
     await user.type(screen.getByLabelText('이름'), ' 창고 관리자 ')
     await user.click(screen.getByRole('button', { name: 'role 등록' }))
@@ -52,7 +52,7 @@ describe('RoleCreateForm', () => {
     mutate.mockImplementation((_body, options) => options.onSuccess())
     const user = userEvent.setup()
 
-    await user.selectOptions(screen.getByLabelText('audience'), 'auth')
+    await user.selectOptions(screen.getByLabelText('서비스'), 'auth')
     await user.type(screen.getByLabelText('code'), 'partner_reader')
     await user.type(screen.getByLabelText('이름'), '파트너 조회')
     await user.type(screen.getByLabelText('설명 (선택)'), '파트너 조회 권한')
@@ -66,7 +66,7 @@ describe('RoleCreateForm', () => {
   it('중복 code 에러를 안내한다', () => {
     setup({ isError: true, error: new ApiError('dup', { status: 409, code: 'ROLE_CODE_DUPLICATED' }) })
 
-    expect(screen.getByRole('alert')).toHaveTextContent('같은 audience에 이미 있는 role code입니다.')
+    expect(screen.getByRole('alert')).toHaveTextContent('같은 서비스에 이미 있는 role code입니다.')
   })
 
   it('쓰기 권한이 없으면 입력과 버튼이 비활성이다', () => {

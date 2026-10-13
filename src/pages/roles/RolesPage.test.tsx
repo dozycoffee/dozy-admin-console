@@ -37,7 +37,7 @@ const row = (name: string) => screen.getByText(name).closest('li')!
 beforeEach(() => vi.clearAllMocks())
 
 describe('RolesPage', () => {
-  it('audience와 role 목록을 보여준다', () => {
+  it('서비스와 role 목록을 보여준다', () => {
     setup()
 
     expect(screen.getByText('인증')).toBeInTheDocument()
@@ -45,10 +45,10 @@ describe('RolesPage', () => {
     expect(screen.getByText('wms:warehouse_manager')).toBeInTheDocument()
   })
 
-  it('audience 필터를 고르면 그 audience로 role을 조회한다', async () => {
+  it('서비스 필터를 고르면 그 서비스로 role을 조회한다', async () => {
     setup()
 
-    await userEvent.setup().selectOptions(screen.getByLabelText('audience', { selector: '.role-filter select' }), 'wms')
+    await userEvent.setup().selectOptions(screen.getByLabelText('서비스', { selector: '.role-filter select' }), 'wms')
 
     expect(vi.mocked(useRoles)).toHaveBeenLastCalledWith('wms')
   })
@@ -112,10 +112,10 @@ describe('RolesPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('이 작업을 할 권한이 없습니다.')
   })
 
-  it('owner가 아니면 audience 추가 폼을 보여주지 않는다', () => {
+  it('owner가 아니면 서비스 추가 폼을 보여주지 않는다', () => {
     setup(undefined, [permissions.accountRead, permissions.accountWrite])
 
-    expect(screen.queryByRole('form', { name: 'audience 추가' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('form', { name: '서비스 추가' })).not.toBeInTheDocument()
   })
 
   it('쓰기 권한이 없으면 role 등록과 수정·삭제가 비활성이다', () => {
