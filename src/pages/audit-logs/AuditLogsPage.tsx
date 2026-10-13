@@ -2,37 +2,29 @@ import { useState } from 'react'
 import { auditActionCategory, auditActionLabel, type AuditLog } from '../../features/audit/model/auditSchemas'
 import { toAuditErrorMessage, useAuditLogs } from '../../features/audit/model/useAuditLogs'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
+import { AuditDetailModal } from './AuditDetailModal'
 import { AuditFilters, type AppliedFilters } from './AuditFilters'
+import { AuditId } from './AuditId'
 
 const PAGE_SIZE = 20
 const noFilters: AppliedFilters = { actions: [] }
 
-/** 행위자·대상은 id만 있어 앞 8자리로 줄여 보이고 전체는 툴팁으로 둔다(이름·이메일은 감사 로그에 없다). */
-function IdCell({ type, id }: { type?: string | null; id?: string | null }) {
-  if (!id && !type) return <span className="audit-none">-</span>
-  const shortId = id && id.length > 12 ? `${id.slice(0, 8)}…` : id
-  return <span title={id ?? undefined}>{type && <b>{type}</b>} {shortId}</span>
-}
-
-/** action을 분류 칩(색으로 구분)과 이름·코드로 보여준다. 색만으로 구분하지 않도록 분류 이름을 글자로도 적는다. */
+/** action을 분류 칩(색으로 구분)과 한글 이름으로 보여준다. 색만으로 구분하지 않도록 분류 이름을 글자로도 적고, 서버 코드는 상세에서 본다. */
 function ActionCell({ action }: { action: string }) {
   const category = auditActionCategory(action)
   return <>
     {category && <span className={`audit-category audit-cat-${category.id}`}>{category.label}</span>}
     <strong>{auditActionLabel(action)}</strong>
-    <small>{action}</small>
   </>
-}
-
-function DetailCell({ detail }: { detail: AuditLog['detail'] }) {
-  if (!detail || Object.keys(detail).length === 0) return <span className="audit-none">-</span>
-  return <details className="audit-detail"><summary>보기</summary><pre>{JSON.stringify(detail, null, 2)}</pre></details>
 }
 
 /** owner 전용 감사 로그 조회. 읽기 전용이며 최신순이다. */
 export function AuditLogsPage() {
   const [filters, setFilters] = useState<AppliedFilters>(noFilters)
   const [page, setPage] = useState(1)
+  // 상세 모달에 보여줄 기록. 닫아도 비우지 않아 사라지는 애니메이션 동안 내용이 유지된다.
+  const [selected, setSelected] = useState<AuditLog | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
   const query = useAuditLogs({ ...filters, page: page - 1, size: PAGE_SIZE })
   const logs = query.data?.items ?? []
   const total = query.data?.page.totalElements ?? 0
@@ -56,10 +48,10 @@ export function AuditLogsPage() {
             {logs.map((log) => <tr key={log.id}>
               <td>{formatDateTime(log.occurredAt)}</td>
               <td><ActionCell action={log.action} /></td>
-              <td><IdCell type={log.actorType} id={log.actorId} /></td>
-              <td><IdCell type={log.targetType} id={log.targetId} /></td>
+              <td><AuditId type={log.actorType} id={log.actorId} /></td>
+              <td><AuditId type={log.targetType} id={log.targetId} /></td>
               <td>{log.ip ?? <span className="audit-none">-</span>}</td>
-              <td><DetailCell detail={log.detail} /></td>
+              <td><button type="button" className="audit-view" aria-label={`${auditActionLabel(log.action)} 상세 보기`} onClick={() => { setSelected(log); setDetailOpen(true) }}>보기</button></td>
             </tr>)}
           </tbody>
         </table>
@@ -70,5 +62,6 @@ export function AuditLogsPage() {
         <button type="button" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>다음</button>
       </div>}
     </section>
+    <AuditDetailModal log={selected} open={detailOpen} onClose={() => setDetailOpen(false)} />
   </>
 }

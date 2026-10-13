@@ -529,8 +529,6 @@ a { color: inherit; text-decoration: none; }
 .audit-table td small { display: block; color: #9b918c; font-size: 11px; }
 .audit-table td b { margin-right: 4px; color: #786d68; font-size: 11px; font-weight: 800; }
 .audit-none { color: #c9c3be; }
-.audit-detail summary { cursor: pointer; color: #8f7b72; font-size: 12px; }
-.audit-detail pre { margin: 6px 0 0; padding: 8px; border-radius: 6px; background: #f6f3f1; font-size: 11px; white-space: pre-wrap; }
 
 /* 시스템 클라이언트 */
 .client-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
@@ -676,6 +674,15 @@ a { color: inherit; text-decoration: none; }
 .toast.error { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
 .toast.error button { color: #9c3b3b; }
 .tooltip-actionable { cursor: pointer; }
+/* 감사 로그: 행위자·대상 id 칩(올리면 바로 툴팁, 클릭하면 복사), 상세 모달, 열 폭 */
+.audit-table td > strong { display: block; }
+.audit-id { display: inline-flex; align-items: center; gap: 6px; }
+.audit-table td .audit-id b { margin-right: 0; }
+.audit-id-chip { border-radius: 6px; }
+.audit-id-chip code { padding: 2px 7px; border-radius: 6px; background: #f3efec; color: #6f6862; font: 600 11px/1.5 "IBM Plex Mono", ui-monospace, monospace; transition: background .12s, color .12s; }
+.audit-id-chip:hover code, .audit-id-chip:focus-visible code { background: #e6d7cf; color: #4b2f25; }
+.audit-view { padding: 4px 10px; border: 1px solid #e4ddd9; border-radius: 6px; background: #fff; color: #6f4a3b; font-size: 12px; font-weight: 700; cursor: pointer; }
+.audit-view:hover { border-color: #aa826e; background: #faf6f3; }
 /* 모달: 열고 닫을 때 가볍게 나타나고 사라진다(작은 이동·확대와 투명도). 동작 줄이기 설정에서는 애니메이션이 없다 */
 @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-fade-out { from { opacity: 1; } to { opacity: 0; } }
@@ -686,3 +693,37 @@ a { color: inherit; text-decoration: none; }
 .modal-backdrop.closing { pointer-events: none; animation: modal-fade-out .14s ease-in both; }
 .modal-backdrop.closing > .form-modal, .modal-backdrop.closing > .confirm-modal { animation: modal-pop-out .14s ease-in both; }
 @media (prefers-reduced-motion: reduce) { .modal-backdrop, .modal-backdrop > .form-modal, .modal-backdrop > .confirm-modal { animation: none; } }
+/* 감사 로그 표: 열 폭을 전체 폭의 비율로 정한다(시각 18 : action 18 : 행위자 18 : 대상 19 : IP 20 : 상세 7). 화면 폭에 따라 열이 같은 비율로 늘고 줄며,
+   표가 담을 수 있는 최소 폭(820px)보다 좁아지면 표가 자기 영역 안에서 가로로 스크롤된다. */
+.audit-table { table-layout: fixed; min-width: 820px; }
+.audit-table th, .audit-table td { white-space: nowrap; }
+/* action 이름이 길면 줄바꿈하고, IP는 길어질 수 있어(IPv6는 최대 39자) 칸을 넘지 않도록 줄바꿈한다 */
+.audit-table td:nth-child(2) { white-space: normal; }
+.audit-table td:nth-child(2) .audit-category { white-space: nowrap; }
+.audit-table td:nth-child(5) { white-space: normal; overflow-wrap: anywhere; }
+.audit-table th:nth-child(1), .audit-table td:nth-child(1) { width: 18%; padding-left: 0; }
+.audit-table th:nth-child(2), .audit-table td:nth-child(2) { width: 18%; }
+.audit-table th:nth-child(3), .audit-table td:nth-child(3) { width: 18%; }
+.audit-table th:nth-child(4), .audit-table td:nth-child(4) { width: 19%; }
+.audit-table th:nth-child(5), .audit-table td:nth-child(5) { width: 20%; }
+.audit-table th:nth-child(6), .audit-table td:nth-child(6) { width: 7%; }
+.audit-id-chip .tooltip-bubble { max-width: none; white-space: pre; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; }
+/* 감사 로그 상세 모달: 라벨-값 목록으로 단순하게 */
+.audit-modal { width: min(100%, 600px); }
+.audit-mono { padding: 2px 7px; border-radius: 6px; background: #f3efec; color: #6f6862; font: 600 11px/1.5 "IBM Plex Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+.audit-rows { display: grid; margin: 0; }
+.audit-rows > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #f1ece8; }
+.audit-rows > div:last-child { border-bottom: 0; }
+.audit-rows dt { color: #9b918c; font-size: 12px; font-weight: 700; }
+.audit-rows dd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.audit-rows .audit-category { margin-bottom: 0; }
+.audit-party-type { color: #786d68; font-size: 12px; font-weight: 800; }
+.audit-copy { padding: 2px 9px; border: 1px solid #e4ddd9; border-radius: 6px; background: #fff; color: #6f4a3b; font-size: 11px; font-weight: 700; cursor: pointer; }
+.audit-copy:hover { border-color: #aa826e; background: #faf6f3; }
+.audit-section-title { margin: 14px 0 4px; padding-top: 14px; border-top: 1px solid #ece7e3; color: #33241e; font-size: 13px; font-weight: 800; }
+.audit-empty { margin: 6px 0 0; color: #9b918c; font-size: 13px; }
+.audit-value { padding: 2px 8px; border-radius: 6px; background: #f3efec; color: #5a4d47; font-size: 12px; }
+.audit-raw { margin-top: 12px; }
+.audit-raw summary { cursor: pointer; color: #8f7b72; font-size: 12px; font-weight: 700; }
+.audit-raw pre { margin: 8px 0; padding: 10px; border-radius: 8px; background: #f6f3f1; font: 500 11.5px/1.6 "IBM Plex Mono", ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .audit-rows > div { grid-template-columns: 1fr; gap: 2px; } }
