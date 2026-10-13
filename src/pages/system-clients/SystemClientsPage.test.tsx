@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
@@ -59,6 +59,38 @@ describe('SystemClientsPage', () => {
     setup({ data: [client] }, [permissions.accountRead])
 
     expect(screen.queryByRole('button', { name: '클라이언트 등록' })).not.toBeInTheDocument()
+  })
+
+  it('client 등록은 목록을 밀어내지 않고 모달로 열며 취소·Esc로 닫는다', async () => {
+    setup({ data: [client] })
+    const user = userEvent.setup()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '클라이언트 등록' }))
+    const dialog = screen.getByRole('dialog', { name: '시스템 클라이언트 등록' })
+    expect(within(dialog).getByLabelText('clientId')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: '취소' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '클라이언트 등록' }))
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('등록 직후 secret은 모달로 보이고 저장했다고 확인하기 전에는 Esc로 닫히지 않는다', async () => {
+    setup({ data: [client] })
+    registerMutate.mockImplementation((_body, options) => options.onSuccess({ principalId: 'p-2', clientId: 'svc-order', clientSecret: 'Zr8qL2mX-new' }))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: '클라이언트 등록' }))
+    await user.type(screen.getByLabelText('clientId'), 'svc-order')
+    await user.type(screen.getByLabelText('이름'), '주문 서비스')
+    await user.click(screen.getByRole('button', { name: '시스템 클라이언트 등록' }))
+
+    expect(screen.getAllByRole('dialog')).toHaveLength(1) // 등록 모달은 닫히고 secret 모달만 남는다
+    expect(screen.getByRole('dialog', { name: 'svc-order의 secret' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    expect(screen.getByLabelText('클라이언트 secret')).toHaveValue('Zr8qL2mX-new')
   })
 
   it('등록하면 secret을 한 번 보여주고 등록 폼을 닫는다', async () => {
