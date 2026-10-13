@@ -10,6 +10,9 @@ import { Modal } from '../../shared/ui/Modal'
 import { ClientCard } from './ClientCard'
 import { RegisterClientForm } from './RegisterClientForm'
 
+/** 이 개수 이하면 처음부터 모든 카드를 펼쳐 보여준다 */
+const FEW_CLIENTS = 3
+
 export function SystemClientsPage() {
   const { can } = useAuth()
   const writable = can(permissions.accountWrite)
@@ -18,6 +21,12 @@ export function SystemClientsPage() {
   const [registering, setRegistering] = useState(false)
   // secret은 이 상태에만 두고 한 번 보여준 뒤 버린다. 새로고침하거나 화면을 떠나면 사라진다.
   const [revealed, setRevealed] = useState<RevealedSecret | null>(null)
+  // 클라이언트가 많아지면 카드를 접어 두고 필요한 것만 펼친다. 처음에는 적을 때(FEW_CLIENTS 이하)만 모두 펼쳐 둔다.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const items = clients.data ?? []
+  const defaultExpanded = items.length <= FEW_CLIENTS
+  const isExpanded = (id: string) => expanded[id] ?? defaultExpanded
+  const setAll = (value: boolean) => setExpanded(Object.fromEntries(items.map((client) => [client.principalId, value])))
 
   return <>
     <header className="page-header inbound-page-header">
@@ -32,8 +41,13 @@ export function SystemClientsPage() {
     {clients.isLoading && <section className="panel"><p>시스템 클라이언트 목록을 불러오는 중입니다...</p></section>}
     {clients.isError && <section className="panel"><p className="inbound-error" role="alert">{toAdminErrorMessage(clients.error)}</p></section>}
     {clients.data && clients.data.length === 0 && <section className="panel"><p className="inbound-empty">등록된 시스템 클라이언트가 없습니다.</p></section>}
+    {items.length > 1 && <div className="client-toolbar">
+      <span>{items.length}개</span>
+      <button type="button" className="inbound-action-button employee-secondary" onClick={() => setAll(true)}>모두 펴기</button>
+      <button type="button" className="inbound-action-button employee-secondary" onClick={() => setAll(false)}>모두 접기</button>
+    </div>}
     <ul className="client-list">
-      {clients.data?.map((client) => <ClientCard key={client.principalId} client={client} allRoles={roles.data ?? []} writable={writable} onRotated={setRevealed} />)}
+      {items.map((client) => <ClientCard key={client.principalId} client={client} allRoles={roles.data ?? []} writable={writable} onRotated={setRevealed} expanded={isExpanded(client.principalId)} onToggle={() => setExpanded((current) => ({ ...current, [client.principalId]: !isExpanded(client.principalId) }))} />)}
     </ul>
   </>
 }

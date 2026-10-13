@@ -123,3 +123,51 @@ describe('SystemClientsPage', () => {
     expect(screen.queryByText('Zr8qL2mX-new')).not.toBeInTheDocument()
   })
 })
+
+describe('SystemClientsPage 펴기·접기', () => {
+  const many = (count: number) => Array.from({ length: count }, (_, index) => ({ ...client, principalId: `p-${index}`, clientId: `svc-test-${index}`, name: `클라이언트 ${index}` }))
+  const toggle = (name: string) => screen.getByRole('button', { name })
+
+  it('클라이언트가 적으면(3개 이하) 처음부터 모두 펼쳐 보여준다', () => {
+    setup({ data: many(3) })
+
+    expect(toggle('클라이언트 0')).toHaveAttribute('aria-expanded', 'true')
+    expect(toggle('클라이언트 2')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('클라이언트가 많으면(4개 이상) 처음에는 모두 접어 두고 개수를 알려 준다', () => {
+    setup({ data: many(4) })
+
+    expect(toggle('클라이언트 0')).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('4개')).toBeInTheDocument()
+  })
+
+  it('카드를 하나씩 펴고 접을 수 있다', async () => {
+    setup({ data: many(4) })
+    const user = userEvent.setup()
+
+    await user.click(toggle('클라이언트 1'))
+    expect(toggle('클라이언트 1')).toHaveAttribute('aria-expanded', 'true')
+    expect(toggle('클라이언트 0')).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(toggle('클라이언트 1'))
+    expect(toggle('클라이언트 1')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('모두 펴기·모두 접기로 한꺼번에 바꾼다', async () => {
+    setup({ data: many(4) })
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: '모두 펴기' }))
+    expect(many(4).every((_, index) => toggle(`클라이언트 ${index}`).getAttribute('aria-expanded') === 'true')).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: '모두 접기' }))
+    expect(many(4).every((_, index) => toggle(`클라이언트 ${index}`).getAttribute('aria-expanded') === 'false')).toBe(true)
+  })
+
+  it('클라이언트가 하나뿐이면 모두 펴기·접기 버튼을 보여주지 않는다', () => {
+    setup({ data: [client] })
+
+    expect(screen.queryByRole('button', { name: '모두 펴기' })).not.toBeInTheDocument()
+  })
+})
