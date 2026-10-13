@@ -3,7 +3,7 @@
 ## 현재 상태
 
 `feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 678개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 683개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -42,7 +42,7 @@
   첫 기동 때 owner 초대 메일이 Mailpit(`http://localhost:8025`)으로 가며, 링크가 콘솔의 `/invitation`을 연다. 처음에는 role이 `auth:owner`/`auth:admin`뿐이라 업무 role을 `/roles`에서 등록하고
   직원을 초대해 부여해야 창고 모드 등을 쓸 수 있다.
 - **dozy-catalog-api**: 기본 포트가 8080이라 wms-api와 겹친다. `SERVER_PORT=8082`로 띄우고 `CATALOG_CORS_ALLOWED_ORIGINS=http://localhost:5173`, `DOZY_AUTH_ISSUER_BASE_URI`(auth 주소)를 주고, 콘솔 `.env`에 `VITE_CATALOG_BASE_URL=http://localhost:8082`를 둔다. auth에 audience `catalog`와 role `admin`(`catalog:admin`)을 등록해 직원에게 부여해야 MD 모드를 쓸 수 있다.
-- MSW 핸들러는 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다.
+- MSW 핸들러는 기본적으로 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다. `VITE_MOCK_CATALOG=true`일 때만 MD 화면용 로그인·Catalog 목이 켜진다.
 - UI 확인은 `npm run dev`(5173)와 위 서버들로 한다. 헤드리스 브라우저(Playwright)로도 확인할 수 있고 MSW 서비스 워커가 필요하지 않다.
 
 ### 컨벤션
@@ -59,7 +59,8 @@
 - **기반:** `catalogHttpClient`(`VITE_CATALOG_BASE_URL`)는 Bearer 토큰만 보내고 쿠키는 쓰지 않는다(Catalog CORS가 credentials를 허용하지 않음). 401 갱신·재시도는 기존 `createClient` 인터셉터를 공유한다. role 매핑은 `catalog:merchandiser`(임시값)를 `catalog:admin`으로 바꾸고 `catalog.read`·`catalog.write` Permission을 추가했다. 조회 전용 role이 생기면 그 role에는 `catalog.read`만 준다
 - **화면(`/products`, MD 모드, `catalog.read`):** 상태·카테고리(대분류 선택 시 소분류 포함)·태그·상품 그룹 필터와 상품명·SKU 검색, 서버 페이지네이션(10건), 선택한 상품의 상세(SKU·기준가·카테고리 "대분류 > 소분류"·재고형 여부·태그·상품 그룹·판매 범위·연결된 옵션 그룹과 예외·version). Catalog는 리소스 단위 API라 상품 응답에 id만 있으므로 카테고리·태그·그룹·옵션 그룹 목록을 따로 받아 이름을 붙인다(없는 id는 `#id`). 목록 응답이 상품 전체라 상세는 별도 조회 없이 선택한 항목을 쓴다
 - **오류:** Problem Details의 `code`로만 분기하고 문구는 콘솔이 정한다(`catalogErrors.ts`). `VERSION_CONFLICT`는 쓰기 화면(`catalog-product-write`)에서 `If-Match`와 함께 쓸 때 재조회 흐름을 붙인다
-- 검증: build/lint/test(678) 통과. 실서버(dozy-auth + dozy-catalog-api)에 대한 화면 확인은 아직 하지 못했다 — 로컬의 Catalog 컨테이너(8081·8082)는 부하테스트용(prod 프로필, CORS가 `localhost:3000`만 허용)이라 쓸 수 없었다
+- **목 모드:** `VITE_MOCK_CATALOG=true`로 `npm run dev`를 띄우면 MSW가 dozy-auth 로그인(`catalog:admin`을 가진 MD 직원, 아무 비밀번호나 통과)과 Catalog 조회를 대신한다(`src/mocks/catalogHandlers.ts`, 데이터·필터는 `catalogMockData.ts`). 기본은 꺼져 있어 실서버로 그대로 나간다. 목 데이터는 14개 상품·분류·옵션 그룹이며 쓰기 API는 없다
+- 검증: build/lint/test(683) 통과. **목 모드**에서 헤드리스가 아닌 Chrome으로 로그인 → MD 모드만 선택 가능(나머지 잠금) → 목록·상세(옵션 예외·태그·그룹 이름 조립)·필터 조합(음료 전체+판매중=6개)·페이지 이동·MD 모드에서 `/inventory` 직접 접근 시 홈으로 복귀를 확인했고 콘솔 에러는 없었다. **실서버(dozy-auth + dozy-catalog-api)로는 아직 확인하지 못했다** — 로컬의 Catalog 컨테이너(8081·8082)는 부하테스트용(prod 프로필, CORS가 `localhost:3000`만 허용)이라 쓸 수 없었다. `RequirePermission` 리다이렉트는 `catalog:admin`이 두 Permission을 모두 주므로 화면으로 만들 수 없어 단위 테스트로만 검증했다
 - 알려진 한계: 매장 이름을 알 수 없어 판매 범위는 매장 id만 보여준다(매장 목록 API 없음). 이미지는 링크로만 보여준다. 쓰기·분류 관리·옵션 그룹 관리·예약·노출 현황은 후속 항목이다
 
 ### 2026-10-13 (감사 로그 화면 개선)
