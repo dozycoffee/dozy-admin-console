@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
@@ -174,22 +174,107 @@ describe('EmployeesPage', () => {
     renderPage([permissions.accountRead])
     await user.click(screen.getByRole('button', { name: /이서연/ }))
 
-    expect(screen.queryByRole('button', { name: '직원 초대' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '직원 추가' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '초대 재발송' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '초대 취소' })).toBeDisabled()
   })
 
-  it('직원 초대 버튼으로 초대 폼을 열고 닫는다', async () => {
+  it('직원 추가 버튼을 누르면 모달로 추가 폼을 열고 취소·Esc로 닫는다', async () => {
     setup()
     const user = userEvent.setup()
     renderPage()
-    expect(screen.queryByRole('heading', { name: '직원 초대' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '직원 초대' }))
-    expect(screen.getByRole('heading', { name: '직원 초대' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '직원 추가' }))
+    const dialog = screen.getByRole('dialog', { name: '직원 추가' })
+    expect(within(dialog).getByLabelText('이메일')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: '취소' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '초대 닫기' }))
-    expect(screen.queryByRole('heading', { name: '직원 초대' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '직원 추가' }))
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('직원 추가 모달은 제목 오른쪽에 현재 단계를 보여주고 단계가 바뀌면 따라 바뀐다', async () => {
+    setup()
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: '직원 추가' }))
+    const dialog = screen.getByRole('dialog', { name: '직원 추가' }) // 단계 표시는 대화상자 이름에 들어가지 않는다
+    expect(within(dialog).getByText('1 / 2')).toBeInTheDocument()
+    expect(within(dialog).getByText('기본 정보')).toBeInTheDocument()
+
+    await user.type(within(dialog).getByLabelText('이메일'), 'new@dozycoffee.com')
+    await user.type(within(dialog).getByLabelText('이름'), '신입')
+    await user.click(within(dialog).getByRole('button', { name: '다음' }))
+    expect(within(dialog).getByText('2 / 2')).toBeInTheDocument()
+    expect(within(dialog).getByText('role 부여 (선택)')).toBeInTheDocument()
+  })
+
+  it('모달을 열어도 뒤의 목록과 이전/다음 버튼 위치(레이아웃)를 밀어내지 않는다', async () => {
+    setup()
+    const user = userEvent.setup()
+    const { container } = renderPage()
+    const before = container.querySelector('.employee-workspace')
+
+    await user.click(screen.getByRole('button', { name: '직원 추가' }))
+
+    expect(container.querySelector('.employee-workspace')).toBe(before)
+    expect(container.querySelector('.employee-invite-form')).toBeNull() // 인라인 패널로 열리지 않는다
+  })
+
+  it('직원을 추가하면 모달을 닫고 안내를 보여주며 필터를 풀고 새 직원을 선택한다', async () => {
+    setup()
+    mockedUseInvite.mockReturnValue({
+      mutate: (_body: unknown, options: { onSuccess: (value: unknown) => void }) => options.onSuccess({ principalId: 'p-2', status: 'PENDING', invitationExpiresAt: '2026-10-16T05:00:00Z' }),
+      isPending: false, isError: false, isSuccess: false,
+    } as never)
+    const user = userEvent.setup()
+    renderPage()
+    await user.selectOptions(screen.getByLabelText('상태'), 'ACTIVE')
+
+    await user.click(screen.getByRole('button', { name: '직원 추가' }))
+    await user.type(screen.getByLabelText('이메일', { selector: 'form input' }), 'new@dozycoffee.com')
+    await user.type(screen.getByLabelText('이름', { selector: 'form input' }), '신입')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '직원 추가하기' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('직원을 추가했습니다. 초대 메일을 보냈으며')
+    expect(mockedUseEmployees).toHaveBeenLastCalledWith({ status: undefined, role: undefined, q: '', page: 0, size: 5 })
+    expect(mockedUseEmployee).toHaveBeenLastCalledWith('p-2')
+
+    await user.click(screen.getByRole('button', { name: '안내 닫기' }))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('추가 성공 안내는 8초 뒤 저절로 사라진다', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      setup()
+      mockedUseInvite.mockReturnValue({
+        mutate: (_body: unknown, options: { onSuccess: (value: unknown) => void }) => options.onSuccess({ principalId: 'p-2', status: 'PENDING', invitationExpiresAt: '2026-10-16T05:00:00Z' }),
+        isPending: false, isError: false, isSuccess: false,
+      } as never)
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderPage()
+      await user.click(screen.getByRole('button', { name: '직원 추가' }))
+      await user.type(screen.getByLabelText('이메일', { selector: 'form input' }), 'new@dozycoffee.com')
+      await user.type(screen.getByLabelText('이름', { selector: 'form input' }), '신입')
+      await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '직원 추가하기' }))
+      expect(screen.getByRole('status')).toBeInTheDocument()
+
+      await act(async () => { vi.advanceTimersByTime(7000) })
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      await act(async () => { vi.advanceTimersByTime(1500) })
+
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('현재 페이지가 마지막 페이지를 넘으면(필터에서 빠진 경우 등) 마지막 페이지로 되돌린다', async () => {
