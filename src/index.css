@@ -573,3 +573,15 @@ a { color: inherit; text-decoration: none; }
 .tooltip-bubble[hidden] { display: none; }
 /* 문구 앞의 정보(i) 아이콘 */
 .tooltip-bubble::before { content: 'i'; flex: none; display: inline-grid; width: 15px; height: 15px; margin-top: 1px; place-items: center; border-radius: 50%; background: #e6d7cf; color: #3b2a24; font-size: 10px; font-style: italic; font-weight: 800; line-height: 1; }
+/* 직원 관리: 목록·상세 카드를 고정 높이로 두어 내용 양에 따라 이전/다음 버튼 위치가 바뀌지 않게 한다.
+   목록은 한 페이지에 5명으로 정해져 있고 항목 높이를 일정하게(긴 이메일은 한 줄 말줄임) 유지해 카드 안에 스크롤 없이 들어가게 한다.
+   상세 카드는 내용이 넘칠 때만(role이 매우 많은 경우 등) 카드 안에서 스크롤한다. */
+@media (min-width: 1101px) {
+  .employee-workspace { align-items: start; min-height: 0; }
+  .employee-workspace > .inbound-list-panel, .employee-workspace > .inbound-detail-panel { height: 680px; min-height: 0; }
+  .employee-workspace > .inbound-list-panel { display: flex; flex-direction: column; }
+  .employee-workspace .inbound-list { flex: 1; align-content: start; }
+  .employee-workspace .inbound-pagination { flex-shrink: 0; }
+  .employee-workspace > .inbound-detail-panel { overflow-y: auto; }
+}
+.employee-workspace .inbound-list-item > small { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }

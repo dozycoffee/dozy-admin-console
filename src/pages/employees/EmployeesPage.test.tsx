@@ -30,7 +30,7 @@ const resend = vi.fn()
 const cancel = vi.fn()
 
 function setup(items: EmployeeSummary[] = [kim, lee], totalPages = 1) {
-  mockedUseEmployees.mockReturnValue({ isLoading: false, isError: false, data: { items, page: { number: 0, size: 10, totalElements: items.length, totalPages } } } as never)
+  mockedUseEmployees.mockReturnValue({ isLoading: false, isError: false, data: { items, page: { number: 0, size: 5, totalElements: items.length, totalPages } } } as never)
   mockedUseEmployee.mockImplementation((id) => {
     const summary = items.find((item) => item.principalId === id)
     const detail = summary && detailOf(summary, summary.status === 'PENDING' ? { invitation: { expiresAt: '2099-01-01T00:00:00Z' } } : {})
@@ -111,7 +111,7 @@ describe('EmployeesPage', () => {
     await user.type(screen.getByLabelText('이름·이메일'), '김')
     await user.click(screen.getByRole('button', { name: '검색' }))
 
-    expect(mockedUseEmployees).toHaveBeenLastCalledWith({ status: 'PENDING', role: undefined, q: '김', page: 0, size: 10 })
+    expect(mockedUseEmployees).toHaveBeenLastCalledWith({ status: 'PENDING', role: undefined, q: '김', page: 0, size: 5 })
   })
 
   it('role 필터를 고르면 그 role로 조회한다', async () => {
@@ -190,5 +190,25 @@ describe('EmployeesPage', () => {
 
     await user.click(screen.getByRole('button', { name: '초대 닫기' }))
     expect(screen.queryByRole('heading', { name: '직원 초대' })).not.toBeInTheDocument()
+  })
+
+  it('현재 페이지가 마지막 페이지를 넘으면(필터에서 빠진 경우 등) 마지막 페이지로 되돌린다', async () => {
+    setup([kim], 3)
+    let totalPages = 3
+    mockedUseEmployees.mockImplementation((params) => ({
+      isLoading: false, isError: false,
+      data: { items: [kim], page: { number: params.page, size: 5, totalElements: 20, totalPages } },
+    }) as never)
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    expect(screen.getByText('2 / 3')).toBeInTheDocument()
+    // 3페이지로 넘어가는 사이에 목록이 줄어 총 2페이지가 된 상황(예: 3페이지의 직원이 필터에서 빠짐)
+    totalPages = 2
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(screen.getByText('2 / 2')).toBeInTheDocument()
+    expect(mockedUseEmployees).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }))
   })
 })

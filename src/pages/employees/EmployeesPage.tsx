@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { permissions } from '../../features/auth/model/permissions'
 import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
@@ -10,7 +10,7 @@ import { useRoles } from '../../features/role/model/useRoles'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { EmployeeDetail, type PendingConfirm } from './EmployeeDetail'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 5
 const emptyEmployees: EmployeeSummary[] = []
 
 export function EmployeesPage() {
@@ -31,6 +31,17 @@ export function EmployeesPage() {
   const totalElements = employeesQuery.data?.page.totalElements ?? 0
   const totalPages = Math.max(1, employeesQuery.data?.page.totalPages ?? 1)
   const selected = employees.find((employee) => employee.principalId === selectedId) ?? employees[0]
+
+  // 마지막 페이지의 직원이 필터에서 빠지는 경우(예: 활성 필터에서 마지막 페이지의 직원을 정지) 현재 페이지가 마지막 페이지를 넘으면 마지막 페이지로 되돌린다.
+  const lastPage = Math.max(1, employeesQuery.data?.page.totalPages ?? 1)
+  useEffect(() => {
+    if (employeesQuery.data && page > lastPage) {
+      // oxlint-disable-next-line react/set-state-in-effect
+      setPage(lastPage)
+      // oxlint-disable-next-line react/set-state-in-effect
+      setSelectedId(null)
+    }
+  }, [employeesQuery.data, page, lastPage])
 
   function resetPaging() {
     setPage(1)
@@ -69,14 +80,14 @@ export function EmployeesPage() {
     </form>
     {employeesQuery.isLoading && <section className="panel"><p>직원 목록을 불러오는 중입니다...</p></section>}
     {employeesQuery.isError && <section className="panel"><h2>직원 목록을 불러오지 못했습니다</h2><p>{toAdminErrorMessage(employeesQuery.error)}</p></section>}
-    {employeesQuery.data && <section className="inbound-workspace">
+    {employeesQuery.data && <section className="inbound-workspace employee-workspace">
       <aside className="panel inbound-list-panel">
         <div className="panel-heading"><div><p className="eyebrow">EMPLOYEES</p><h2>직원 목록</h2></div><small>{totalElements}명</small></div>
         <div className="inbound-list">
           {employees.map((employee) => <button type="button" key={employee.principalId} className={`inbound-list-item ${selected?.principalId === employee.principalId ? 'selected' : ''}`} onClick={() => setSelectedId(employee.principalId)}>
             <span><EmployeeStatusBadge status={employee.status} /></span>
             <strong>{employee.name}</strong>
-            <small>{employee.email}</small>
+            <small title={employee.email}>{employee.email}</small>
           </button>)}
           {employees.length === 0 && <p className="inbound-empty">조건에 맞는 직원이 없습니다.</p>}
         </div>
