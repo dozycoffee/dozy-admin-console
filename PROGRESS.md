@@ -2,8 +2,8 @@
 
 ## 현재 상태
 
-`feature_list.json`의 항목은 모두 완료했고 남은 `pending`은 없다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로 연동되어 있다(테스트 513개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+`feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 678개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -13,7 +13,7 @@
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
 | 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
-| MD | 모드 홈 골격만 | 별도 catalog MSA가 미구현이라 화면 없음 (Catalog 화면은 제거함) |
+| MD | 상품 관리 `/products`(목록·상세, 읽기 전용), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
   `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
@@ -23,7 +23,7 @@
 
 ### 알려진 한계·미해결
 
-- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`wms:hq_inventory_manager`·`catalog:merchandiser`는 운영 role 정의와 맞춰야 한다. dozy-auth가 시드하는 role은
+- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`wms:hq_inventory_manager`는 운영 role 정의와 맞춰야 한다(`catalog:admin`은 dozy-catalog-api 명세의 이름). dozy-auth가 시드하는 role은
   `auth:owner`/`auth:admin`뿐이라 나머지는 `/roles`에서 등록해야 한다.
 - **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관련 모드를 가진 사용자에게 `VITE_WAREHOUSE_IDS`를 준다.
 - **dozy-wms-api는 아직 토큰을 검증하지 않는다**(dozy-wms-api ADR-0010의 `CurrentAccessScopeProvider`·`warehouseIds` 교차검증은 인증 연동 때 처리 예정). WMS는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
@@ -41,6 +41,7 @@
   ./gradlew :auth-server:bootRun --args='--spring.profiles.active=local'`(dozy-auth 저장소에서)로 띄우고 콘솔 `.env`에 `VITE_AUTH_BASE_URL=http://localhost:8081`을 둔다.
   첫 기동 때 owner 초대 메일이 Mailpit(`http://localhost:8025`)으로 가며, 링크가 콘솔의 `/invitation`을 연다. 처음에는 role이 `auth:owner`/`auth:admin`뿐이라 업무 role을 `/roles`에서 등록하고
   직원을 초대해 부여해야 창고 모드 등을 쓸 수 있다.
+- **dozy-catalog-api**: 기본 포트가 8080이라 wms-api와 겹친다. `SERVER_PORT=8082`로 띄우고 `CATALOG_CORS_ALLOWED_ORIGINS=http://localhost:5173`, `DOZY_AUTH_ISSUER_BASE_URI`(auth 주소)를 주고, 콘솔 `.env`에 `VITE_CATALOG_BASE_URL=http://localhost:8082`를 둔다. auth에 audience `catalog`와 role `admin`(`catalog:admin`)을 등록해 직원에게 부여해야 MD 모드를 쓸 수 있다.
 - MSW 핸들러는 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다.
 - UI 확인은 `npm run dev`(5173)와 위 서버들로 한다. 헤드리스 브라우저(Playwright)로도 확인할 수 있고 MSW 서비스 워커가 필요하지 않다.
 
@@ -51,6 +52,15 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-13 (Catalog 연동 기반과 상품 조회 화면)
+
+- 이슈 #76, `feat/catalog-product-list` 브랜치. 옆 저장소 `dozy-catalog-api`가 구현돼 있어(`/api/v1/admin/**`, role `catalog:admin`) "catalog MSA 미구현"이던 MD 모드에 연동한다. 상품 관리를 `catalog-product-list`(이번) → `catalog-product-write` → `catalog-taxonomy` → `catalog-option-groups`로 나눠 `feature_list.json`에 등록했다
+- **기반:** `catalogHttpClient`(`VITE_CATALOG_BASE_URL`)는 Bearer 토큰만 보내고 쿠키는 쓰지 않는다(Catalog CORS가 credentials를 허용하지 않음). 401 갱신·재시도는 기존 `createClient` 인터셉터를 공유한다. role 매핑은 `catalog:merchandiser`(임시값)를 `catalog:admin`으로 바꾸고 `catalog.read`·`catalog.write` Permission을 추가했다. 조회 전용 role이 생기면 그 role에는 `catalog.read`만 준다
+- **화면(`/products`, MD 모드, `catalog.read`):** 상태·카테고리(대분류 선택 시 소분류 포함)·태그·상품 그룹 필터와 상품명·SKU 검색, 서버 페이지네이션(10건), 선택한 상품의 상세(SKU·기준가·카테고리 "대분류 > 소분류"·재고형 여부·태그·상품 그룹·판매 범위·연결된 옵션 그룹과 예외·version). Catalog는 리소스 단위 API라 상품 응답에 id만 있으므로 카테고리·태그·그룹·옵션 그룹 목록을 따로 받아 이름을 붙인다(없는 id는 `#id`). 목록 응답이 상품 전체라 상세는 별도 조회 없이 선택한 항목을 쓴다
+- **오류:** Problem Details의 `code`로만 분기하고 문구는 콘솔이 정한다(`catalogErrors.ts`). `VERSION_CONFLICT`는 쓰기 화면(`catalog-product-write`)에서 `If-Match`와 함께 쓸 때 재조회 흐름을 붙인다
+- 검증: build/lint/test(678) 통과. 실서버(dozy-auth + dozy-catalog-api)에 대한 화면 확인은 아직 하지 못했다 — 로컬의 Catalog 컨테이너(8081·8082)는 부하테스트용(prod 프로필, CORS가 `localhost:3000`만 허용)이라 쓸 수 없었다
+- 알려진 한계: 매장 이름을 알 수 없어 판매 범위는 매장 id만 보여준다(매장 목록 API 없음). 이미지는 링크로만 보여준다. 쓰기·분류 관리·옵션 그룹 관리·예약·노출 현황은 후속 항목이다
 
 ### 2026-10-13 (감사 로그 화면 개선)
 
@@ -360,7 +370,7 @@
 
 - 새 작업은 `feature_list.json`에 항목을 먼저 등록하고 `docs/git-workflow.md`의 이슈 → 브랜치 → PR 순서를 지킨다(이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성). 작업 중에는 `in_progress`, 끝나면 `completed`로 바꾸고 PROGRESS.md를 갱신한다
 - 화면은 해당 모드의 `navigationByMode`·`AppRouter`에 함께 등록하고 `permissions.ts`·권한 정책 체크리스트에 Permission을 정의한다
-- `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다. 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
+- `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다(`catalog:admin`은 Catalog 명세 기준). 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다. dozy-wms-api가 토큰 검증을 붙이면 role·scope 연동을 함께 확인한다
 - 창고 평면도·대시보드 Zone 카드·Location별 재고를 실 `zone-summary`/재고 API로 옮기는 작업은 아직 없다(F Zone은 dozy-wms-api에 Zone이 생긴 뒤)
 - 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다
