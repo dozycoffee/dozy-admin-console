@@ -12,6 +12,8 @@ export const permissions = {
   disposalWrite: 'disposal.write',
   returnRead: 'return.read',
   returnWrite: 'return.write',
+  catalogRead: 'catalog.read',
+  catalogWrite: 'catalog.write',
   accountRead: 'account.read',
   accountWrite: 'account.write',
   accountManage: 'account.manage',
