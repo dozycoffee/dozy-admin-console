@@ -473,11 +473,13 @@ a { color: inherit; text-decoration: none; }
 .role-filter select { padding: 7px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
 .role-list { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .role-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid #ece7e3; border-radius: 10px; }
-.role-row.editing { display: block; }
 .role-main { flex: 1; min-width: 0; }
-.role-main strong { margin-right: 8px; }
+.role-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.role-title strong { font-size: 15px; }
 .role-code { margin: 3px 0 0; color: #9b918c; font-size: 12px; }
-.role-description { margin: 3px 0 0; color: #6f6862; font-size: 13px; }
+/* role code는 이름 옆의 작은 고정폭 칩으로, 설명은 이름 아래 작고 옅은 글씨로 보여준다 */
+.role-code-chip { padding: 2px 7px; border-radius: 6px; background: #f3efec; color: #7b6f69; font: 600 11px/1.5 "IBM Plex Mono", ui-monospace, monospace; }
+.role-main .role-description { margin: 5px 0 0; color: #8a7f79; font-size: 12.5px; line-height: 1.5; }
 .role-count { min-width: 44px; color: #786d68; font-size: 12px; font-weight: 800; text-align: right; }
 .role-row .employee-actions { margin-top: 0; }
 @media (max-width: 600px) { .role-row { flex-wrap: wrap; } }

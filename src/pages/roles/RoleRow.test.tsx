@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
@@ -26,7 +26,7 @@ describe('RoleRow', () => {
     setup(role)
 
     expect(screen.getByText('창고 관리자')).toBeInTheDocument()
-    expect(screen.getByText('wms:warehouse_manager')).toBeInTheDocument()
+    expect(screen.getByText('wms:warehouse_manager').tagName).toBe('CODE') // 이름 옆의 작은 고정폭 칩
     expect(screen.getByText('입출고 관리')).toBeInTheDocument()
     expect(screen.getByText('3명')).toBeInTheDocument()
   })
@@ -91,6 +91,35 @@ describe('RoleRow', () => {
     expect(screen.getByRole('button', { name: '수정' })).toBeInTheDocument()
   })
 
+  it('수정을 누르면 목록 항목은 그대로 두고 모달로 수정 폼을 연다', async () => {
+    setup(role)
+    const user = userEvent.setup()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '수정' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'role 수정 · 창고 관리자' })
+    expect(within(dialog).getByLabelText('이름')).toHaveValue('창고 관리자')
+    expect(within(dialog).getByLabelText('설명')).toHaveValue('입출고 관리')
+    expect(within(dialog).getByText('wms:warehouse_manager')).toBeInTheDocument()
+    expect(screen.getByText('3명')).toBeInTheDocument() // 항목이 폼으로 바뀌지 않고 목록에 남아 있다
+  })
+
+  it('수정 모달은 Esc로 닫히고 입력은 버려진다', async () => {
+    setup(role)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: '수정' }))
+    await user.clear(screen.getByLabelText('이름'))
+    await user.type(screen.getByLabelText('이름'), '바꾼 이름')
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '수정' }))
+
+    expect(screen.getByLabelText('이름')).toHaveValue('창고 관리자')
+    expect(mutate).not.toHaveBeenCalled()
+  })
+
   it('수정을 취소하면 닫는다', async () => {
     setup(role)
     const user = userEvent.setup()
@@ -98,6 +127,7 @@ describe('RoleRow', () => {
     await user.click(screen.getByRole('button', { name: '수정' }))
     await user.click(screen.getByRole('button', { name: '취소' }))
 
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '수정' })).toBeInTheDocument()
   })
 
