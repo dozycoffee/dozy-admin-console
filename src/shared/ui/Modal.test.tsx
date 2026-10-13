@@ -4,11 +4,11 @@ import { useState, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Modal } from './Modal'
 
-function Harness({ closeOnBackdrop, onClose = vi.fn(), titleAddon }: { closeOnBackdrop?: boolean; onClose?: () => void; titleAddon?: ReactNode }) {
+function Harness({ closeOnBackdrop, onClose = vi.fn(), titleAddon, dismissible }: { closeOnBackdrop?: boolean; onClose?: () => void; titleAddon?: ReactNode; dismissible?: boolean }) {
   const [open, setOpen] = useState(false)
   return <>
     <button type="button" onClick={() => setOpen(true)}>열기</button>
-    <Modal open={open} title="폼 제목" titleAddon={titleAddon} closeOnBackdrop={closeOnBackdrop} onClose={() => { onClose(); setOpen(false) }}>
+    <Modal open={open} title="폼 제목" titleAddon={titleAddon} dismissible={dismissible} closeOnBackdrop={closeOnBackdrop} onClose={() => { onClose(); setOpen(false) }}>
       <label>이름<input /></label>
       <button type="button">저장</button>
     </Modal>
@@ -112,5 +112,18 @@ describe('Modal', () => {
     const dialog = screen.getByRole('dialog', { name: '폼 제목' })
     expect(within(dialog).getByText('1 / 2')).toBeInTheDocument()
     expect(within(dialog).getByRole('heading', { name: '폼 제목' })).toBeInTheDocument()
+  })
+
+  it('dismissible이 false이면 닫기 버튼이 없고 Esc로도 닫히지 않는다', async () => {
+    const onClose = vi.fn()
+    const user = userEvent.setup()
+    render(<Harness dismissible={false} onClose={onClose} />)
+    await user.click(screen.getByText('열기'))
+
+    expect(screen.queryByRole('button', { name: '닫기' })).not.toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
