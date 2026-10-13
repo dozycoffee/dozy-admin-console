@@ -16,3 +16,15 @@ describe('toCatalogErrorMessage', () => {
     expect(toCatalogErrorMessage(new ApiError('서버에 연결할 수 없습니다.', { status: null }))).toBe('서버에 연결할 수 없습니다.')
   })
 })
+
+describe('쓰기 오류 문구', () => {
+  it.each([
+    ['CATEGORY_NOT_ASSIGNABLE', /소분류만/],
+    ['INVALID_MONEY_AMOUNT', /0 이상/],
+    ['PRODUCT_NOT_DELETABLE', /판매 대기 상태의 상품만/],
+    ['INVALID_PRODUCT_STATUS_TRANSITION', /최신 상태를 확인/],
+    ['DUPLICATE_OPTION_GROUP_LINK', /두 번/],
+  ])('%s는 안내 문구로 바꾼다', (code, message) => {
+    expect(toCatalogErrorMessage(new ApiError('x', { status: 409, code }))).toMatch(message)
+  })
+})

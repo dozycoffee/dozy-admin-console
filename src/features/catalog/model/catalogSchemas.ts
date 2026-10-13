@@ -75,3 +75,17 @@ export type ProductListParams = {
   page: number
   size: number
 }
+
+/** 상품 등록·수정이 함께 받는 필드. 태그는 이름으로 보내며 없는 태그는 서버가 만든다. */
+export type ProductInput = {
+  name: string
+  categoryId: number
+  basePrice: number
+  description: string | null
+  imageUrl: string | null
+  tagNames: string[]
+  groupIds: number[]
+}
+/** 재고 관리 여부와 옵션 그룹 연결은 등록할 때만 정한다(수정 요청으로는 바꿀 수 없다). 옵션 그룹은 배열 순서가 노출 순서다. */
+export type CreateProductRequest = ProductInput & { tracksInventory: boolean; optionGroupIds: number[] }
+export type UpdateProductRequest = ProductInput
