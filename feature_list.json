@@ -257,5 +257,33 @@
     "description": "감사 로그 화면(/audit-logs)을 개선한다(dozy-auth API 변경 없음). action을 분류별 색 칩으로 구분하고 서버 코드는 상세로 옮기며, 행위자·대상 id는 앞 6·뒤 4자리 칩(즉시 툴팁, 클릭 복사)으로 보여준다. 상세는 모달에서 전체 id와 detail 항목(한글 이름)·원본 JSON으로 보여주고, 기간 필터에 빠른 조회(누른 시각 기준으로 시작·종료를 채우고 바로 조회)와 초기화를 둔다. 표 열 폭은 비율로 정하고 IPv4·IPv6가 길어도 칸을 넘지 않게 한다. 공용 Tooltip의 클릭 동작, 복사 훅, 오류 토스트, 모달 열고 닫는 애니메이션을 추가했다. 이슈 #71.",
     "status": "completed",
     "dependencies": ["auth-audit-logs", "admin-ui-polish"]
+  },
+  {
+    "id": "catalog-product-list",
+    "name": "Catalog 연동 기반과 상품 조회 화면 (MD 모드)",
+    "description": "dozy-catalog-api(/api/v1/admin/**, role catalog:admin)를 MD 모드에 연동한다. VITE_CATALOG_BASE_URL을 쓰는 catalogHttpClient(Bearer만, 쿠키 없음, 401 갱신 공유), role 매핑 catalog:admin → catalog.read/catalog.write, Problem Details code별 오류 안내, 사이드바 '상품 관리' 메뉴와 /products 라우트를 만든다. 상품 목록(키워드·상태·카테고리·태그·그룹 필터, 서버 페이지네이션)과 상세(카테고리·태그·그룹 이름 조립, 옵션 그룹 연결, 판매 범위, version)를 읽기 전용으로 보여준다.",
+    "status": "in_progress",
+    "dependencies": ["auth-real-login"]
+  },
+  {
+    "id": "catalog-product-write",
+    "name": "Catalog 상품 등록·수정·상태 전환",
+    "description": "상품 등록(DRAFT 생성), 정보 수정(If-Match 낙관적 잠금, VERSION_CONFLICT 시 최신 내용 재조회 안내), 활성화·단종, DRAFT 삭제를 모달·토스트 패턴으로 구현한다.",
+    "status": "pending",
+    "dependencies": ["catalog-product-list"]
+  },
+  {
+    "id": "catalog-taxonomy",
+    "name": "Catalog 카테고리·태그·상품 그룹 관리",
+    "description": "카테고리(대분류·소분류, 이름 변경·부모 변경·삭제), 태그(이름 변경·삭제), 상품 그룹(등록·이름 변경·삭제) 관리 화면.",
+    "status": "pending",
+    "dependencies": ["catalog-product-list"]
+  },
+  {
+    "id": "catalog-option-groups",
+    "name": "Catalog 옵션 그룹 관리와 상품 연결",
+    "description": "옵션 그룹 생성·수정·옵션 목록 교체·삭제, 상품에 옵션 그룹 연결·순서·예외 지정, 서버가 계산한 유효 옵션 구성 미리보기.",
+    "status": "pending",
+    "dependencies": ["catalog-product-write"]
   }
 ]
