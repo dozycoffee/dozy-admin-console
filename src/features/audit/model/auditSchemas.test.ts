@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { auditActionGroups, auditActionLabel, auditLogPageSchema } from './auditSchemas'
+import { auditActionCategory, auditActionGroups, auditActionLabel, auditLogPageSchema } from './auditSchemas'
 
 describe('auditActionLabel', () => {
   it('알려진 action은 한글 이름으로 바꾼다', () => {
@@ -9,6 +9,26 @@ describe('auditActionLabel', () => {
 
   it('목록에 없는 새 action은 코드를 그대로 보여준다', () => {
     expect(auditActionLabel('SOMETHING_NEW')).toBe('SOMETHING_NEW')
+  })
+})
+
+describe('auditActionCategory', () => {
+  it('action이 속한 분류의 id와 이름을 돌려준다', () => {
+    expect(auditActionCategory('LOGIN_FAILED')).toEqual({ id: 'session', label: '로그인·세션' })
+    expect(auditActionCategory('PASSWORD_CHANGED')).toEqual({ id: 'password', label: '비밀번호' })
+    expect(auditActionCategory('ACCOUNT_SUSPENDED')).toEqual({ id: 'account', label: '계정' })
+    expect(auditActionCategory('ROLE_GRANTED')).toEqual({ id: 'role', label: 'role·서비스' })
+    expect(auditActionCategory('OWNER_TRANSFERRED')).toEqual({ id: 'client', label: '시스템 클라이언트·owner' })
+  })
+
+  it('목록에 없는 새 action은 분류가 없다', () => {
+    expect(auditActionCategory('SOMETHING_NEW')).toBeNull()
+  })
+
+  it('모든 action이 정확히 한 분류에 속하고 분류 id는 서로 다르다', () => {
+    const ids = auditActionGroups.map((group) => group.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(auditActionGroups.flatMap((group) => group.actions).every((action) => auditActionCategory(action.code) !== null)).toBe(true)
   })
 })
 

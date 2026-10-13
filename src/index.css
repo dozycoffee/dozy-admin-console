@@ -663,6 +663,16 @@ a { color: inherit; text-decoration: none; }
 .client-role-count { color: #9b918c; font-size: 12px; font-weight: 700; }
 .client-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 10px; color: #786d68; font-size: 12px; font-weight: 700; }
 .client-toolbar .inbound-action-button { margin-top: 0; padding: 6px 12px; font-size: 12px; }
+/* 감사 로그 action 분류별 색: 연한 배경 + 진한 글씨로 구분하고, 분류 이름은 글자로도 보여준다 */
+.audit-cat-session { --cat-bg: #e8f1ff; --cat-fg: #2864ac; --cat-dot: #4a8de0; }
+.audit-cat-password { --cat-bg: #f2edf9; --cat-fg: #7350a0; --cat-dot: #9a73c8; }
+.audit-cat-account { --cat-bg: #e7f6ef; --cat-fg: #287751; --cat-dot: #3fae7b; }
+.audit-cat-role { --cat-bg: #fff4dd; --cat-fg: #9a671f; --cat-dot: #e0a03d; }
+.audit-cat-client { --cat-bg: #fbe9e5; --cat-fg: #a04a3a; --cat-dot: #d9715c; }
+.audit-category { display: inline-block; margin-bottom: 4px; padding: 2px 8px; border-radius: 99px; background: var(--cat-bg); color: var(--cat-fg); font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+.audit-table td > strong { display: block; }
+.audit-category-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cat-dot); }
+.audit-actions legend.audit-cat-session, .audit-actions legend.audit-cat-password, .audit-actions legend.audit-cat-account, .audit-actions legend.audit-cat-role, .audit-actions legend.audit-cat-client { color: var(--cat-fg); font-weight: 800; }
 .toast.error { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
 .toast.error button { color: #9c3b3b; }
 .tooltip-actionable { cursor: pointer; }

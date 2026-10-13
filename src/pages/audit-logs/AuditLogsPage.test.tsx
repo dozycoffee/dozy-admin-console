@@ -34,6 +34,22 @@ describe('AuditLogsPage', () => {
     expect(screen.getByText('1건')).toBeInTheDocument()
   })
 
+  it('action을 분류 칩(색으로 구분)과 함께 보여주고 분류 이름도 글자로 적는다', () => {
+    setup([granted, { ...system, action: 'LOGIN_FAILED' }])
+
+    const role = within(screen.getByRole('table')).getByText('role 부여').closest('tr')!
+    expect(within(role).getByText('role·서비스')).toHaveClass('audit-category', 'audit-cat-role')
+    const login = within(screen.getByRole('table')).getByText('로그인 실패').closest('tr')!
+    expect(within(login).getByText('로그인·세션')).toHaveClass('audit-cat-session')
+  })
+
+  it('목록에 없는 새 action은 분류 칩 없이 코드만 보여준다', () => {
+    setup([{ ...system, action: 'SOMETHING_NEW' }])
+
+    const row = within(screen.getByRole('table')).getAllByText('SOMETHING_NEW')[0].closest('tr')!
+    expect(row.querySelector('.audit-category')).toBeNull()
+  })
+
   it('행위자·대상 id는 앞 8자리로 줄이고 전체 id는 툴팁에 둔다', () => {
     setup([granted])
 

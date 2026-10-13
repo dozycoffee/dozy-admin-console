@@ -104,4 +104,13 @@ describe('AuditFilters', () => {
 
     expect(onApply.mock.calls[0][0].actions).toEqual([])
   })
+
+  it('action 필터의 분류 제목도 로그 목록과 같은 분류 색을 쓴다', async () => {
+    setup()
+    await userEvent.setup().click(screen.getByText(/action/i, { selector: 'summary' }))
+
+    expect(screen.getByText('로그인·세션', { selector: 'legend' })).toHaveClass('audit-cat-session')
+    expect(screen.getByText('비밀번호', { selector: 'legend' })).toHaveClass('audit-cat-password')
+    expect(screen.getByText('시스템 클라이언트·owner', { selector: 'legend' })).toHaveClass('audit-cat-client')
+  })
 })

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { auditActionLabel, type AuditLog } from '../../features/audit/model/auditSchemas'
+import { auditActionCategory, auditActionLabel, type AuditLog } from '../../features/audit/model/auditSchemas'
 import { toAuditErrorMessage, useAuditLogs } from '../../features/audit/model/useAuditLogs'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { AuditFilters, type AppliedFilters } from './AuditFilters'
@@ -12,6 +12,16 @@ function IdCell({ type, id }: { type?: string | null; id?: string | null }) {
   if (!id && !type) return <span className="audit-none">-</span>
   const shortId = id && id.length > 12 ? `${id.slice(0, 8)}…` : id
   return <span title={id ?? undefined}>{type && <b>{type}</b>} {shortId}</span>
+}
+
+/** action을 분류 칩(색으로 구분)과 이름·코드로 보여준다. 색만으로 구분하지 않도록 분류 이름을 글자로도 적는다. */
+function ActionCell({ action }: { action: string }) {
+  const category = auditActionCategory(action)
+  return <>
+    {category && <span className={`audit-category audit-cat-${category.id}`}>{category.label}</span>}
+    <strong>{auditActionLabel(action)}</strong>
+    <small>{action}</small>
+  </>
 }
 
 function DetailCell({ detail }: { detail: AuditLog['detail'] }) {
@@ -45,7 +55,7 @@ export function AuditLogsPage() {
           <tbody>
             {logs.map((log) => <tr key={log.id}>
               <td>{formatDateTime(log.occurredAt)}</td>
-              <td><strong>{auditActionLabel(log.action)}</strong><small>{log.action}</small></td>
+              <td><ActionCell action={log.action} /></td>
               <td><IdCell type={log.actorType} id={log.actorId} /></td>
               <td><IdCell type={log.targetType} id={log.targetId} /></td>
               <td>{log.ip ?? <span className="audit-none">-</span>}</td>

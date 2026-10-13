@@ -84,7 +84,7 @@ export function AuditFilters({ onApply, now = () => new Date() }: Props) {
         <summary>action {actions.length > 0 ? `${actions.length}개 선택` : '전체'}</summary>
         {auditActionGroups.map((group) => (
           <fieldset key={group.label}>
-            <legend>{group.label}</legend>
+            <legend className={`audit-cat-${group.id}`}><span className="audit-category-dot" aria-hidden="true" />{group.label}</legend>
             {group.actions.map((action) => <label key={action.code}><input type="checkbox" checked={actions.includes(action.code)} onChange={() => toggleAction(action.code)} />{action.label}</label>)}
           </fieldset>
         ))}
