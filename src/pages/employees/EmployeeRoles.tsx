@@ -6,6 +6,7 @@ import { blockedReason, NO_WRITE_REASON } from '../../features/employee/model/ac
 import type { EmployeeDetail } from '../../features/employee/model/employeeSchemas'
 import { assignableRoles, grantBlockedReason, revokeBlockedReason } from '../../features/employee/model/roleAssignment'
 import { useGrantRoles, useRevokeRole } from '../../features/employee/model/useEmployees'
+import { RoleOptions } from '../../features/role/ui/RoleOptions'
 import { useRoles } from '../../features/role/model/useRoles'
 import { Tooltip } from '../../shared/ui/Tooltip'
 import { useToast } from '../../shared/ui/toastContext'
@@ -96,7 +97,7 @@ export function EmployeeRoles({ employee, writable, confirm }: Props) {
         <label>role 추가
           <select value={selected} disabled={grantDisabledReason !== null || busy} onChange={(event) => setSelected(event.target.value)}>
             <option value="">선택</option>
-            {options.map((role) => <option key={role.id} value={role.fullCode}>{role.name} ({role.fullCode})</option>)}
+            <RoleOptions roles={options} />
           </select>
         </label>
         <button type="button" className="inbound-action-button" disabled={grantDisabledReason !== null || busy || selected === ''} onClick={requestGrant}>부여</button>
