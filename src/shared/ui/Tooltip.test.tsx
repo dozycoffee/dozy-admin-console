@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Tooltip } from './Tooltip'
 
 describe('Tooltip', () => {
@@ -46,5 +46,20 @@ describe('Tooltip', () => {
 
     const anchor = screen.getByRole('img', { name: 'code 입력 규칙' })
     expect(anchor).toHaveAccessibleDescription('규칙입니다.')
+  })
+
+  it('onActivate를 주면 래퍼가 버튼처럼 클릭·Enter·Space로 동작한다', async () => {
+    const onActivate = vi.fn()
+    const user = userEvent.setup()
+    render(<Tooltip content="전체 id · 클릭해 복사" label="id 복사" onActivate={onActivate}><code>01a1…4d5f</code></Tooltip>)
+    const button = screen.getByRole('button', { name: 'id 복사' })
+    expect(button).toHaveClass('tooltip-actionable')
+
+    await user.click(button)
+    button.focus()
+    await user.keyboard('{Enter}')
+    await user.keyboard(' ')
+
+    expect(onActivate).toHaveBeenCalledTimes(3)
   })
 })
