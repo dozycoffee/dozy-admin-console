@@ -1,19 +1,30 @@
 import { useState, type FormEvent } from 'react'
+import { permissions } from '../../features/auth/model/permissions'
+import { useAuth } from '../../features/auth/model/useAuth'
 import { groupCategories } from '../../features/catalog/model/categoryLabel'
 import { productStatuses, productStatusLabels, type Product, type ProductStatus } from '../../features/catalog/model/catalogSchemas'
 import { toCatalogErrorMessage } from '../../features/catalog/model/catalogErrors'
 import { useCategories, useOptionGroups, useProductGroups, useProducts, useTags } from '../../features/catalog/model/useCatalog'
 import { formatPrice } from '../../features/catalog/model/formatPrice'
 import { ProductStatusBadge } from '../../features/catalog/ui/ProductStatusBadge'
-import { ProductDetail } from './ProductDetail'
+import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/toastContext'
+import { ProductDetail, type PendingConfirm } from './ProductDetail'
+import { ProductForm } from './ProductForm'
 
 const PAGE_SIZE = 10
 const emptyProducts: Product[] = []
 
 const toId = (value: string) => (value === '' ? undefined : Number(value))
 
-/** MD가 Catalog 상품을 조회하는 화면. 이번 범위는 읽기 전용이다. */
+/** MD가 Catalog 상품을 조회하고 등록·수정·상태 전환·삭제하는 화면. 쓰기는 `catalog.write`가 있을 때만 할 수 있다. */
 export function ProductsPage() {
+  const { can } = useAuth()
+  const writable = can(permissions.catalogWrite)
+  const { notify } = useToast()
+  const [addOpen, setAddOpen] = useState(false)
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
   const [keywordInput, setKeywordInput] = useState('')
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState<ProductStatus | ''>('')
@@ -48,7 +59,23 @@ export function ProductsPage() {
   return <>
     <header className="page-header inbound-page-header">
       <div><p>MERCHANDISING</p><h1>상품 관리</h1></div>
+      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => setAddOpen(true)}>상품 등록</button>}
     </header>
+    <Modal open={addOpen} title="상품 등록" onClose={() => setAddOpen(false)}>
+      <ProductForm
+        categories={categories}
+        groups={groupsQuery.data ?? []}
+        optionGroups={optionGroupsQuery.data ?? []}
+        onCancel={() => setAddOpen(false)}
+        // 최근 등록한 상품이 목록의 맨 앞에 오므로 필터를 풀고 1페이지에서 새 상품을 선택해 보여준다.
+        onDone={(created) => {
+          setAddOpen(false)
+          notify(`상품을 등록했습니다. "판매 대기" 상태이니 활성화하면 판매됩니다. (SKU ${created.sku ?? '-'})`)
+          setKeywordInput(''); setKeyword(''); setStatus(''); setCategoryId(''); setTagId(''); setGroupId(''); setPage(1); setSelectedId(created.id)
+        }}
+        onConflict={() => setAddOpen(false)}
+      />
+    </Modal>
     <form className="panel employee-filters" onSubmit={submitSearch} role="search" aria-label="상품 검색">
       <label>상태
         <select value={status} onChange={(event) => { setStatus(event.target.value as ProductStatus | ''); resetPaging() }}>
@@ -102,8 +129,9 @@ export function ProductsPage() {
         </div>}
       </aside>
       {selected
-        ? <ProductDetail key={selected.id} product={selected} categories={categories} tags={tagsQuery.data ?? []} groups={groupsQuery.data ?? []} optionGroups={optionGroupsQuery.data ?? []} />
+        ? <ProductDetail key={selected.id} product={selected} categories={categories} tags={tagsQuery.data} groups={groupsQuery.data ?? []} optionGroups={optionGroupsQuery.data ?? []} writable={writable} confirm={setPendingConfirm} onDeleted={() => setSelectedId(null)} />
         : <section className="panel inbound-detail-panel inbound-empty-detail"><div><p className="eyebrow">PRODUCTS</p><h2>선택한 상품이 없습니다</h2><span>목록에서 상품을 선택하세요.</span></div></section>}
     </section>}
+    <ConfirmModal open={pendingConfirm !== null} title={pendingConfirm?.title ?? ''} description={pendingConfirm?.description} confirmLabel={pendingConfirm?.confirmLabel} onCancel={() => setPendingConfirm(null)} onConfirm={() => { pendingConfirm?.run(); setPendingConfirm(null) }} />
   </>
 }
