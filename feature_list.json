@@ -257,5 +257,12 @@
     "description": "감사 로그 화면(/audit-logs)을 개선한다(dozy-auth API 변경 없음). action을 분류별 색 칩으로 구분하고 서버 코드는 상세로 옮기며, 행위자·대상 id는 앞 6·뒤 4자리 칩(즉시 툴팁, 클릭 복사)으로 보여준다. 상세는 모달에서 전체 id와 detail 항목(한글 이름)·원본 JSON으로 보여주고, 기간 필터에 빠른 조회(누른 시각 기준으로 시작·종료를 채우고 바로 조회)와 초기화를 둔다. 표 열 폭은 비율로 정하고 IPv4·IPv6가 길어도 칸을 넘지 않게 한다. 공용 Tooltip의 클릭 동작, 복사 훅, 오류 토스트, 모달 열고 닫는 애니메이션을 추가했다. 이슈 #71.",
     "status": "completed",
     "dependencies": ["auth-audit-logs", "admin-ui-polish"]
+  },
+  {
+    "id": "owner-transfer-target-select-ui",
+    "name": "owner 양도 대상 선택 화면 개선",
+    "description": "owner 양도 화면(/owner)의 양도 대상 선택 목록을 개선한다(dozy-auth API 변경 없음). 후보는 모두 활성 직원이라 줄마다 반복되던 \"활성\" 배지를 없애고(활성 직원이어야 한다는 안내는 \"양도 전에 확인하세요\"에 있다), 이름과 이메일 사이를 띄우며, 선택된 대상을 다시 누르면 선택이 풀리게 한다(풀리면 양도 요청 버튼이 다시 비활성). 이슈 #74.",
+    "status": "completed",
+    "dependencies": ["auth-owner-transfer"]
   }
 ]
