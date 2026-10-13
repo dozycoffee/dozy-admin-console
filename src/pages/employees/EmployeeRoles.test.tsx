@@ -48,6 +48,9 @@ function setup(target: EmployeeDetail, { granted = ownerPermissions, writable = 
 
 const optionValues = () => Array.from(screen.getByLabelText('role 추가').querySelectorAll('option')).map((option) => (option as HTMLOptionElement).value).filter(Boolean)
 
+/** role 추가 영역이 비활성일 때 툴팁이 가진 사유(없으면 빈 문자열) */
+const grantReason = () => screen.getByLabelText('role 추가').closest('.tooltip-anchor')?.querySelector('[role=tooltip]')?.textContent ?? ''
+
 beforeEach(() => vi.clearAllMocks())
 
 describe('EmployeeRoles 표시', () => {
@@ -119,24 +122,26 @@ describe('EmployeeRoles 부여', () => {
 
     expect(screen.getByLabelText('role 추가')).toBeDisabled()
     expect(screen.getByRole('button', { name: '부여' })).toBeDisabled()
+    expect(grantReason()).toBe('직원 정보를 변경할 권한이 없습니다.')
   })
 
   it.each([
     ['자기 자신', employee([]), { viewerId: 'p-1' }, '자기 자신에게는 role을 부여할 수 없습니다.'],
     ['정지된 직원', employee([], 'SUSPENDED'), {}, '정지된 직원에게는 role을 부여할 수 없습니다. 정지를 해제한 뒤 부여하세요.'],
     ['비활성화된 직원', employee([], 'DEACTIVATED'), {}, '비활성화된 계정에는 role을 부여할 수 없습니다.'],
-  ])('%s에게는 부여 UI 대신 이유를 안내한다', (_label, target, options, message) => {
+  ])('%s에게는 부여 UI를 비활성화하고 툴팁으로 이유를 안내한다', (_label, target, options, message) => {
     setup(target, options)
 
-    expect(screen.getByText(message)).toBeInTheDocument()
-    expect(screen.queryByLabelText('role 추가')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('role 추가')).toBeDisabled()
+    expect(screen.getByRole('button', { name: '부여' })).toBeDisabled()
+    expect(grantReason()).toBe(message)
   })
 
   it('admin은 owner·admin 계정에 role을 부여·회수할 수 없다', () => {
     setup(employee(['auth:admin', 'wms:warehouse_manager']), { granted: adminPermissions })
 
-    expect(screen.getByText('owner·admin 계정의 role은 owner만 변경할 수 있습니다.')).toBeInTheDocument()
-    expect(screen.queryByLabelText('role 추가')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('role 추가')).toBeDisabled()
+    expect(grantReason()).toBe('owner·admin 계정의 role은 owner만 변경할 수 있습니다.')
     expect(screen.getByRole('button', { name: 'wms:warehouse_manager 회수' })).toBeDisabled()
   })
 
@@ -199,5 +204,24 @@ describe('EmployeeRoles 결과 안내', () => {
     setup(employee(['wms:warehouse_manager']), { revokeState: { isError: true, error: new ApiError('x', { status: 404, code: 'NOT_FOUND' }) } })
 
     expect(screen.getByRole('alert')).toHaveTextContent('대상을 찾을 수 없습니다.')
+  })
+})
+
+describe('EmployeeRoles 회수 버튼 툴팁', () => {
+  it('회수할 수 없는 role은 버튼 툴팁으로 이유를 안내한다', async () => {
+    setup(employee(['auth:owner', 'wms:warehouse_manager'], 'ACTIVE'), { granted: adminPermissions })
+    const user = userEvent.setup()
+
+    const button = screen.getByRole('button', { name: 'wms:warehouse_manager 회수' })
+    expect(button).toBeDisabled()
+    await user.hover(button.parentElement!)
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('owner·admin 계정은 owner만 변경할 수 있습니다.')
+  })
+
+  it('회수할 수 있으면 툴팁이 없다', () => {
+    setup(employee(['wms:warehouse_manager']))
+
+    expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument()
   })
 })

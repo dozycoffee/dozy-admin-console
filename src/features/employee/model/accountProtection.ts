@@ -1,5 +1,8 @@
 export type ProtectedAction = 'edit' | 'invitation' | 'suspend' | 'reactivate' | 'deactivate' | 'password-reset' | 'role'
 
+/** 직원 변경 권한(`account.write`)이 없을 때 컨트롤을 비활성화하며 보여줄 사유 */
+export const NO_WRITE_REASON = '직원 정보를 변경할 권한이 없습니다.'
+
 const OWNER_ROLE = 'auth:owner'
 const ADMIN_ROLE = 'auth:admin'
 

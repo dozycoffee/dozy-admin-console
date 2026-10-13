@@ -585,3 +585,32 @@ a { color: inherit; text-decoration: none; }
   .employee-workspace > .inbound-detail-panel { overflow-y: auto; }
 }
 .employee-workspace .inbound-list-item > small { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
+.employee-detail-body { padding: 0 18px; }
+/* 직원 상세의 role 추가 선택 상자는 카드 폭을 다 채우지 않고 조금 좁게 둔다(system client 카드는 기존대로) */
+.employee-workspace .employee-role-grant label { flex: 0 1 380px; }
+/* 직원 상세: 초대 만료·로그인 잠금 같은 상태 안내 박스 */
+.employee-notices { display: grid; gap: 8px; margin: 14px 0 4px; }
+.employee-notice { display: grid; gap: 3px; padding: 11px 14px; border: 1px solid; border-radius: 8px; }
+.employee-notice strong { font-size: 13px; }
+.employee-notice-detail { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 12px; }
+.employee-notice-detail > span { opacity: .75; }
+.employee-notice-detail time { font-size: 13px; font-weight: 700; }
+.employee-notice-detail em { font-style: normal; font-weight: 700; }
+.employee-notice-detail em::before { margin-right: 8px; content: '·'; opacity: .6; }
+.employee-notice.compact { display: flex; align-items: baseline; gap: 12px; width: fit-content; min-width: 340px; max-width: 100%; padding: 10px 18px; font-size: 13px; }
+.employee-notice.compact > span { opacity: .75; font-size: 12px; }
+.employee-notice.compact time { font-weight: 700; }
+.employee-notice.warning { border-color: #f0dca8; background: #fff3d6; color: #8a5a00; }
+.employee-notice.danger { border-color: #f3c3bd; background: #fde4e1; color: #9c3b3b; }
+.employee-detail-body .employee-fields { margin-top: 8px; }
+/* 직원 상세의 섹션 제목은 라벨(dt)보다 한 단계 진하고 크게, 섹션 사이에는 얇은 구분선을 둔다 */
+.employee-detail-body .employee-section-title { margin: 24px 0 10px; color: var(--ink); font-size: 15px; font-weight: 800; }
+.employee-detail-body .employee-fields + .employee-section-title { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ece7e3; }
+.employee-detail-body .employee-no-roles { margin-bottom: 4px; }
+/* role 추가 행(select+부여)을 감싼 툴팁 래퍼: 행이 줄어들어 버튼이 세로로 꺾이지 않게 select(380px)+간격+버튼 폭으로 둔다 */
+.employee-role-grant-anchor { display: flex; width: 100%; max-width: 470px; }
+.employee-role-grant-anchor .employee-role-grant { flex: 1; }
+.employee-role-grant .inbound-action-button { flex: none; white-space: nowrap; }
+.form-modal .employee-edit { margin: 0; padding: 0; border: 0; }
+.form-modal .inbound-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.form-modal .inbound-form-actions .inbound-action-button { margin-top: 0; }
