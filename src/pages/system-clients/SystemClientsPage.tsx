@@ -23,7 +23,7 @@ export function SystemClientsPage() {
       <div><p>ACCOUNT ADMINISTRATION</p><h1>system client</h1></div>
       {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-expanded={registering} onClick={() => setRegistering((value) => !value)}>{registering ? '등록 닫기' : 'client 등록'}</button>}
     </header>
-    <p className="employee-hint role-intro">system client는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스(audience)만 호출할 수 있습니다.</p>
+    <p className="employee-hint role-intro">system client는 서비스끼리 호출할 때 쓰는 계정입니다. 서비스는 clientId와 secret으로 토큰을 발급받고, 부여된 role의 서비스만 호출할 수 있습니다.</p>
     {revealed && <SecretReveal secret={revealed} onClose={() => setRevealed(null)} />}
     {registering && <RegisterClientForm writable={writable} onRegistered={(secret) => { setRevealed(secret); setRegistering(false) }} />}
     {clients.isLoading && <section className="panel"><p>system client 목록을 불러오는 중입니다...</p></section>}

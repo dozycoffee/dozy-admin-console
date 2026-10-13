@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastContext } from '../../shared/ui/toastContext'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail as EmployeeDetailData, EmployeeStatus } from '../../features/employee/model/employeeSchemas'
@@ -48,12 +49,15 @@ function setup(employee: EmployeeDetailData, { granted = ownerPermissions, writa
   vi.mocked(useEmployee).mockReturnValue({ isLoading: false, isError: false, data: employee } as never)
   const mutations = mockMutations(overrides)
   const confirm = vi.fn()
+  const notify = vi.fn()
   render(
     <AuthContext.Provider value={{ user: null, isLoading: false, activeActorMode: null, can: (permission) => granted.includes(permission), selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <EmployeeDetail principalId="p-1" writable={writable} confirm={confirm} />
+      <ToastContext.Provider value={{ notify }}>
+        <EmployeeDetail principalId="p-1" writable={writable} confirm={confirm} />
+      </ToastContext.Provider>
     </AuthContext.Provider>,
   )
-  return { mutations, confirm }
+  return { mutations, confirm, notify }
 }
 
 const buttonNames = () => Array.from(document.querySelectorAll('.employee-actions button')).map((button) => button.textContent)
@@ -151,7 +155,7 @@ describe('EmployeeDetail 작업 실행', () => {
     await user.click(screen.getByRole('button', { name: '재설정 메일 발송' }))
     confirm.mock.calls[0][0].run()
 
-    expect(mutations.passwordReset.mutate).toHaveBeenCalledWith('p-1')
+    expect(mutations.passwordReset.mutate).toHaveBeenCalledWith('p-1', { onSuccess: expect.any(Function) })
   })
 
   it('새 작업을 시작하면 이전 작업의 상태를 모두 지운다', async () => {
@@ -179,10 +183,26 @@ describe('EmployeeDetail 작업 실행', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('재설정 메일을 보내면 성공 안내를 보여준다', () => {
-    setup(detail('ACTIVE'), { overrides: { passwordReset: { isSuccess: true } } })
+  it('재설정 메일을 보내면 성공 안내를 토스트로 알린다', async () => {
+    const { mutations, confirm, notify } = setup(detail('ACTIVE'))
+    await userEvent.setup().click(screen.getByRole('button', { name: '재설정 메일 발송' }))
+    confirm.mock.calls[0][0].run()
+    expect(notify).not.toHaveBeenCalled()
 
-    expect(screen.getByRole('status')).toHaveTextContent('비밀번호 재설정 메일을 보냈습니다.')
+    mutations.passwordReset.mutate.mock.calls[0][1].onSuccess()
+
+    expect(notify).toHaveBeenCalledWith('비밀번호 재설정 메일을 보냈습니다.')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument() // 화면 안에 문장으로 남기지 않는다
+  })
+
+  it('초대를 재발송하면 새 만료 시각을 토스트로 알린다', async () => {
+    const { mutations, confirm, notify } = setup(detail('PENDING'))
+    await userEvent.setup().click(screen.getByRole('button', { name: '초대 재발송' }))
+    confirm.mock.calls[0][0].run()
+
+    mutations.resend.mutate.mock.calls[0][1].onSuccess({ invitationExpiresAt: '2026-10-16T05:00:00Z' })
+
+    expect(notify).toHaveBeenCalledWith(expect.stringMatching(/^초대 메일을 다시 보냈습니다\. 새 초대는 .+까지 유효합니다\.$/))
   })
 
   it('작업이 실패하면 에러 code별 안내를 보여준다', () => {

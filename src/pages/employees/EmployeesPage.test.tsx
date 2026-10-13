@@ -2,6 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { ToastProvider } from '../../shared/ui/ToastProvider'
 import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { EmployeeDetail, EmployeeSummary } from '../../features/employee/model/employeeSchemas'
@@ -52,7 +53,7 @@ function setup(items: EmployeeSummary[] = [kim, lee], totalPages = 1) {
 function renderPage(granted: Permission[] = [permissions.accountRead, permissions.accountWrite]) {
   return render(
     <AuthContext.Provider value={{ user: null, isLoading: false, activeActorMode: null, can: (permission) => granted.includes(permission), selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <EmployeesPage />
+      <ToastProvider><EmployeesPage /></ToastProvider>
     </AuthContext.Provider>,
   )
 }
@@ -145,7 +146,7 @@ describe('EmployeesPage', () => {
     expect(resend).not.toHaveBeenCalled()
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '재발송' }))
 
-    expect(resend).toHaveBeenCalledWith('p-2')
+    expect(resend).toHaveBeenCalledWith('p-2', expect.anything())
   })
 
   it('초대 취소는 확인 후 실행한다', async () => {
@@ -243,6 +244,7 @@ describe('EmployeesPage', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('직원을 추가했습니다. 초대 메일을 보냈으며')
+    expect(screen.getByRole('status').parentElement).toBe(document.body) // 상위 요소의 transform과 무관하게 화면 기준 위치에 뜨도록 body에 그린다
     expect(mockedUseEmployees).toHaveBeenLastCalledWith({ status: undefined, role: undefined, q: '', page: 0, size: 5 })
     expect(mockedUseEmployee).toHaveBeenLastCalledWith('p-2')
 

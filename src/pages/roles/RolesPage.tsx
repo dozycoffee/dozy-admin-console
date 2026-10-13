@@ -5,7 +5,9 @@ import { useAuth } from '../../features/auth/model/useAuth'
 import type { Role } from '../../features/role/model/roleSchemas'
 import { useAudiences, useDeleteRole, useRoles } from '../../features/role/model/useRoles'
 import { ApiError } from '../../shared/api/ApiError'
+import { withViewTransition } from '../../shared/lib/withViewTransition'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { useToast } from '../../shared/ui/toastContext'
 import { AudiencePanel } from './AudiencePanel'
 import { RoleCreateForm } from './RoleCreateForm'
 import { RoleRow } from './RoleRow'
@@ -17,11 +19,13 @@ export function RolesPage() {
   const writable = can(permissions.accountWrite)
   const [audienceFilter, setAudienceFilter] = useState('')
   const audiencesQuery = useAudiences()
-  const rolesQuery = useRoles(audienceFilter || undefined)
+  // role은 서비스 수에 비해 적고 페이지도 없어 전부 받아 두고 화면에서 거른다. 필터를 바꿀 때마다 API를 다시 부르면 목록이 비었다가 다시 그려져 깜빡인다.
+  const rolesQuery = useRoles()
   const deleteRole = useDeleteRole()
+  const { notify } = useToast()
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const audiences = audiencesQuery.data ?? []
-  const roles = rolesQuery.data ?? []
+  const roles = (rolesQuery.data ?? []).filter((role) => audienceFilter === '' || role.audience === audienceFilter)
 
   function requestDelete(role: Role) {
     deleteRole.reset()
@@ -34,6 +38,7 @@ export function RolesPage() {
     const target = deleteTarget
     setDeleteTarget(null)
     deleteRole.mutate({ roleId: target.role.id, revokeAll: target.inUse }, {
+      onSuccess: () => notify(target.inUse ? `role을 삭제했습니다. 부여된 ${target.role.grantedCount}명에게서 회수했습니다.` : 'role을 삭제했습니다.'),
       onError: (error) => {
         if (!target.inUse && error instanceof ApiError && error.code === 'ROLE_IN_USE') {
           const latest = rolesQuery.data?.find((role) => role.id === target.role.id) ?? target.role
@@ -47,15 +52,15 @@ export function RolesPage() {
     <header className="page-header inbound-page-header">
       <div><p>ACCOUNT ADMINISTRATION</p><h1>role 관리</h1></div>
     </header>
-    <p className="employee-hint role-intro">role은 서비스(audience)별 권한 묶음입니다. 여기서는 role 정의만 관리하며, 직원에게 부여하는 것은 직원 관리에서 합니다.</p>
+    <p className="employee-hint role-intro">role은 서비스별 권한 묶음입니다. 여기서는 role 정의만 관리하며, 직원에게 부여하는 것은 직원 관리에서 합니다.</p>
     {audiencesQuery.isError && <section className="panel"><p className="inbound-error" role="alert">{toAdminErrorMessage(audiencesQuery.error)}</p></section>}
     {audiencesQuery.data && <AudiencePanel audiences={audiences} canCreate={can(permissions.accountManage)} />}
     {audiencesQuery.data && <RoleCreateForm audiences={audiences} writable={writable} />}
     <section className="panel role-list-panel">
       <div className="panel-heading">
         <div><p className="eyebrow">ROLES</p><h2>role 목록</h2></div>
-        <label className="role-filter">audience
-          <select value={audienceFilter} onChange={(event) => setAudienceFilter(event.target.value)}>
+        <label className="role-filter">서비스
+          <select value={audienceFilter} onChange={(event) => { const value = event.target.value; withViewTransition(() => setAudienceFilter(value)) }}>
             <option value="">전체</option>
             {audiences.map((audience) => <option key={audience.id} value={audience.code}>{audience.name} ({audience.code})</option>)}
           </select>
@@ -68,7 +73,6 @@ export function RolesPage() {
         {roles.map((role) => <RoleRow key={role.id} role={role} writable={writable} deleting={deleteRole.isPending} onDelete={requestDelete} />)}
       </ul>
       {deleteRole.isError && !deleteTarget && <p className="inbound-error" role="alert">{toAdminErrorMessage(deleteRole.error)}</p>}
-      {deleteRole.isSuccess && <p className="employee-success" role="status">role을 삭제했습니다.</p>}
     </section>
     <ConfirmModal
       open={deleteTarget !== null}

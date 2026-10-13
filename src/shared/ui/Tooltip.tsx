@@ -5,6 +5,8 @@ type Props = {
   content: string | null | undefined
   children: ReactNode
   className?: string
+  /** 래퍼가 아이콘 배지처럼 글자가 없는 요소일 때 화면 읽기 도구가 읽을 이름 */
+  label?: string
 }
 
 /**
@@ -12,7 +14,7 @@ type Props = {
  * disabled 요소는 호버·포커스 이벤트를 받지 못하는 브라우저가 있어, 요소를 감싼 래퍼가 대신 받는다.
  * 래퍼는 안내가 있을 때만 포커스를 받고(Tab), Esc로 닫는다. 문구는 aria-describedby로 스크린리더에도 연결한다.
  */
-export function Tooltip({ content, children, className }: Props) {
+export function Tooltip({ content, children, className, label }: Props) {
   const id = useId()
   const [open, setOpen] = useState(false)
 
@@ -20,6 +22,7 @@ export function Tooltip({ content, children, className }: Props) {
   return <span
     className={className ? `tooltip-anchor ${className}` : 'tooltip-anchor'}
     tabIndex={0}
+    {...(label && { role: 'img', 'aria-label': label })}
     aria-describedby={id}
     onMouseEnter={() => setOpen(true)}
     onMouseLeave={() => setOpen(false)}

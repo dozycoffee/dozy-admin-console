@@ -7,23 +7,23 @@ import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { useEmployees } from '../../features/employee/model/useEmployees'
 import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
 import { INVITE_STEPS, inviteStepLabels, type InviteStep } from '../../features/employee/model/inviteSteps'
-import { InviteEmployeeForm, type InvitedEmployee } from '../../features/employee/ui/InviteEmployeeForm'
+import { InviteEmployeeForm } from '../../features/employee/ui/InviteEmployeeForm'
 import { useRoles } from '../../features/role/model/useRoles'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/toastContext'
 import { EmployeeDetail, type PendingConfirm } from './EmployeeDetail'
 
 const PAGE_SIZE = 5
-const ADDED_NOTICE_MS = 8000
 const emptyEmployees: EmployeeSummary[] = []
 
 export function EmployeesPage() {
   const { can } = useAuth()
   const writable = can(permissions.accountWrite)
+  const { notify } = useToast()
   const roles = useRoles()
   const [addOpen, setAddOpen] = useState(false)
   const [addStep, setAddStep] = useState<InviteStep>(1)
-  const [added, setAdded] = useState<InvitedEmployee | null>(null)
   const [status, setStatus] = useState<EmployeeStatus | ''>('')
   const [role, setRole] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -37,13 +37,6 @@ export function EmployeesPage() {
   const totalElements = employeesQuery.data?.page.totalElements ?? 0
   const totalPages = Math.max(1, employeesQuery.data?.page.totalPages ?? 1)
   const selected = employees.find((employee) => employee.principalId === selectedId) ?? employees[0]
-
-  // 추가 성공 알림은 화면 위에 떠 있는 토스트라 레이아웃을 밀지 않고, 일정 시간 뒤 자동으로 사라진다.
-  useEffect(() => {
-    if (!added) return
-    const timer = window.setTimeout(() => setAdded(null), ADDED_NOTICE_MS)
-    return () => window.clearTimeout(timer)
-  }, [added])
 
   // 마지막 페이지의 직원이 필터에서 빠지는 경우(예: 활성 필터에서 마지막 페이지의 직원을 정지) 현재 페이지가 마지막 페이지를 넘으면 마지막 페이지로 되돌린다.
   const lastPage = Math.max(1, employeesQuery.data?.page.totalPages ?? 1)
@@ -70,9 +63,8 @@ export function EmployeesPage() {
   return <>
     <header className="page-header inbound-page-header">
       <div><p>ACCOUNT ADMINISTRATION</p><h1>직원 관리</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => { setAdded(null); setAddOpen(true) }}>직원 추가</button>}
+      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => setAddOpen(true)}>직원 추가</button>}
     </header>
-    {added && <p className="employee-success employee-added" role="status">직원을 추가했습니다. 초대 메일을 보냈으며, {formatDateTime(added.invitationExpiresAt)}까지 비밀번호를 정하면 계정이 활성화됩니다.<button type="button" aria-label="안내 닫기" onClick={() => setAdded(null)}>×</button></p>}
     <Modal open={addOpen} title="직원 추가" titleAddon={<span className="form-modal-step" aria-live="polite"><b>{addStep} / {INVITE_STEPS}</b>{inviteStepLabels[addStep]}</span>} onClose={() => setAddOpen(false)}>
       <InviteEmployeeForm
         writable={writable}
@@ -80,7 +72,8 @@ export function EmployeesPage() {
         onStepChange={setAddStep}
         onInvited={(invited) => {
           // 새 직원은 최신순 목록의 맨 앞에 있으므로 필터를 풀고 1페이지에서 선택해 보여준다.
-          setAddOpen(false); setAdded(invited)
+          setAddOpen(false)
+          notify(`직원을 추가했습니다. 초대 메일을 보냈으며, ${formatDateTime(invited.invitationExpiresAt)}까지 비밀번호를 정하면 계정이 활성화됩니다.`)
           setStatus(''); setRole(''); setSearchInput(''); setSearch(''); setPage(1); setSelectedId(invited.principalId)
         }}
       />

@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
 import type { Role } from '../../features/role/model/roleSchemas'
 import { useUpdateRole } from '../../features/role/model/useRoles'
+import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/toastContext'
 
 type Props = {
   role: Role
@@ -12,6 +14,7 @@ type Props = {
 
 export function RoleRow({ role, writable, deleting, onDelete }: Props) {
   const update = useUpdateRole()
+  const { notify } = useToast()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(role.name)
   const [description, setDescription] = useState(role.description ?? '')
@@ -34,33 +37,17 @@ export function RoleRow({ role, writable, deleting, onDelete }: Props) {
       setEditing(false)
       return
     }
-    update.mutate({ roleId: role.id, body }, { onSuccess: () => setEditing(false) })
-  }
-
-  if (editing) {
-    return (
-      <li className="role-row editing">
-        <form onSubmit={submit} className="employee-edit">
-          <p className="role-code">{role.fullCode}</p>
-          <label>이름<input value={name} disabled={update.isPending} onChange={(event) => setName(event.target.value)} /></label>
-          <label>설명<input value={description} disabled={update.isPending} onChange={(event) => setDescription(event.target.value)} /></label>
-          <p className="employee-hint">code와 audience는 바꿀 수 없습니다.</p>
-          <div className="employee-actions">
-            <button type="submit" className="inbound-action-button" disabled={update.isPending || name.trim() === ''}>{update.isPending ? '저장 중...' : '저장'}</button>
-            <button type="button" className="inbound-action-button employee-secondary" disabled={update.isPending} onClick={() => setEditing(false)}>취소</button>
-          </div>
-          {update.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(update.error)}</p>}
-        </form>
-      </li>
-    )
+    update.mutate({ roleId: role.id, body }, { onSuccess: () => { setEditing(false); notify('role을 수정했습니다.') } })
   }
 
   return (
     <li className="role-row">
       <div className="role-main">
-        <strong>{role.name}</strong>
-        {role.isSystem && <span className="inbound-status employee-status employee-status-suspended">system</span>}
-        <p className="role-code">{role.fullCode}</p>
+        <div className="role-title">
+          <strong>{role.name}</strong>
+          {role.isSystem && <span className="inbound-status employee-status employee-status-suspended">system</span>}
+          <code className="role-code-chip">{role.fullCode}</code>
+        </div>
         {role.description && <p className="role-description">{role.description}</p>}
       </div>
       <span className="role-count">{role.grantedCount}명</span>
@@ -68,6 +55,19 @@ export function RoleRow({ role, writable, deleting, onDelete }: Props) {
         <button type="button" className="inbound-action-button employee-secondary" disabled={locked || deleting} onClick={startEdit} title={role.isSystem ? 'system role은 수정할 수 없습니다.' : undefined}>수정</button>
         <button type="button" className="inbound-action-button employee-danger" disabled={locked || deleting} onClick={() => onDelete(role)} title={role.isSystem ? 'system role은 삭제할 수 없습니다.' : undefined}>삭제</button>
       </div>
+      <Modal open={editing} title={`role 수정 · ${role.name}`} onClose={() => setEditing(false)}>
+        <form onSubmit={submit} className="employee-edit">
+          <p className="role-code">{role.fullCode}</p>
+          <label>이름<input value={name} disabled={update.isPending} onChange={(event) => setName(event.target.value)} /></label>
+          <label>설명<input value={description} disabled={update.isPending} onChange={(event) => setDescription(event.target.value)} /></label>
+          <p className="employee-hint">code와 서비스는 바꿀 수 없습니다.</p>
+          <div className="employee-actions">
+            <button type="submit" className="inbound-action-button" disabled={update.isPending || name.trim() === ''}>{update.isPending ? '저장 중...' : '저장'}</button>
+            <button type="button" className="inbound-action-button employee-secondary" disabled={update.isPending} onClick={() => setEditing(false)}>취소</button>
+          </div>
+          {update.isError && <p className="inbound-error" role="alert">{toAdminErrorMessage(update.error)}</p>}
+        </form>
+      </Modal>
     </li>
   )
 }

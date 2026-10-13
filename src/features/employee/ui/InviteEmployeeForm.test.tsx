@@ -244,7 +244,7 @@ describe('InviteEmployeeForm', () => {
       expect(screen.queryByLabelText('이메일')).not.toBeInTheDocument()
     })
 
-    it('role을 audience별 그룹 아래에 묶어서 보여준다', async () => {
+    it('role을 서비스별 그룹 아래에 묶어서 보여준다', async () => {
       setup({}, { data: catalog })
       const user = userEvent.setup()
       render(<InviteEmployeeForm writable onInvited={vi.fn()} onCancel={vi.fn()} />)
