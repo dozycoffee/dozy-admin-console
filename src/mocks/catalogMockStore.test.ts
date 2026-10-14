@@ -161,3 +161,76 @@ describe('상품 그룹', () => {
     expect(failure(store.deleteGroup(99))).toMatchObject({ status: 404, code: 'PRODUCT_GROUP_NOT_FOUND' })
   })
 })
+
+describe('옵션 그룹', () => {
+  const sizes = [{ optionKey: 'REGULAR', name: '레귤러', price: 0 }, { optionKey: 'LARGE', name: '라지', price: 500 }]
+  const newGroup = { name: '시럽', selectionType: 'MULTI' as const, required: false, options: [{ optionKey: 'VANILLA', name: '바닐라', price: 300 }] }
+
+  it('이름으로 검색한다(대소문자 무시)', () => {
+    expect(store.optionGroups('사이').map((group) => group.name)).toEqual(['사이즈'])
+    expect(store.optionGroups().length).toBe(3)
+  })
+
+  it('등록하면 version 1로 만들어 맨 뒤에 둔다', () => {
+    expect(store.createOptionGroup(newGroup)).toMatchObject({ ok: true, value: { id: 4, version: 1, name: '시럽' } })
+    expect(store.optionGroups().at(-1)?.name).toBe('시럽')
+  })
+
+  it.each([
+    [{ options: [] }, 422, 'EMPTY_OPTION_GROUP'],
+    [{ options: [{ optionKey: 'A', name: 'a', price: 0 }, { optionKey: 'A', name: 'b', price: 0 }] }, 400, 'DUPLICATE_OPTION_KEY'],
+    [{ options: [{ optionKey: 'A', name: 'a', price: -1 }] }, 400, 'INVALID_MONEY_AMOUNT'],
+  ])('등록 입력 %j는 %i %s로 거부한다', (override, status, code) => {
+    expect(failure(store.createOptionGroup({ ...newGroup, ...override }))).toMatchObject({ status, code })
+  })
+
+  it('이름·선택 방식·필수 여부를 바꾸면 버전이 오르고 옵션은 그대로다', () => {
+    const result = store.updateOptionGroup(1, 2, { name: '크기', selectionType: 'MULTI', required: false })
+
+    expect(result).toMatchObject({ ok: true, value: { name: '크기', selectionType: 'MULTI', required: false, version: 3 } })
+    expect(store.optionGroups().find((group) => group.id === 1)?.options).toHaveLength(3)
+  })
+
+  it('버전이 다르면 409 VERSION_CONFLICT와 현재 버전을, 없으면 428을 돌려주고 바꾸지 않는다', () => {
+    expect(failure(store.updateOptionGroup(1, 1, { name: 'x', selectionType: 'SINGLE', required: true }))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT', currentVersion: 2 })
+    expect(failure(store.updateOptionGroup(1, null, { name: 'x', selectionType: 'SINGLE', required: true }))).toMatchObject({ status: 428, code: 'VERSION_REQUIRED' })
+    expect(failure(store.updateOptionGroup(99, 1, { name: 'x', selectionType: 'SINGLE', required: true }))).toMatchObject({ status: 404, code: 'OPTION_GROUP_NOT_FOUND' })
+    expect(store.optionGroups().find((group) => group.id === 1)?.name).toBe('사이즈')
+  })
+
+  it('옵션 목록을 교체하고 버전을 올린다', () => {
+    expect(store.replaceOptions(1, 2, sizes)).toMatchObject({ ok: true, value: { version: 3, options: sizes } })
+  })
+
+  it('옵션 목록 교체도 버전 충돌과 규칙을 검사한다', () => {
+    expect(failure(store.replaceOptions(1, 1, sizes))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT' })
+    expect(failure(store.replaceOptions(1, 2, []))).toMatchObject({ status: 422, code: 'EMPTY_OPTION_GROUP' })
+    expect(failure(store.replaceOptions(1, 2, [sizes[0], sizes[0]]))).toMatchObject({ status: 400, code: 'DUPLICATE_OPTION_KEY' })
+  })
+
+  it('사라진 옵션 키의 상품별 예외를 모든 연결 상품에서 지우고 남은 키의 예외는 둔다', () => {
+    // 상품 12·11·10은 사이즈를 연결했고 12·11에 LARGE 가격·XLARGE 제외 예외가 있다
+    store.replaceOptions(1, 2, [sizes[0], { optionKey: 'LARGE', name: '라지', price: 500 }])
+
+    const overrides = store.products().find((product) => product.id === 12)?.optionGroups.find((link) => link.optionGroupId === 1)?.overrides
+    expect(overrides).toEqual([{ optionKey: 'LARGE', type: 'PRICE', price: 700 }])
+  })
+
+  it('제외 예외 때문에 어떤 연결 상품의 선택 가능한 옵션이 0개가 되면 거부한다', () => {
+    // 상품 12는 XLARGE를 제외했다. 옵션을 XLARGE 하나로 줄이면 그 상품이 고를 옵션이 없다.
+    expect(failure(store.replaceOptions(1, 2, [{ optionKey: 'XLARGE', name: '엑스라지', price: 1000 }]))).toMatchObject({ status: 422, code: 'NO_SELECTABLE_OPTION' })
+    expect(store.optionGroups().find((group) => group.id === 1)?.version).toBe(2)
+  })
+
+  it('연결한 상품이 있으면 삭제할 수 없고 없으면 삭제한다', () => {
+    expect(failure(store.deleteOptionGroup(1))).toMatchObject({ status: 409, code: 'OPTION_GROUP_STILL_REFERENCED' })
+    expect(store.deleteOptionGroup(3)).toMatchObject({ ok: true, value: null })
+    expect(store.optionGroups().some((group) => group.id === 3)).toBe(false)
+    expect(failure(store.deleteOptionGroup(99))).toMatchObject({ status: 404, code: 'OPTION_GROUP_NOT_FOUND' })
+  })
+
+  it('만든 옵션 그룹은 상품 등록에서 연결할 수 있다', () => {
+    store.createOptionGroup(newGroup)
+    expect(store.create({ ...body, tracksInventory: false, optionGroupIds: [4] })).toMatchObject({ ok: true })
+  })
+})

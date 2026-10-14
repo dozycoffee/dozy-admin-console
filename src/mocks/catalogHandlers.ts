@@ -40,7 +40,7 @@ const nameOf = async (request: Request) => ((await request.json()) as { name: st
 const numberParam = (value: string | null) => (value === null || value === '' ? undefined : Number(value))
 
 /**
- * dozy-auth 로그인과 dozy-catalog-api 상품 조회·등록·수정·상태 전환·삭제와 분류(카테고리·태그·상품 그룹) 관리를 MSW로 대신한다(상태는 메모리에만 있고 새로고침하면 초기화된다). `VITE_MOCK_CATALOG=true`일 때만 켜진다.
+ * dozy-auth 로그인과 dozy-catalog-api 상품 조회·등록·수정·상태 전환·삭제와 분류(카테고리·태그·상품 그룹)·옵션 그룹 관리를 MSW로 대신한다(상태는 메모리에만 있고 새로고침하면 초기화된다). `VITE_MOCK_CATALOG=true`일 때만 켜진다.
  * Catalog를 띄우기 어려운 환경에서 MD 화면을 확인하는 용도이며, 어떤 비밀번호로든 MD 직원으로 로그인된다.
  */
 export const catalogMockHandlers: RequestHandler[] = [
@@ -96,5 +96,9 @@ export const catalogMockHandlers: RequestHandler[] = [
   http.post(`${ADMIN}/product-groups`, async ({ request }) => respondValue(store.createGroup(await nameOf(request)), 201)),
   http.put(`${ADMIN}/product-groups/:id`, async ({ request, params }) => respondValue(store.renameGroup(Number(params.id), await nameOf(request)))),
   http.delete(`${ADMIN}/product-groups/:id`, ({ params }) => respondValue(store.deleteGroup(Number(params.id)))),
-  http.get(`${ADMIN}/option-groups`, () => HttpResponse.json(mockOptionGroups)),
+  http.get(`${ADMIN}/option-groups`, ({ request }) => HttpResponse.json(store.optionGroups(new URL(request.url).searchParams.get('keyword') ?? undefined))),
+  http.post(`${ADMIN}/option-groups`, async ({ request }) => respondValue(store.createOptionGroup(await request.json() as never), 201)),
+  http.put(`${ADMIN}/option-groups/:id`, async ({ request, params }) => respondValue(store.updateOptionGroup(Number(params.id), versionOf(request), await request.json() as never))),
+  http.put(`${ADMIN}/option-groups/:id/options`, async ({ request, params }) => respondValue(store.replaceOptions(Number(params.id), versionOf(request), ((await request.json()) as { options: never[] }).options))),
+  http.delete(`${ADMIN}/option-groups/:id`, ({ params }) => respondValue(store.deleteOptionGroup(Number(params.id)))),
 ]

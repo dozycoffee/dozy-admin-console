@@ -28,6 +28,8 @@ export const mockProductGroups: ProductGroup[] = [
 export const mockOptionGroups: OptionGroup[] = [
   { id: 1, name: '사이즈', selectionType: 'SINGLE', required: true, version: 2, options: [{ optionKey: 'REGULAR', name: '레귤러', price: 0 }, { optionKey: 'LARGE', name: '라지', price: 500 }, { optionKey: 'XLARGE', name: '엑스라지', price: 1000 }] },
   { id: 2, name: '샷 추가', selectionType: 'MULTI', required: false, version: 1, options: [{ optionKey: 'SHOT', name: '샷 추가', price: 500 }] },
+  // 아직 연결한 상품이 없는 옵션 그룹(삭제 시연용)
+  { id: 3, name: '온도', selectionType: 'SINGLE', required: true, version: 1, options: [{ optionKey: 'HOT', name: '따뜻하게', price: 0 }, { optionKey: 'ICE', name: '차갑게', price: 0 }] },
 ]
 
 const sizeOptions: Product['optionGroups'] = [{ optionGroupId: 1, overrides: [{ optionKey: 'LARGE', type: 'PRICE', price: 700 }, { optionKey: 'XLARGE', type: 'EXCLUDE', price: null }] }, { optionGroupId: 2, overrides: [] }]
