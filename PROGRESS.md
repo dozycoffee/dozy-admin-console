@@ -3,7 +3,7 @@
 ## 현재 상태
 
 `feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 947개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 1010개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -13,7 +13,7 @@
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
 | 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
-| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
+| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
   `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
@@ -52,6 +52,22 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-14 (Catalog 상품의 옵션 그룹 연결·예외)
+
+- 이슈 #86, 같은 브랜치(`feat/catalog-product-list`)에서 `catalog-product-options` 구현. 이로써 Catalog 상품 관리(요구사항 1.2~1.9, 1.11~1.12)의 화면 범위가 끝났다. 남은 것은 예약 변경(1.3·1.4)·판매 범위 변경(1.5)·노출 현황(1.10)이다
+- **상품 상세의 옵션 그룹 구역(`ProductOptionGroups`):** 연결된 옵션 그룹을 노출 순서대로("1. 사이즈") 카드로 보여주고 옵션별로 기본 가격과 "이 상품" 상태(기본·가격 변경 N원·제외)를 표시한다(제외된 옵션은 흐리게). 그룹마다 ↑↓(노출 순서)·"연결 해제", 옵션 줄마다 "예외", 아래에 "옵션 그룹 연결" 선택과 "연결"
+- **API:** 연결 `POST /products/{id}/option-groups`(기존 연결 뒤에 붙음), 해제 `DELETE …/option-groups/{gid}`, 순서 `PUT …/option-groups/order`(연결된 전체를 한 번씩), 예외 `PUT·DELETE …/overrides/{optionKey}`(옵션 키는 경로에 쓰기 전에 인코딩). 모두 상품의 `If-Match` 버전이 필요하고 변경된 상품을 돌려준다
+- **연속 변경 보호:** 변경할 때마다 상품 버전이 올라 연속 클릭이 낡은 버전으로 나가면 충돌한다. 그래서 이 mutation들은 `onSettled`에서 상품 목록 재조회(`invalidateQueries`)를 **기다려** `isPending`이 재조회가 끝날 때까지 이어지게 하고, 그동안 모든 버튼과 선택을 비활성화한다("처리 중입니다." 툴팁). 409 `VERSION_CONFLICT`는 오류 토스트로 알리고 상품은 이미 재조회돼 최신이다
+- **연결 해제 확인:** 그 연결의 가격 변경·제외 예외도 함께 삭제되고 다시 연결해도 복원되지 않는다고 확인 모달로 알린다(옵션 그룹 자체는 삭제되지 않음)
+- **옵션 예외 모달(`OptionOverrideModal`):** "옵션 그룹의 기본값 사용"(예외 해제) / "이 상품에서만 가격 변경"(0 이상 정수) / "이 상품에서는 선택할 수 없게 제외". 현재 예외로 열리고 같은 값이면 요청 없이 닫는다. 선택 가능한 옵션이 0개가 되는 제외는 서버가 `NO_SELECTABLE_OPTION`으로 거부하며 모달 안에만 안내한다(구역에는 중복해서 보여주지 않는다)
+- **판매 옵션 미리보기:** 버튼을 눌러 열면 `GET …/effective-options`의 결과(표시용 시작가, 제외·가격 예외를 반영한 옵션, 자동 선택, "이 상품 가격")를 **서버가 계산한 그대로** 보여준다. 콘솔은 다시 계산하지 않는다(조합 금액·선택 검증은 주문·POS의 책임)
+- **상품 등록 중 옵션 그룹 만들기:** 등록 폼의 옵션 그룹 구역에 "새 옵션 그룹 만들기" 버튼을 두고 모달 위에 옵션 그룹 모달을 겹쳐 연다. 만들면 그 그룹이 바로 선택(맨 뒤, 노출 순서 포함)되고 토스트로 알린다. 안쪽 모달은 상품 폼의 `<form>` 밖에 그려 제출 이벤트가 React 트리를 따라 올라가 상품이 같이 등록되는 일을 막는다. 이를 위해 옵션 그룹 폼을 `features/catalog/ui/OptionGroupForm`으로 옮겨 두 화면이 공유한다
+- **겹친 모달 처리(`shared/ui/modalStack.ts`):** 지금까지 `Modal`은 겹쳐 열린 모달을 몰라 Esc가 모든 모달을 닫고, Tab 포커스 가두기가 안쪽 모달에서 바깥 모달로 포커스를 끌어왔다(옵션 삭제 확인 모달에서 Esc를 누르면 폼까지 닫히는 잠재 문제도 같은 원인). 열린 순서를 스택으로 두고 맨 위 모달(`Modal`·`ConfirmModal`)만 Esc·Tab을 처리하게 했다
+- **오류 문구:** `PRODUCT_OPTION_GROUP_NOT_LINKED`·`INVALID_OPTION_GROUP_ORDER`·`OPTION_KEY_NOT_FOUND`를 추가하고 `NO_SELECTABLE_OPTION`은 옵션 그룹 변경과 예외 지정 양쪽에 맞게 다듬었다
+- **목 모드:** 목 저장소가 중복 연결 거부, 해제 시 예외 삭제, 순서 검증(연결 안 된 그룹 404·빠지거나 겹치면 400), 예외 규칙(없는 키·음수 가격·선택 가능 옵션 0개), 모든 변경의 버전 검사(428·409), 서버가 계산하는 유효 옵션·시작가·자동 선택을 흉내 낸다
+- 검증: build/lint/test(1010) 통과. **목 모드**에서 Chrome으로 연결 그룹 카드와 옵션 상태, 순서 변경(연속으로 이어서 변경 가능), 레귤러 제외 저장, 마지막 옵션 제외 시 `NO_SELECTABLE_OPTION` 거부(모달 안 안내), 판매 옵션 미리보기(시작가 5,200원·자동 선택·이 상품 가격), 상품 등록 모달 위에 옵션 그룹 모달을 열고 Esc가 안쪽만 닫는 것, 새 옵션 그룹 생성 후 자동 선택("1번째")과 상품이 같이 등록되지 않는 것을 확인했고 콘솔 에러는 없었다. 연결·해제와 예외 해제, 버전 충돌은 단위 테스트로만 검증했다. **실서버로는 확인하지 못했다**
+- 알려진 한계: 옵션 그룹 구성이 바뀐 뒤 상품의 예외가 어떻게 되는지(사라진 키의 예외 삭제)는 서버 규칙이라 목으로만 확인했다. 상품 등록 폼에서 만든 옵션 그룹은 목록이 다시 받아질 때까지 잠깐 체크 상태로만 보일 수 있다. 예약 변경(옵션 그룹 연결·예외 예약)은 범위 밖이다
 
 ### 2026-10-14 (Catalog 옵션 그룹 관리 화면)
 

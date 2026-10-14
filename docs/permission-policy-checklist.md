@@ -36,7 +36,7 @@
 | `return.read` | 반품 작업 조회 | 창고 관리자 모드의 `/returns`, `/returns/history` |
 | `return.write` | 반품 접수 등록, 검수 시작, 품목 검수, 반품 완료 | `/returns`의 등록·작업 버튼 |
 | `catalog.read` | 상품 목록·상세, 카테고리·태그·상품 그룹, 옵션 그룹 조회 | MD 모드의 `/products`, `/taxonomy`, `/option-groups` |
-| `catalog.write` | 상품 등록·정보 수정·활성화·단종·삭제, 카테고리·태그·상품 그룹 추가·이름 변경·부모 변경·삭제, 옵션 그룹 등록·변경·삭제 | `/products`의 "상품 등록" 버튼(없으면 숨김)과 상세의 작업 버튼(없으면 비활성화), `/taxonomy`의 추가 버튼(없으면 숨김)과 줄의 변경 버튼(없으면 비활성화), `/option-groups`의 "옵션 그룹 추가" 버튼(없으면 숨김)과 상세의 변경·삭제 버튼(없으면 비활성화) (dozy-catalog-api는 `catalog:admin` 하나가 `/admin/**` 전체를 허용하므로 두 Permission 모두 이 role에 매핑) |
+| `catalog.write` | 상품 등록·정보 수정·활성화·단종·삭제, 카테고리·태그·상품 그룹 추가·이름 변경·부모 변경·삭제, 옵션 그룹 등록·변경·삭제, 상품의 옵션 그룹 연결·해제·순서 변경·옵션 예외 지정·해제 | `/products`의 "상품 등록" 버튼(없으면 숨김)과 상세의 작업 버튼(없으면 비활성화), `/taxonomy`의 추가 버튼(없으면 숨김)과 줄의 변경 버튼(없으면 비활성화), `/option-groups`의 "옵션 그룹 추가" 버튼(없으면 숨김)과 상세의 변경·삭제 버튼(없으면 비활성화), `/products` 상세의 옵션 그룹 구역(연결·해제·순서·예외 버튼, 없으면 비활성화) (dozy-catalog-api는 `catalog:admin` 하나가 `/admin/**` 전체를 허용하므로 두 Permission 모두 이 role에 매핑) |
 | `account.read` | 직원 목록·상세, role·서비스, 시스템 클라이언트 조회 | 계정 관리자 모드의 `/employees`, `/roles`, `/system-clients` |
 | `account.write` | 직원 추가(초대), 초대 재발송·취소, 정보 수정, 정지·해제·비활성화, 재설정 메일 발송, role 등록·수정·삭제, 시스템 클라이언트 등록·secret 재발급·role 부여·폐기 | `/employees`, `/roles`, `/system-clients`의 등록·작업 버튼 |
 | `account.manage` | owner 전용 계정 관리 — owner·admin 계정 변경 (admin은 불가, GOV-02), 서비스 추가, 감사 로그 조회, owner 양도 요청·취소 | `/employees` 상세의 작업 버튼, `/roles`의 서비스 추가, `/audit-logs`, `/owner` (`auth:owner`에만 매핑) |
