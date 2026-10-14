@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../features/auth/model/useAuth'
 import { permissions } from '../../features/auth/model/permissions'
 import { toAdminErrorMessage } from '../../features/auth/model/adminErrors'
-import { employeeStatuses, employeeStatusLabels, type EmployeeStatus, type EmployeeSummary } from '../../features/employee/model/employeeSchemas'
+import { employeeStatuses, employeeStatusLabels, parseEmployeeStatus, type EmployeeStatus, type EmployeeSummary } from '../../features/employee/model/employeeSchemas'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { useEmployees } from '../../features/employee/model/useEmployees'
 import { EmployeeStatusBadge } from '../../features/employee/ui/EmployeeStatusBadge'
@@ -24,7 +25,9 @@ export function EmployeesPage() {
   const roles = useRoles()
   const [addOpen, setAddOpen] = useState(false)
   const [addStep, setAddStep] = useState<InviteStep>(1)
-  const [status, setStatus] = useState<EmployeeStatus | ''>('')
+  // 대시보드 카드에서 `/employees?status=PENDING`으로 들어오면 그 상태로 거른 채 시작한다(이후 필터를 바꿔도 주소는 건드리지 않는다).
+  const [searchParams] = useSearchParams()
+  const [status, setStatus] = useState<EmployeeStatus | ''>(() => parseEmployeeStatus(searchParams.get('status')))
   const [role, setRole] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')

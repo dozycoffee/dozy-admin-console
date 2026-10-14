@@ -19,8 +19,9 @@ export function toAuditQueryParams({ from, to, actorId, targetType, targetId, ac
 }
 
 /** owner만 조회할 수 있다. 최신순이며 기간 상한은 90일이다. */
-export function useAuditLogs(params: AuditLogParams) {
+export function useAuditLogs(params: AuditLogParams, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
+    enabled,
     queryKey: ['audit-logs', 'list', params],
     queryFn: async () => auditLogPageSchema.parse((await authHttpClient.get('/admin/audit-logs', { params: toAuditQueryParams(params) })).data),
     placeholderData: (previous) => previous,

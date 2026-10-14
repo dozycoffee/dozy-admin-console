@@ -1,5 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
 import { ToastProvider } from '../../shared/ui/ToastProvider'
@@ -50,10 +51,10 @@ function setup(items: EmployeeSummary[] = [kim, lee], totalPages = 1) {
   mockedUseInvite.mockReturnValue({ mutate: vi.fn(), isPending: false, isError: false, isSuccess: false } as never)
 }
 
-function renderPage(granted: Permission[] = [permissions.accountRead, permissions.accountWrite]) {
+function renderPage(granted: Permission[] = [permissions.accountRead, permissions.accountWrite], path = '/employees') {
   return render(
     <AuthContext.Provider value={{ user: null, isLoading: false, activeActorMode: null, can: (permission) => granted.includes(permission), selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <ToastProvider><EmployeesPage /></ToastProvider>
+      <MemoryRouter initialEntries={[path]}><ToastProvider><EmployeesPage /></ToastProvider></MemoryRouter>
     </AuthContext.Provider>,
   )
 }
@@ -297,5 +298,33 @@ describe('EmployeesPage', () => {
 
     expect(screen.getByText('2 / 2')).toBeInTheDocument()
     expect(mockedUseEmployees).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }))
+  })
+
+  it('주소의 ?status= 값으로 상태 필터를 미리 적용한 채 연다', () => {
+    setup()
+
+    renderPage([permissions.accountRead, permissions.accountWrite], '/employees?status=PENDING')
+
+    expect(screen.getByLabelText('상태')).toHaveValue('PENDING')
+    expect(mockedUseEmployees).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'PENDING', page: 0 }))
+  })
+
+  it('알 수 없는 ?status= 값은 무시하고 필터 없이 연다', () => {
+    setup()
+
+    renderPage([permissions.accountRead, permissions.accountWrite], '/employees?status=NOPE')
+
+    expect(screen.getByLabelText('상태')).toHaveValue('')
+    expect(mockedUseEmployees).toHaveBeenLastCalledWith(expect.objectContaining({ status: undefined }))
+  })
+
+  it('주소 필터로 연 뒤에도 필터를 직접 바꿀 수 있다', async () => {
+    setup()
+    const user = userEvent.setup()
+    renderPage([permissions.accountRead, permissions.accountWrite], '/employees?status=SUSPENDED')
+
+    await user.selectOptions(screen.getByLabelText('상태'), 'ACTIVE')
+
+    expect(screen.getByLabelText('상태')).toHaveValue('ACTIVE')
   })
 })

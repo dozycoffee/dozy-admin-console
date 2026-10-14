@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { auditActionCategory, auditActionLabel, type AuditLog } from '../../features/audit/model/auditSchemas'
 import { toAuditErrorMessage, useAuditLogs } from '../../features/audit/model/useAuditLogs'
 import { formatDateTime } from '../../features/employee/model/formatDateTime'
+import { FieldTip } from '../../shared/ui/FieldTip'
 import { AuditDetailModal } from './AuditDetailModal'
 import { AuditFilters, type AppliedFilters } from './AuditFilters'
 import { AuditId } from './AuditId'
 
+const ACTOR_HELP = '이 작업을 실행한 계정입니다. 비어 있으면(-) 서버가 스스로 한 작업이거나 누가 요청했는지 알 수 없는 경우입니다.'
+const TARGET_HELP = '이 작업의 영향을 받은 대상입니다. 계정(PRINCIPAL)·role(ROLE)·서비스(AUDIENCE)·세션(SESSION) 중 하나이며, 로그인·비밀번호 변경처럼 본인에게 한 작업은 행위자와 같습니다.'
 const PAGE_SIZE = 20
 const noFilters: AppliedFilters = { actions: [] }
 
@@ -43,7 +46,7 @@ export function AuditLogsPage() {
       {query.data && logs.length === 0 && <p className="inbound-empty">조건에 맞는 기록이 없습니다.</p>}
       {logs.length > 0 && <div className="audit-table-wrap">
         <table className="audit-table">
-          <thead><tr><th>시각</th><th>action</th><th>행위자</th><th>대상</th><th>IP</th><th>상세</th></tr></thead>
+          <thead><tr><th>시각</th><th>action</th><th>행위자<FieldTip label="행위자 설명">{ACTOR_HELP}</FieldTip></th><th>대상<FieldTip label="대상 설명">{TARGET_HELP}</FieldTip></th><th>IP</th><th>상세</th></tr></thead>
           <tbody>
             {logs.map((log) => <tr key={log.id}>
               <td>{formatDateTime(log.occurredAt)}</td>

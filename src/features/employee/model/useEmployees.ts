@@ -25,10 +25,16 @@ export function toQueryParams({ status, role, q, page, size }: EmployeeListParam
   return { ...(status && { status }), ...(role && { role }), ...(trimmed && { q: trimmed }), page, size }
 }
 
+export const employeeDetailKey = (principalId: string | undefined) => ['employees', 'detail', principalId] as const
+
+export async function fetchEmployeeDetail(principalId: string) {
+  return employeeDetailSchema.parse((await authHttpClient.get(`/admin/employees/${principalId}`)).data)
+}
+
 export function useEmployee(principalId: string | undefined) {
   return useQuery({
-    queryKey: ['employees', 'detail', principalId],
-    queryFn: async () => employeeDetailSchema.parse((await authHttpClient.get(`/admin/employees/${principalId}`)).data),
+    queryKey: employeeDetailKey(principalId),
+    queryFn: () => fetchEmployeeDetail(principalId as string),
     enabled: principalId !== undefined,
   })
 }
