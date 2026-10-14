@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
+| 재고 관리 | 대시보드(주의가 필요한 재고 4종), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 모드 홈 골격만 | 별도 catalog MSA가 미구현이라 화면 없음 (Catalog 화면은 제거함) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -23,9 +23,9 @@
 
 ### 알려진 한계·미해결
 
-- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`wms:hq_inventory_manager`·`catalog:merchandiser`는 운영 role 정의와 맞춰야 한다. dozy-auth가 시드하는 role은
+- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`inventory:admin`·`catalog:merchandiser`는 운영 role 정의와 맞춰야 한다. dozy-auth가 시드하는 role은
   `auth:owner`/`auth:admin`뿐이라 나머지는 `/roles`에서 등록해야 한다.
-- **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관련 모드를 가진 사용자에게 `VITE_WAREHOUSE_IDS`를 준다.
+- **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관리자 모드 사용자에게 `VITE_WAREHOUSE_IDS`를 준다. 재고 관리 모드는 inventory API가 전체 창고를 주므로 범위를 두지 않는다.
 - **dozy-wms-api는 아직 토큰을 검증하지 않는다**(dozy-wms-api ADR-0010의 `CurrentAccessScopeProvider`·`warehouseIds` 교차검증은 인증 연동 때 처리 예정). WMS는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
 - **일부 창고 데이터는 프런트 mock이다.** 창고 평면도(`WarehouseFloorPlan.tsx`)·대시보드 Zone 카드(`warehouseMockData.ts`)와 `InventoryPage`의 Location별 재고는 mock이다. 새 F Zone(MD 상품)도 이 mock 레이어에만 있고
   실제 `zone-summary`는 A~E만 돌려준다 — 운영하려면 dozy-wms-api에 Zone(F)을 먼저 만들어야 한다.
@@ -37,6 +37,7 @@
 ### 개발 환경
 
 - **dozy-wms-api**: `http://localhost:8080`(`VITE_API_BASE_URL`). 로컬 DB에 창고·Zone·작업구역(입고·출고·반품·폐기 처리장)·상품이 시드되어 있어야 하고 창고 id를 `VITE_WAREHOUSE_IDS`에 넣는다.
+- **dozy-inventory-api**: `http://localhost:8082`(`VITE_INVENTORY_BASE_URL`). 브라우저가 직접 호출하므로 서버의 `CORS_ALLOWED_ORIGINS`에 `http://localhost:5173`이 있어야 한다(기본값, dozy-inventory-api ADR-0040). 토큰을 검증하려면 `local` 프로필이 아닌 상태로 띄우고 `AUTH_ISSUER_BASE_URI`가 auth의 `iss` 기준 주소와 같아야 한다. dozy-auth에 `inventory` audience와 `inventory:admin` role을 등록하고 직원에게 부여해야 재고 관리 모드를 쓸 수 있다.
 - **dozy-auth**: Docker가 필요하다. 8080 충돌을 피해 `SERVER_PORT=8081 AUTH_ISSUER_BASE_URL=http://localhost:8081 AUTH_CORS_ALLOWED_ORIGINS=http://localhost:5173 AUTH_APP_URL_INTERNAL=http://localhost:5173
   ./gradlew :auth-server:bootRun --args='--spring.profiles.active=local'`(dozy-auth 저장소에서)로 띄우고 콘솔 `.env`에 `VITE_AUTH_BASE_URL=http://localhost:8081`을 둔다.
   첫 기동 때 owner 초대 메일이 Mailpit(`http://localhost:8025`)으로 가며, 링크가 콘솔의 `/invitation`을 연다. 처음에는 role이 `auth:owner`/`auth:admin`뿐이라 업무 role을 `/roles`에서 등록하고
@@ -51,6 +52,24 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-14 (재고 관리 모드)
+
+- 이슈 #84, `feat/inventory-management-mode` 브랜치. 재고 서비스가 WMS에서 분리되어(`inventory:admin`이 예전 `wms:hq_inventory_manager`) **'본사 재고 담당자' 모드를 '재고 관리' 모드로 바꾸고** dozy-inventory-api 기반으로 만들었다.
+  모드 id는 `headquartersInventoryManager`에서 `inventoryManager`(`inventory-manager`)로 바꿨다(저장된 옛 id는 무시되어 모드 선택으로 돌아간다). `wms:hq_inventory_manager` 매핑은 없앴고 `inventory:admin`이 이 모드와 `dashboard.read`·`inventory.read`를 준다.
+  재고 관리 모드는 WMS 재고·창고 평면도 화면을 쓰지 않는다(`/inventory`·`/warehouse-map`은 창고 관리자 전용).
+- **재고 현황 `/stock`**: `GET /api/v1/inventories`의 재고 행(창고 × Lot × 품질 상태)을 창고 id·상품·품질 상태·Lot 상태·할당 보류 필터와 페이지(20건)로 보여준다. 상태 칩(품질·유통기한 임박/만료·할당 보류), 총·예약·가용 수량.
+  응답에 상품 이름이 없어 `GET /api/v1/products`(100건씩 최대 5페이지)로 채우고 모르는 상품은 id로 보여준다. 행의 "보기"는 상세와 수량 변동 이력(`/histories`, 10건씩 페이지)을 모달로 연다. 읽기 전용이다.
+  주소의 `?lotStatus=`·`?qualityStatus=`·`?allocationHold=true`로 처음 필터를 정한다(대시보드 카드 링크).
+- **창고 이름**: 재고 응답에는 창고 id만 있어(창고 마스터는 WMS 소유) WMS의 `GET /api/warehouses`(`useWarehouseList`)로 이름을 채우고 창고 필터를 이름 드롭다운으로 보여준다. 이 API는 `wms:viewer`(창고 마스터만 읽기)로 호출하고,
+  권한이 없거나 실패하면(재시도 없음) 이름 없이 id 표시와 id 입력 필터로 돌아간다. WMS의 창고 상태 값은 `AVAILABLE`/`UNAVAILABLE`이다.
+- **role 구성**(2026-10-14 합의, WMS ADR-0025·inventory ADR-0041): 재고 관리 모드는 `inventory:admin`, 창고 이름은 `wms:viewer`, 창고 관리자는 `wms:warehouse_manager`+`inventory:warehouse_manager`, 원자재 담당은 `inventory:material_manager`(원자재 관리 모드는 미구현), `wms:warehouse_admin`은 `wms:admin`(콘솔 모드 없음)으로 바뀌었다.
+- **모드 홈**: 주의가 필요한 재고 4개 카드(유통기한 만료·임박, 할당 보류, 불량)의 행 수를 `size=1`로 세어 보여주고 재고 현황의 같은 조건으로 연결한다.
+- inventory API는 `inventoryHttpClient`(`VITE_INVENTORY_BASE_URL`)로 호출한다. 오류는 Problem Details의 `code`로 분기한다(`stockErrors.ts`). CORS는 dozy-inventory-api에서 먼저 추가했다(이슈 #125, PR #126).
+- 검증: build/lint/test(755) 통과. 실서버(dozy-auth 로그인 → dozy-inventory-api)에서 `inventory:admin` 직원으로 대시보드 카드 건수, 카드 → 재고 현황 필터 이동, 상세·이력 모달을 확인했고,
+  재고 관리 모드에서 `/inventory`·`/inbounds`·`/warehouse-map`, 계정 관리자 모드에서 `/stock`으로 직접 들어가면 모드 가드가 홈으로 돌려보내는 것도 확인했다.
+  확인용으로 로컬 auth DB에 `inventory` audience와 `inventory:admin`·`wms:viewer` 등 새 role, 직원 `stock.admin@dozycoffee.com`(`inventory:admin`+`wms:viewer`)을 만들었고 inventory DB에 상품 3개와 재고 행 6개를, 격리 DB `dozy_wms_e2e`에 창고 2개(543, 762)를 시드했다.
+- 후속: 원자재 관리 모드(inventory 상품 마스터), 창고 관리자 모드의 재고 화면을 inventory API로 교체, 상품 관리·대사 보정안·Outbox 격리 이벤트 화면, `inventory:warehouse_manager`(배정 창고만) 지원.
 
 ### 2026-10-13 (계정 관리자 대시보드)
 
