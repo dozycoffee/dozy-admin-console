@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type PropsWithChildren, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { pushModal } from './modalStack'
 import { usePresence } from './usePresence'
 
 type ModalProps = PropsWithChildren<{
@@ -37,6 +38,7 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
 
   useEffect(() => {
     if (!open) return
+    const layer = pushModal()
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const dialog = dialogRef.current
     const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
@@ -45,6 +47,8 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
     initial?.focus()
 
     function handleKeyDown(event: KeyboardEvent) {
+      // 다른 모달이 위에 겹쳐 있으면 그 모달이 처리한다.
+      if (!layer.isTop()) return
       if (event.key === 'Escape') {
         if (dismissibleRef.current) onCloseRef.current()
         return
@@ -68,6 +72,7 @@ export function Modal({ open, title, titleAddon, onClose, closeOnBackdrop = fals
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      layer.remove()
       previouslyFocused?.focus()
     }
   }, [open])
