@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { catalogHttpClient } from '../../../shared/api/httpClient'
 import {
   categoryListSchema,
@@ -61,5 +61,21 @@ export function useOptionGroups() {
   return useQuery({
     queryKey: ['catalog', 'option-groups', 'list'],
     queryFn: async () => optionGroupListSchema.parse((await catalogHttpClient.get(`${ADMIN}/option-groups`)).data),
+  })
+}
+
+/** 분류(태그·상품 그룹·카테고리) 하나를 쓰는 상품 수를 구하는 조건 */
+export type ProductCountFilter = { categoryId?: number; tagId?: number; groupId?: number }
+
+/**
+ * 어떤 분류를 쓰는 상품이 몇 개인지 센다. API에 사용 수가 따로 없어, 그 조건으로 상품을 한 건만 조회하고 `totalElements`를 쓴다.
+ * 삭제 확인 모달에서 영향 받는 상품 수를 보여 주려는 용도라 매번 새로 조회한다.
+ */
+export function useCountProducts() {
+  const queryClient = useQueryClient()
+  return (filter: ProductCountFilter) => queryClient.fetchQuery({
+    queryKey: ['catalog', 'products', 'count', filter],
+    queryFn: async () => productPageSchema.parse((await catalogHttpClient.get(`${ADMIN}/products`, { params: { ...filter, page: 0, size: 1 } })).data).totalElements,
+    staleTime: 0,
   })
 }
