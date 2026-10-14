@@ -8,7 +8,7 @@ import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { Modal } from '../../shared/ui/Modal'
 import { useToast } from '../../shared/ui/toastContext'
 import { OptionGroupDetail, type PendingConfirm } from './OptionGroupDetail'
-import { OptionGroupForm } from './OptionGroupForm'
+import { OptionGroupForm } from '../../features/catalog/ui/OptionGroupForm'
 
 const emptyGroups: OptionGroup[] = []
 

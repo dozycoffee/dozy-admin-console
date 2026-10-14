@@ -1,12 +1,12 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../shared/api/ApiError'
-import type { OptionGroup } from '../../features/catalog/model/catalogSchemas'
-import { useCreateOptionGroup, useReplaceOptions, useUpdateOptionGroup } from '../../features/catalog/model/useOptionGroupMutations'
+import { ApiError } from '../../../shared/api/ApiError'
+import type { OptionGroup } from '../model/catalogSchemas'
+import { useCreateOptionGroup, useReplaceOptions, useUpdateOptionGroup } from '../model/useOptionGroupMutations'
 import { OptionGroupForm } from './OptionGroupForm'
 
-vi.mock('../../features/catalog/model/useOptionGroupMutations')
+vi.mock('../model/useOptionGroupMutations')
 
 const existing: OptionGroup = {
   id: 7, name: '사이즈', selectionType: 'SINGLE', required: true, version: 2,
@@ -228,7 +228,7 @@ describe('OptionGroupForm 수정', () => {
     await save()
 
     expect(updated).not.toHaveBeenCalled()
-    expect(await screen.findByRole('alert')).toHaveTextContent('선택할 수 있는 옵션이 없어지는 상품')
+    expect(await screen.findByRole('alert')).toHaveTextContent('선택할 수 있는 옵션이 하나도 없는 상품')
     expect(onDone).not.toHaveBeenCalled()
   })
 

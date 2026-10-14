@@ -6,7 +6,7 @@ import { useDeleteOptionGroup } from '../../features/catalog/model/useOptionGrou
 import { Modal } from '../../shared/ui/Modal'
 import { Tooltip } from '../../shared/ui/Tooltip'
 import { useToast } from '../../shared/ui/toastContext'
-import { OptionGroupForm } from './OptionGroupForm'
+import { OptionGroupForm } from '../../features/catalog/ui/OptionGroupForm'
 
 export type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 

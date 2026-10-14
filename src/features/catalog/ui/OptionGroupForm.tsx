@@ -1,10 +1,10 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { toCatalogErrorMessage } from '../../features/catalog/model/catalogErrors'
-import { selectionTypeLabels, type OptionGroup, type OptionInput, type SelectionType } from '../../features/catalog/model/catalogSchemas'
-import { draftsFromOptions, hasOptionGroupErrors, optionsChanged, removedOptionKeys, toOptionInputs, validateOptionGroup, type OptionDraft, type OptionRowField } from '../../features/catalog/model/optionGroupValidation'
-import { useCreateOptionGroup, useReplaceOptions, useUpdateOptionGroup } from '../../features/catalog/model/useOptionGroupMutations'
-import { ApiError } from '../../shared/api/ApiError'
-import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { toCatalogErrorMessage } from '../model/catalogErrors'
+import { selectionTypeLabels, type OptionGroup, type OptionInput, type SelectionType } from '../model/catalogSchemas'
+import { draftsFromOptions, hasOptionGroupErrors, optionsChanged, removedOptionKeys, toOptionInputs, validateOptionGroup, type OptionDraft, type OptionRowField } from '../model/optionGroupValidation'
+import { useCreateOptionGroup, useReplaceOptions, useUpdateOptionGroup } from '../model/useOptionGroupMutations'
+import { ApiError } from '../../../shared/api/ApiError'
+import { ConfirmModal } from '../../../shared/ui/ConfirmModal'
 
 type Props = {
   /** 있으면 수정, 없으면 등록이다. */
