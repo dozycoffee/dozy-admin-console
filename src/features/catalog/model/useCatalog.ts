@@ -57,10 +57,12 @@ export function useProductGroups() {
   })
 }
 
-export function useOptionGroups() {
+/** 옵션 그룹 목록(등록 순, 페이징 없음). `keyword`는 이름 부분 일치다. 상품 화면의 이름 조립에는 조건 없이 쓴다. */
+export function useOptionGroups(keyword?: string) {
+  const trimmed = keyword?.trim() ?? ''
   return useQuery({
-    queryKey: ['catalog', 'option-groups', 'list'],
-    queryFn: async () => optionGroupListSchema.parse((await catalogHttpClient.get(`${ADMIN}/option-groups`)).data),
+    queryKey: ['catalog', 'option-groups', 'list', trimmed],
+    queryFn: async () => optionGroupListSchema.parse((await catalogHttpClient.get(`${ADMIN}/option-groups`, { params: trimmed === '' ? undefined : { keyword: trimmed } })).data),
   })
 }
 

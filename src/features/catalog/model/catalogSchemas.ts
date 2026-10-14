@@ -89,3 +89,12 @@ export type ProductInput = {
 /** 재고 관리 여부와 옵션 그룹 연결은 등록할 때만 정한다(수정 요청으로는 바꿀 수 없다). 옵션 그룹은 배열 순서가 노출 순서다. */
 export type CreateProductRequest = ProductInput & { tracksInventory: boolean; optionGroupIds: number[] }
 export type UpdateProductRequest = ProductInput
+
+export type SelectionType = OptionGroup['selectionType']
+export const selectionTypeLabels: Record<SelectionType, string> = { SINGLE: '단일 선택', MULTI: '복수 선택' }
+
+/** 옵션 그룹 안의 옵션. `optionKey`는 옵션 정보를 교체해도 유지되는 논리 식별자이고 상품의 예외가 이 키로 옵션을 가리킨다. */
+export type OptionInput = { optionKey: string; name: string; price: number }
+export type CreateOptionGroupRequest = { name: string; selectionType: SelectionType; required: boolean; options: OptionInput[] }
+/** 이름·선택 방식·필수 여부. 옵션 목록은 별도 요청으로 바꾼다. */
+export type UpdateOptionGroupRequest = { name: string; selectionType: SelectionType; required: boolean }

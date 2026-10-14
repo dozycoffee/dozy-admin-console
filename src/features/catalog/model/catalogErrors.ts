@@ -22,6 +22,10 @@ const messages: Record<string, string> = {
   INVALID_PRODUCT_STATUS_TRANSITION: '현재 상태에서는 할 수 없는 작업입니다. 최신 상태를 확인해 주세요.',
   PRODUCT_GROUP_NOT_FOUND: '상품 그룹을 찾을 수 없습니다.',
   OPTION_GROUP_NOT_FOUND: '옵션 그룹을 찾을 수 없습니다.',
+  EMPTY_OPTION_GROUP: '옵션이 하나 이상 있어야 합니다.',
+  DUPLICATE_OPTION_KEY: '옵션 키가 겹칩니다. 옵션마다 다른 키를 쓰세요.',
+  NO_SELECTABLE_OPTION: '이 변경으로 선택할 수 있는 옵션이 없어지는 상품이 있어 저장할 수 없습니다. 그 상품의 제외 예외를 먼저 확인하세요.',
+  OPTION_GROUP_STILL_REFERENCED: '이 옵션 그룹을 연결한 상품이 있어 삭제할 수 없습니다. 상품에서 연결을 먼저 해제하세요.',
   VERSION_REQUIRED: '최신 정보를 불러온 뒤 다시 시도해 주세요.',
   VERSION_CONFLICT: '다른 사용자가 먼저 수정했습니다. 최신 내용을 불러온 뒤 다시 시도해 주세요.',
 }

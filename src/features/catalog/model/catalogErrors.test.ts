@@ -28,3 +28,14 @@ describe('쓰기 오류 문구', () => {
     expect(toCatalogErrorMessage(new ApiError('x', { status: 409, code }))).toMatch(message)
   })
 })
+
+describe('옵션 그룹 오류 문구', () => {
+  it.each([
+    ['EMPTY_OPTION_GROUP', /하나 이상/],
+    ['DUPLICATE_OPTION_KEY', /옵션 키가 겹칩니다/],
+    ['NO_SELECTABLE_OPTION', /선택할 수 있는 옵션이 없어지는 상품/],
+    ['OPTION_GROUP_STILL_REFERENCED', /연결한 상품이 있어 삭제할 수 없습니다/],
+  ])('%s는 안내 문구로 바꾼다', (code, message) => {
+    expect(toCatalogErrorMessage(new ApiError('x', { status: 422, code }))).toMatch(message)
+  })
+})
