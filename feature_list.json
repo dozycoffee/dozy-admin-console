@@ -281,10 +281,17 @@
   },
   {
     "id": "catalog-option-groups",
-    "name": "Catalog 옵션 그룹 관리와 상품 연결",
-    "description": "옵션 그룹 생성·수정·옵션 목록 교체·삭제, 상품에 옵션 그룹 연결·순서·예외 지정, 서버가 계산한 유효 옵션 구성 미리보기.",
-    "status": "pending",
+    "name": "Catalog 옵션 그룹 관리 화면",
+    "description": "MD 모드 옵션 그룹 관리 화면(/option-groups): 목록·이름 검색, 등록, 수정(이름·선택 방식·필수 여부는 PUT, 옵션 목록은 PUT /options, 둘 다 If-Match), 삭제. 옵션 키·이름·가격 입력과 순서 변경, 옵션을 빼는 저장 전 연결 상품의 예외 삭제 확인, 버전 충돌 안내. 상품 연결은 catalog-product-options에서 한다. 예약 변경과 이 옵션 그룹을 쓰는 상품 표시는 범위 밖.",
+    "status": "in_progress",
     "dependencies": ["catalog-product-write"]
+  },
+  {
+    "id": "catalog-product-options",
+    "name": "Catalog 상품의 옵션 그룹 연결·예외",
+    "description": "상품 상세에서 옵션 그룹 연결·해제·노출 순서 변경, 옵션 예외(가격 변경·제외) 지정·해제, 서버가 계산한 유효 옵션 구성과 표시용 시작가 미리보기. 상품 등록·수정 중에 옵션 그룹을 새로 만들어 바로 연결하는 흐름도 포함한다.",
+    "status": "pending",
+    "dependencies": ["catalog-option-groups"]
   },
   {
     "id": "owner-transfer-target-select-ui",

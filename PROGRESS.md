@@ -3,7 +3,7 @@
 ## 현재 상태
 
 `feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 876개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 947개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -13,7 +13,7 @@
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
 | 본사 재고 담당자 | 대시보드, 재고 현황, 창고 평면도 | 위와 같음 |
-| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
+| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
   `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
@@ -52,6 +52,20 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-14 (Catalog 옵션 그룹 관리 화면)
+
+- 이슈 #85, 같은 브랜치(`feat/catalog-product-list`)에서 `catalog-option-groups` 구현. 옵션 그룹은 상품에 직접 영향을 주고 내용이 커서(옵션이 여러 개) 분류 관리 탭이 아니라 **독립 메뉴 "옵션 그룹"**(`/option-groups`, `catalog.read`)으로 뒀다. 이번 범위는 옵션 그룹 자체의 관리이고, 상품에 연결·예외·유효 옵션 미리보기는 `catalog-product-options`(후속)다. 예약 변경(옵션 목록 예약)과 "이 옵션 그룹을 쓰는 상품" 표시는 범위 밖으로 정했다(상품 목록 API에 옵션 그룹 조건이 없어 전체 상품을 받아 걸러야 한다)
+- **화면:** 왼쪽 목록(이름 검색, 선택 방식·필수·옵션 수)과 오른쪽 상세(선택 방식, 필수 여부, 옵션 표, version, 변경·삭제). 서버가 옵션 그룹을 페이징하지 않으므로 목록도 페이징하지 않는다
+- **등록·변경 폼(한 모달):** 이름, 선택 방식(단일/복수), 필수 여부, 옵션 행 편집기(옵션 키·이름·가격, ↑↓ 순서 변경, 행 삭제, 옵션 추가). 옵션 키는 상품의 가격 변경·제외 예외가 옵션을 가리키는 식별자라 **저장한 옵션의 키는 읽기 전용**이고 폼에서 저장 뒤에는 바꿀 수 없다고 안내한다(새로 추가한 행은 입력 가능). 입력 오류(이름·옵션 1개 이상·키 필수·키 중복·가격 0 이상 정수)는 입력칸을 벗어나거나 제출했을 때 칸 아래에 보인다(`optionGroupValidation.ts`)
+- **저장은 두 요청이다:** 이름·선택 방식·필수 여부는 `PUT /option-groups/{id}`, 옵션 목록은 `PUT /option-groups/{id}/options`이고 둘 다 `If-Match`가 필요하다. 거부될 수 있는 규칙(옵션 0개, 선택 가능한 옵션 0개)이 옵션 교체에 있어 **옵션 목록을 먼저 보내고**, 이름 변경에는 옵션 교체가 돌려준 새 `version`을 쓴다. 그래서 옵션 교체가 거부되면 이름도 바뀌지 않는다. 바뀐 게 없으면 요청 없이 닫는다
+- **옵션을 빼는 저장 확인:** 목록에서 사라지는 옵션 키가 있으면 저장 전에 확인 모달로 "삭제하는 옵션(LARGE)에 대해 이 옵션 그룹을 연결한 모든 상품의 가격 변경·제외 예외가 함께 삭제되며, 같은 키를 다시 추가해도 되돌아오지 않습니다"를 알린다. 서버는 사라진 키의 상품별 예외를 모든 연결 상품에서 지운다. 이름·가격만 바꾸는 저장은 묻지 않는다
+- **버전 충돌:** 409 `VERSION_CONFLICT`이면 폼에 오류를 쓰지 않고 모달을 닫은 뒤 오류 토스트로 알린다(상품 수정과 같은 흐름). 모든 mutation이 실패해도 옵션 그룹 목록을 다시 받는다. 옵션 교체는 상품 목록도 함께 갱신한다(예외가 지워지므로)
+- **삭제:** 확인 모달을 거치고, 연결한 상품이 있으면 서버가 `OPTION_GROUP_STILL_REFERENCED`로 거부해 상세 안에 안내한다(어느 상품이 연결했는지는 API로 알 수 없다). `catalog.write`가 없으면 추가 버튼은 숨기고 변경·삭제는 비활성화한다
+- **오류 문구:** `EMPTY_OPTION_GROUP`·`DUPLICATE_OPTION_KEY`·`NO_SELECTABLE_OPTION`·`OPTION_GROUP_STILL_REFERENCED`를 추가했다
+- **목 모드:** 목 저장소가 옵션 그룹 규칙(버전 충돌·428, 옵션 0개·키 중복·음수 가격, 선택 가능한 옵션 0개 거부, 사라진 키의 예외 삭제, 연결된 그룹 삭제 거부, 이름 검색)을 흉내 낸다. 삭제 시연을 위해 연결한 상품이 없는 옵션 그룹(온도)을 시드에 추가했다
+- 검증: build/lint/test(947) 통과. **목 모드**에서 Chrome으로 목록·상세·변경 모달(키 읽기 전용, 순서 버튼)을 확인했고, 옵션을 빼는 저장의 확인 모달 → 저장(옵션 2개, 버전 3), 연결 상품의 제외 예외 때문에 `NO_SELECTABLE_OPTION`으로 거부되는 안내, 연결된 그룹 삭제 거부 안내, 등록(새 그룹 선택·토스트)을 확인했고 콘솔 에러는 없었다. 연결 안 된 그룹의 삭제 성공과 버전 충돌은 단위 테스트로만 검증했다. **실서버로는 확인하지 못했다**
+- 알려진 한계: 옵션 그룹을 쓰는 상품을 보여주지 않아 삭제가 거부된 뒤 어떤 상품에서 연결을 풀어야 하는지는 상품 화면에서 직접 찾아야 한다. 옵션 키 형식 규칙은 명세에 없어 입력 형식을 제한하지 않았다
 
 ### 2026-10-14 (Catalog 분류 관리 — 카테고리·태그·상품 그룹)
 
