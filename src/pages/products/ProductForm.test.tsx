@@ -1,12 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
 import type { Category, OptionGroup, Product, ProductGroup, Tag } from '../../features/catalog/model/catalogSchemas'
+import { useCreateOptionGroup, useReplaceOptions, useUpdateOptionGroup } from '../../features/catalog/model/useOptionGroupMutations'
 import { useCreateProduct, useUpdateProduct } from '../../features/catalog/model/useProductMutations'
+import { Modal } from '../../shared/ui/Modal'
 import { ProductForm } from './ProductForm'
 
 vi.mock('../../features/catalog/model/useProductMutations')
+vi.mock('../../features/catalog/model/useOptionGroupMutations')
 
 const categories: Category[] = [
   { id: 1, name: '음료', parentId: null }, { id: 2, name: '비어 있는 대분류', parentId: null }, { id: 5, name: '커피', parentId: 1 }, { id: 6, name: '티', parentId: 1 },
@@ -28,11 +31,16 @@ const onDone = vi.fn()
 const onCancel = vi.fn()
 const onConflict = vi.fn()
 const idle = { isPending: false, isError: false, error: null }
+const createGroup = vi.fn()
 
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(useCreateProduct).mockReturnValue({ ...idle, mutate: createMutate } as never)
   vi.mocked(useUpdateProduct).mockReturnValue({ ...idle, mutate: updateMutate } as never)
+  createGroup.mockResolvedValue({ id: 9, name: '시럽', selectionType: 'SINGLE', required: true, version: 1, options: [{ optionKey: 'VANILLA', name: '바닐라', price: 300 }] })
+  vi.mocked(useCreateOptionGroup).mockReturnValue({ mutateAsync: createGroup } as never)
+  vi.mocked(useReplaceOptions).mockReturnValue({ mutateAsync: vi.fn() } as never)
+  vi.mocked(useUpdateOptionGroup).mockReturnValue({ mutateAsync: vi.fn() } as never)
 })
 
 const renderCreate = () => render(<ProductForm categories={categories} tags={tags} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} />)
@@ -206,5 +214,83 @@ describe('ProductForm 수정', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: '저장' }))
 
     expect(onConflict).not.toHaveBeenCalled()
+  })
+})
+
+describe('ProductForm 새 옵션 그룹 만들기', () => {
+  async function fillNewGroup(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('button', { name: '새 옵션 그룹 만들기' }))
+    const dialog = screen.getByRole('dialog', { name: '새 옵션 그룹' })
+    await user.type(within(dialog).getByLabelText('이름'), '시럽')
+    await user.type(within(dialog).getByLabelText('옵션 1 키'), 'VANILLA')
+    await user.type(within(dialog).getByLabelText('옵션 1 이름'), '바닐라')
+    return dialog
+  }
+
+  it('등록 폼에만 있고 수정 폼에는 없다', () => {
+    const { unmount } = renderCreate()
+    expect(screen.getByRole('button', { name: '새 옵션 그룹 만들기' })).toBeInTheDocument()
+    unmount()
+
+    renderEdit()
+    expect(screen.queryByRole('button', { name: '새 옵션 그룹 만들기' })).not.toBeInTheDocument()
+  })
+
+  it('만든 옵션 그룹을 상품에 연결할 그룹으로 바로 고르고, 이 일로 상품이 같이 등록되지는 않는다', async () => {
+    renderCreate()
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('상품명'), '바닐라 라떼')
+    await user.selectOptions(screen.getByLabelText('카테고리'), '커피')
+    await user.type(screen.getByLabelText('기준가 (원)'), '5500')
+
+    const dialog = await fillNewGroup(user)
+    await user.click(within(dialog).getByRole('button', { name: '옵션 그룹 등록하기' }))
+
+    expect(createGroup).toHaveBeenCalledWith({ name: '시럽', selectionType: 'SINGLE', required: true, options: [{ optionKey: 'VANILLA', name: '바닐라', price: 0 }] })
+    expect(screen.queryByRole('dialog', { name: '새 옵션 그룹' })).not.toBeInTheDocument()
+    expect(createMutate).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: '상품 등록하기' }))
+    expect(createMutate).toHaveBeenCalledWith(expect.objectContaining({ name: '바닐라 라떼', optionGroupIds: [9] }), expect.any(Object))
+  })
+
+  it('이미 고른 옵션 그룹 뒤에 붙는다', async () => {
+    renderCreate()
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('상품명'), '바닐라 라떼')
+    await user.selectOptions(screen.getByLabelText('카테고리'), '커피')
+    await user.type(screen.getByLabelText('기준가 (원)'), '5500')
+    await user.click(screen.getByLabelText(/샷 추가/))
+
+    const dialog = await fillNewGroup(user)
+    await user.click(within(dialog).getByRole('button', { name: '옵션 그룹 등록하기' }))
+    await user.click(screen.getByRole('button', { name: '상품 등록하기' }))
+
+    expect(createMutate).toHaveBeenCalledWith(expect.objectContaining({ optionGroupIds: [8, 9] }), expect.any(Object))
+  })
+
+  it('취소하면 옵션 그룹 모달만 닫고 입력 중이던 상품 폼은 그대로다', async () => {
+    renderCreate()
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('상품명'), '바닐라 라떼')
+
+    await user.click(screen.getByRole('button', { name: '새 옵션 그룹 만들기' }))
+    await user.click(within(screen.getByRole('dialog', { name: '새 옵션 그룹' })).getByRole('button', { name: '취소' }))
+
+    expect(screen.queryByRole('dialog', { name: '새 옵션 그룹' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('상품명')).toHaveValue('바닐라 라떼')
+  })
+
+  it('Esc는 맨 위의 옵션 그룹 모달만 닫고 상품 등록 모달은 닫지 않는다', async () => {
+    const onOuterClose = vi.fn()
+    render(<Modal open title="상품 등록" onClose={onOuterClose}><ProductForm categories={categories} tags={tags} groups={groups} optionGroups={optionGroups} onDone={onDone} onCancel={onCancel} onConflict={onConflict} /></Modal>)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: '새 옵션 그룹 만들기' }))
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: '새 옵션 그룹' })).not.toBeInTheDocument()
+    expect(onOuterClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog', { name: '상품 등록' })).toBeInTheDocument()
   })
 })

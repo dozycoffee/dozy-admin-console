@@ -442,7 +442,7 @@ a { color: inherit; text-decoration: none; }
 .product-status-active { background: #e1f3e6; color: #25683a; }
 .product-status-discontinued { background: #ececec; color: #6b6b6b; }
 .product-scope { margin: 0; }
-.product-option-groups { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
+.product-option-groups { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .product-option-groups small { display: block; margin-top: 2px; color: #6f6862; }
 .employee-detail-body .product-version { margin: 24px 0 4px; color: #9b918c; font-size: 12px; }
 .employee-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 16px 0; }
@@ -857,3 +857,25 @@ a { color: inherit; text-decoration: none; }
 /* 옵션 그룹 상세: 변경·삭제 버튼은 카드 우상단(제목 줄)에 둔다 */
 .option-group-actions { display: flex; flex-shrink: 0; gap: 8px; }
 .option-group-actions .inbound-action-button { margin-top: 0; }
+
+/* 상품 상세의 옵션 그룹 구역: 연결된 그룹 카드, 옵션별 예외 상태, 연결 추가, 판매 옵션 미리보기 */
+.product-option-group { padding: 12px; border: 1px solid #ece7e3; border-radius: 9px; background: #fff; }
+.product-option-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.product-option-group-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.product-option-group-title small { color: #9b918c; font-size: 12px; }
+.product-option-group .option-table td:last-child { text-align: right; }
+.product-option-group .option-excluded td { color: #9b918c; }
+.product-option-group .option-excluded td:nth-child(3) { color: #9c3b3b; font-weight: 700; }
+.product-option-link { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 12px; }
+.product-option-link label { display: grid; gap: 4px; color: #6f6862; font-size: 12px; }
+.product-option-link select { min-width: 220px; padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; font-size: 12px; }
+.product-option-link .inbound-action-button { margin-top: 0; }
+.product-option-preview-toggle { margin-top: 14px; }
+.effective-options { margin-top: 10px; padding: 12px; border: 1px dashed #d9cdc7; border-radius: 9px; background: #fbf7f4; font-size: 13px; }
+.effective-starting-price { margin: 0 0 10px; }
+.effective-starting-price small { margin-left: 8px; color: #9b918c; }
+.effective-groups { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.effective-groups > li > small { margin-left: 8px; color: #9b918c; font-size: 12px; }
+.effective-groups ul { margin: 4px 0 0; padding-left: 18px; }
+.effective-groups ul span { color: #5a4d47; font-weight: 700; }
+.effective-groups em { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #e1f3e6; color: #25683a; font-size: 11px; font-style: normal; }

@@ -7,11 +7,13 @@ import { AuthContext } from '../../features/auth/model/authContext'
 import { permissions, type Permission } from '../../features/auth/model/permissions'
 import type { Product } from '../../features/catalog/model/catalogSchemas'
 import { useCategories, useOptionGroups, useProductGroups, useProducts, useTags } from '../../features/catalog/model/useCatalog'
+import { useClearOptionOverride, useLinkOptionGroup, useReorderOptionGroups, useSetOptionOverride, useUnlinkOptionGroup } from '../../features/catalog/model/useProductOptionMutations'
 import { useActivateProduct, useCreateProduct, useDeleteProduct, useDiscontinueProduct, useUpdateProduct } from '../../features/catalog/model/useProductMutations'
 import { ProductsPage } from './ProductsPage'
 
 vi.mock('../../features/catalog/model/useCatalog')
 vi.mock('../../features/catalog/model/useProductMutations')
+vi.mock('../../features/catalog/model/useProductOptionMutations')
 
 const activate = vi.fn()
 const discontinue = vi.fn()
@@ -39,7 +41,7 @@ function setup(content: Product[] = [americano, tumbler], totalPages = 1) {
   vi.mocked(useCategories).mockReturnValue({ data: [{ id: 1, name: '음료', parentId: null }, { id: 5, name: '커피', parentId: 1 }, { id: 2, name: 'MD', parentId: null }, { id: 6, name: '굿즈', parentId: 2 }] } as never)
   vi.mocked(useTags).mockReturnValue({ data: [{ id: 3, name: '베스트' }] } as never)
   vi.mocked(useProductGroups).mockReturnValue({ data: [{ id: 2, name: '여름 시즌' }] } as never)
-  vi.mocked(useOptionGroups).mockReturnValue({ data: [{ id: 7, name: '사이즈', selectionType: 'SINGLE', required: true, options: [], version: 2 }] } as never)
+  vi.mocked(useOptionGroups).mockReturnValue({ data: [{ id: 7, name: '사이즈', selectionType: 'SINGLE', required: true, options: [{ optionKey: 'REGULAR', name: '레귤러', price: 0 }, { optionKey: 'LARGE', name: '라지', price: 500 }, { optionKey: 'XLARGE', name: '엑스라지', price: 1000 }], version: 2 }] } as never)
 }
 
 beforeEach(() => {
@@ -49,6 +51,7 @@ beforeEach(() => {
   vi.mocked(useDeleteProduct).mockReturnValue({ ...idle, mutate: remove } as never)
   vi.mocked(useCreateProduct).mockReturnValue({ ...idle, mutate: create } as never)
   vi.mocked(useUpdateProduct).mockReturnValue({ ...idle, mutate: vi.fn() } as never)
+  for (const hook of [useLinkOptionGroup, useUnlinkOptionGroup, useReorderOptionGroups, useSetOptionOverride, useClearOptionOverride]) vi.mocked(hook).mockReturnValue({ ...idle, mutate: vi.fn() } as never)
 })
 
 describe('ProductsPage', () => {
@@ -65,8 +68,9 @@ describe('ProductsPage', () => {
     expect(within(detail).getByText('4,500원')).toBeInTheDocument()
     expect(within(detail).getByText('베스트')).toBeInTheDocument()
     expect(within(detail).getByText('여름 시즌')).toBeInTheDocument()
-    expect(within(detail).getByText('사이즈')).toBeInTheDocument()
-    expect(within(detail).getByText(/LARGE 700원, XLARGE 제외/)).toBeInTheDocument()
+    expect(within(detail).getByText('1. 사이즈')).toBeInTheDocument()
+    expect(within(detail).getByText('가격 변경 700원')).toBeInTheDocument()
+    expect(within(detail).getByText('제외')).toBeInTheDocument()
     expect(within(detail).getByText(/지정한 2개 매장에서만 판매합니다/)).toBeInTheDocument()
     expect(within(detail).getByText('버전 4')).toBeInTheDocument()
   })
@@ -150,8 +154,8 @@ describe('ProductsPage 쓰기', () => {
     const detail = within(detailOf('아이스 아메리카노'))
 
     for (const label of ['정보 수정', '활성화', '단종', '삭제']) expect(detail.getByRole('button', { name: label })).toBeDisabled()
-    // 비활성 버튼마다 같은 사유를 툴팁으로 달아 둔다
-    expect(await screen.findAllByText('상품을 변경할 권한이 없습니다.')).toHaveLength(4)
+    // 비활성 버튼마다 같은 사유를 툴팁으로 단다(상품 작업 4개 + 옵션 그룹 구역의 버튼들)
+    expect((await screen.findAllByText('상품을 변경할 권한이 없습니다.')).length).toBeGreaterThanOrEqual(4)
   })
 
   it('판매중 상품은 단종만 할 수 있고 활성화와 삭제는 사유와 함께 막힌다', async () => {

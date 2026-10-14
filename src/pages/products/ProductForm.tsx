@@ -5,6 +5,9 @@ import type { Category, OptionGroup, Product, ProductGroup, Tag } from '../../fe
 import { emptyToNull, validateProduct, type ProductField } from '../../features/catalog/model/productValidation'
 import { useCreateProduct, useUpdateProduct } from '../../features/catalog/model/useProductMutations'
 import { ApiError } from '../../shared/api/ApiError'
+import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/toastContext'
+import { OptionGroupForm } from '../../features/catalog/ui/OptionGroupForm'
 import { TagPicker } from './TagPicker'
 
 type Props = {
@@ -29,6 +32,8 @@ type Props = {
  */
 export function ProductForm({ product, initialTagNames = [], categories, tags: existingTags, groups, optionGroups, onDone, onCancel, onConflict }: Props) {
   const editing = product !== undefined
+  const { notify } = useToast()
+  const [creatingGroup, setCreatingGroup] = useState(false)
   const create = useCreateProduct()
   const update = useUpdateProduct()
   const mutation = editing ? update : create
@@ -87,6 +92,7 @@ export function ProductForm({ product, initialTagNames = [], categories, tags: e
   const conflict = mutation.error instanceof ApiError && mutation.error.code === 'VERSION_CONFLICT'
 
   return (
+    <>
     <form className="employee-invite employee-invite-form product-form" onSubmit={submit} noValidate>
       <div className="employee-invite-grid">
         <div className="employee-invite-field">
@@ -138,6 +144,7 @@ export function ProductForm({ product, initialTagNames = [], categories, tags: e
         {optionGroups.length === 0 && <p>등록된 옵션 그룹이 없습니다.</p>}
         {optionGroups.map((group) => <label key={group.id}><input type="checkbox" checked={optionGroupIds.includes(group.id)} onChange={() => toggle(setOptionGroupIds, group.id)} />{group.name}{optionGroupIds.includes(group.id) && <small>{optionGroupIds.indexOf(group.id) + 1}번째</small>}</label>)}
         <p className="employee-hint">선택한 순서가 노출 순서입니다.</p>
+        <button type="button" className="taxonomy-action" onClick={() => setCreatingGroup(true)}>새 옵션 그룹 만들기</button>
       </fieldset>}
       {noCategory && <p className="inbound-error" role="alert">지정할 수 있는 소분류가 없어 상품을 저장할 수 없습니다. 먼저 카테고리(대분류와 소분류)를 등록하세요.</p>}
       {!editing && <p className="employee-hint">등록한 상품은 "판매 대기" 상태로 만들어지며, 활성화해야 판매됩니다.</p>}
@@ -147,5 +154,15 @@ export function ProductForm({ product, initialTagNames = [], categories, tags: e
       </div>
       {mutation.isError && !conflict && <p className="inbound-error" role="alert">{toCatalogErrorMessage(mutation.error)}</p>}
     </form>
+    {/* 폼 밖에 둔다: 모달의 제출 이벤트가 React 트리를 따라 상품 폼으로 올라가 상품이 같이 등록되는 일을 막는다 */}
+    {!editing && <Modal open={creatingGroup} title="새 옵션 그룹" className="option-form-modal" onClose={() => setCreatingGroup(false)}>
+      <OptionGroupForm
+        onCancel={() => setCreatingGroup(false)}
+        // 만든 옵션 그룹은 이 상품에 연결할 옵션 그룹으로 바로 고른다(목록은 곧 다시 받아져 체크된 채로 나타난다).
+        onDone={(created) => { setCreatingGroup(false); setOptionGroupIds((current) => (current.includes(created.id) ? current : [...current, created.id])); notify(`옵션 그룹 "${created.name}"을 만들고 이 상품에 연결할 그룹으로 선택했습니다.`) }}
+        onConflict={() => setCreatingGroup(false)}
+      />
+    </Modal>}
+    </>
   )
 }

@@ -10,6 +10,8 @@ import { Modal } from '../../shared/ui/Modal'
 import { Tooltip } from '../../shared/ui/Tooltip'
 import { useToast } from '../../shared/ui/toastContext'
 import { ProductForm } from './ProductForm'
+import { ProductOptionGroups } from './ProductOptionGroups'
+import { NO_WRITE_REASON } from './productShared'
 
 export type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 
@@ -25,8 +27,6 @@ type Props = {
   /** 상품을 삭제했을 때 부른다. 선택을 풀고 목록으로 돌아가는 일은 화면이 한다. */
   onDeleted: () => void
 }
-
-const NO_WRITE_REASON = '상품을 변경할 권한이 없습니다.'
 
 /** 이름을 못 찾으면(분류가 아직 로딩 중이거나 삭제된 경우) id로 보여준다. */
 const nameOf = (items: ReadonlyArray<{ id: number; name: string }>, id: number) => items.find((item) => item.id === id)?.name ?? `#${id}`
@@ -90,15 +90,7 @@ export function ProductDetail({ product, categories, tags, groups, optionGroups,
         {scope.kind === 'ALL' && '모든 매장에서 판매합니다.'}
         {scope.kind === 'LIMITED' && (scope.targetStoreIds.length === 0 ? '어떤 매장에도 노출되지 않습니다.' : `지정한 ${scope.targetStoreIds.length}개 매장에서만 판매합니다. (매장 id: ${scope.targetStoreIds.join(', ')})`)}
       </p>
-      <h3 className="employee-section-title">옵션 그룹</h3>
-      {product.optionGroups.length === 0
-        ? <p className="employee-no-roles">연결된 옵션 그룹이 없습니다.</p>
-        : <ol className="product-option-groups">
-          {product.optionGroups.map((link) => <li key={link.optionGroupId}>
-            <strong>{nameOf(optionGroups, link.optionGroupId)}</strong>
-            {link.overrides.length > 0 && <small>예외 {link.overrides.length}건: {link.overrides.map((override) => `${override.optionKey} ${override.type === 'EXCLUDE' ? '제외' : formatPrice(override.price ?? 0)}`).join(', ')}</small>}
-          </li>)}
-        </ol>}
+      <ProductOptionGroups product={product} optionGroups={optionGroups} writable={writable} confirm={confirm} />
       <p className="product-version">버전 {product.version}</p>
 
       <div className="employee-actions">
