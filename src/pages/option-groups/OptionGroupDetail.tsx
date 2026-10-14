@@ -31,7 +31,7 @@ export function OptionGroupDetail({ group, writable, confirm, onDeleted }: Props
   return <section className="panel inbound-detail-panel">
     <div className="panel-heading inbound-detail-heading">
       <div><p className="eyebrow">OPTION GROUP</p><h2>{group.name}</h2></div>
-      <div className="option-group-actions">
+      <div className="detail-actions">
         {gate(<button type="button" className="inbound-action-button employee-secondary" disabled={reason !== null} onClick={() => { remove.reset(); setEditOpen(true) }}>변경</button>)}
         {gate(<button type="button" className="inbound-action-button employee-danger" disabled={reason !== null} onClick={() => confirm({
           title: `"${group.name}" 옵션 그룹을 삭제할까요?`,

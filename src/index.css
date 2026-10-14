@@ -854,9 +854,11 @@ a { color: inherit; text-decoration: none; }
 .option-table td { padding: 8px; border-bottom: 1px solid #f0ebe8; }
 .option-table code { padding: 2px 6px; border-radius: 5px; background: #f3efec; font-size: 12px; }
 @media (max-width: 600px) { .option-row { grid-template-columns: 1fr; } }
-/* 옵션 그룹 상세: 변경·삭제 버튼은 카드 우상단(제목 줄)에 둔다 */
-.option-group-actions { display: flex; flex-shrink: 0; gap: 8px; }
-.option-group-actions .inbound-action-button { margin-top: 0; }
+/* 상세 카드: 작업 버튼은 우상단(제목 줄)에, 상태 라벨 같은 표시는 제목 바로 오른쪽에 둔다 */
+.detail-actions { display: flex; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.detail-actions .inbound-action-button { margin-top: 0; }
+.detail-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.detail-title h2 { margin: 0; }
 
 /* 상품 상세의 옵션 그룹 구역: 연결된 그룹 카드, 옵션별 예외 상태, 연결 추가, 판매 옵션 미리보기 */
 .product-option-group { padding: 12px; border: 1px solid #ece7e3; border-radius: 9px; background: #fff; }
