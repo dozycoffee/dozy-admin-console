@@ -4,6 +4,7 @@ import type { Tag } from '../../features/catalog/model/catalogSchemas'
 import { removalDescription } from '../../features/catalog/model/removalDescription'
 import { useCountProducts, useTags } from '../../features/catalog/model/useCatalog'
 import { useDeleteTag, useRenameTag } from '../../features/catalog/model/useTaxonomyMutations'
+import { FieldTip } from '../../shared/ui/FieldTip'
 import { useToast } from '../../shared/ui/toastContext'
 import { NameFormModal } from './NameFormModal'
 import { RowAction } from './RowAction'
@@ -45,8 +46,7 @@ export function TagsPanel({ writable, confirm }: Props) {
   }
 
   return <section className="panel taxonomy-panel" aria-label="태그">
-    <div className="panel-heading"><div><p className="eyebrow">TAGS</p><h2>태그</h2></div><small>{query.data?.length ?? 0}개</small></div>
-    <p className="employee-hint taxonomy-hint">태그는 상품 등록·수정에서 이름을 입력하면 만들어집니다. 여기서는 이름 변경과 삭제만 할 수 있습니다.</p>
+    <div className="panel-heading"><div><p className="eyebrow">TAGS</p><div className="taxonomy-title"><h2>태그</h2><FieldTip label="태그 안내">태그는 상품 등록·수정에서 이름을 입력하면 만들어집니다. 여기서는 이름 변경과 삭제만 할 수 있습니다.</FieldTip></div></div><small>{query.data?.length ?? 0}개</small></div>
     <label className="taxonomy-search">검색<input value={search} placeholder="태그 이름" onChange={(event) => setSearch(event.target.value)} autoComplete="off" /></label>
     {query.isLoading && <p>태그를 불러오는 중입니다...</p>}
     {query.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(query.error)}</p>}
@@ -56,14 +56,14 @@ export function TagsPanel({ writable, confirm }: Props) {
       {tags.map((tag) => <li key={tag.id} className="taxonomy-row">
         <span className="taxonomy-name"><strong>{tag.name}</strong></span>
         <span className="taxonomy-actions">
-          <RowAction label="이름 변경" target={tag.name} reason={reason} onClick={() => { rename.reset(); setTarget(tag); setOpen(true) }} />
+          <RowAction label="변경" target={tag.name} reason={reason} onClick={() => { rename.reset(); setTarget(tag); setOpen(true) }} />
           <RowAction label="삭제" target={tag.name} danger reason={reason} onClick={() => void askDelete(tag)} />
         </span>
       </li>)}
     </ul>
     <NameFormModal
       open={open && target !== null}
-      title={target ? `태그 이름 변경 · ${target.name}` : '태그 이름 변경'}
+      title={target ? `태그 변경 · ${target.name}` : '태그 변경'}
       label="이름"
       placeholder="태그 이름"
       initialName={target?.name}

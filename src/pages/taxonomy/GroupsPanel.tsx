@@ -4,6 +4,7 @@ import type { ProductGroup } from '../../features/catalog/model/catalogSchemas'
 import { removalDescription } from '../../features/catalog/model/removalDescription'
 import { useCountProducts, useProductGroups } from '../../features/catalog/model/useCatalog'
 import { useCreateProductGroup, useDeleteProductGroup, useRenameProductGroup } from '../../features/catalog/model/useTaxonomyMutations'
+import { FieldTip } from '../../shared/ui/FieldTip'
 import { useToast } from '../../shared/ui/toastContext'
 import { NameFormModal } from './NameFormModal'
 import { RowAction } from './RowAction'
@@ -52,10 +53,9 @@ export function GroupsPanel({ writable, confirm }: Props) {
 
   return <section className="panel taxonomy-panel" aria-label="상품 그룹">
     <div className="panel-heading">
-      <div><p className="eyebrow">PRODUCT GROUPS</p><h2>상품 그룹</h2></div>
+      <div><p className="eyebrow">PRODUCT GROUPS</p><div className="taxonomy-title"><h2>상품 그룹</h2><FieldTip label="상품 그룹 안내">상품 관리 편의를 위해 본사가 상품을 묶는 내부용 분류입니다. 가맹점과 손님에게는 보이지 않습니다.</FieldTip></div></div>
       {writable && <button type="button" className="inbound-action-button" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create' })}>그룹 추가</button>}
     </div>
-    <p className="employee-hint taxonomy-hint">상품 관리 편의를 위해 본사가 상품을 묶는 내부용 분류입니다. 가맹점과 손님에게는 보이지 않습니다.</p>
     {query.isLoading && <p>상품 그룹을 불러오는 중입니다...</p>}
     {query.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(query.error)}</p>}
     {remove.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(remove.error)}</p>}
@@ -64,7 +64,7 @@ export function GroupsPanel({ writable, confirm }: Props) {
       {groups.map((group) => <li key={group.id} className="taxonomy-row">
         <span className="taxonomy-name"><strong>{group.name}</strong></span>
         <span className="taxonomy-actions">
-          <RowAction label="이름 변경" target={group.name} reason={reason} onClick={() => show({ kind: 'rename', group })} />
+          <RowAction label="변경" target={group.name} reason={reason} onClick={() => show({ kind: 'rename', group })} />
           <RowAction label="삭제" target={group.name} danger reason={reason} onClick={() => void askDelete(group)} />
         </span>
       </li>)}
@@ -82,7 +82,7 @@ export function GroupsPanel({ writable, confirm }: Props) {
     />
     <NameFormModal
       open={open && dialog?.kind === 'rename'}
-      title={dialog?.kind === 'rename' ? `상품 그룹 이름 변경 · ${dialog.group.name}` : '상품 그룹 이름 변경'}
+      title={dialog?.kind === 'rename' ? `상품 그룹 변경 · ${dialog.group.name}` : '상품 그룹 변경'}
       label="이름"
       placeholder="상품 그룹 이름"
       initialName={dialog?.kind === 'rename' ? dialog.group.name : undefined}

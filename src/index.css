@@ -780,7 +780,8 @@ a { color: inherit; text-decoration: none; }
 .taxonomy-tab.active { border-bottom-color: #4b2f25; color: #33241e; }
 .taxonomy-panel { min-height: 0; }
 .taxonomy-panel .panel-heading .inbound-action-button { margin-top: 0; }
-.taxonomy-panel .taxonomy-hint { margin: 0 0 14px; }
+.taxonomy-title { display: flex; align-items: center; gap: 8px; }
+.taxonomy-title h2 { margin: 0; }
 .taxonomy-search { display: grid; gap: 4px; max-width: 280px; margin-bottom: 12px; color: #6f6862; font-size: 12px; }
 .taxonomy-search input { padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; font-size: 13px; }
 .taxonomy-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }

@@ -4,17 +4,18 @@ import type { Category } from '../../features/catalog/model/catalogSchemas'
 import { groupCategories } from '../../features/catalog/model/categoryLabel'
 import { useCategories } from '../../features/catalog/model/useCatalog'
 import { useCreateCategory, useDeleteCategory, useMoveCategory, useRenameCategory } from '../../features/catalog/model/useTaxonomyMutations'
+import { FieldTip } from '../../shared/ui/FieldTip'
 import { useToast } from '../../shared/ui/toastContext'
-import { MoveCategoryModal } from './MoveCategoryModal'
+import { EditCategoryModal, type CategoryChange } from './EditCategoryModal'
 import { NameFormModal } from './NameFormModal'
 import { RowAction } from './RowAction'
 import { NO_WRITE_REASON, type PendingConfirm } from './taxonomyShared'
 
 type Props = { writable: boolean; confirm: (pending: PendingConfirm) => void }
-type Dialog = { kind: 'create-top' } | { kind: 'create-child'; parent: Category } | { kind: 'rename'; category: Category } | { kind: 'move'; category: Category }
+type Dialog = { kind: 'create-top' } | { kind: 'create-child'; parent: Category } | { kind: 'edit'; category: Category }
 
 const HAS_CHILDREN_REASON = '소분류가 있는 대분류는 삭제할 수 없습니다. 소분류를 먼저 삭제하거나 다른 대분류로 옮기세요.'
-const NOT_DEMOTABLE_REASON = '소분류가 있는 대분류는 소분류로 바꿀 수 없습니다.'
+const TIP = '상품은 소분류 하나를 카테고리로 가집니다. 소분류가 하나도 없으면 상품을 등록할 수 없습니다. 대분류는 소분류를 묶는 용도이고, 소분류가 있는 대분류는 삭제하거나 소분류로 바꿀 수 없습니다.'
 
 /**
  * 카테고리 관리(요구사항 1.6). 대분류와 그 아래 소분류의 2단계 계층이다. 상품은 소분류만 참조한다.
@@ -32,7 +33,9 @@ export function CategoriesPanel({ writable, confirm }: Props) {
   const [open, setOpen] = useState(false)
   const categories = query.data ?? []
   const tree = groupCategories(categories)
-  const busy = [create, rename, move, remove].some((mutation) => mutation.isPending)
+  // 변경은 부모 변경과 이름 변경을 이어서 보내므로, 두 요청 사이에도 처리 중으로 본다.
+  const [saving, setSaving] = useState(false)
+  const busy = saving || [create, rename, move, remove].some((mutation) => mutation.isPending)
 
   function show(next: Dialog) {
     ;[create, rename, move, remove].forEach((mutation) => mutation.reset())
@@ -40,6 +43,26 @@ export function CategoriesPanel({ writable, confirm }: Props) {
     setOpen(true)
   }
   const close = () => setOpen(false)
+
+  /**
+   * 바뀐 값을 저장한다. 규칙 위반은 부모 변경에서 나므로 부모를 먼저 바꾸고, 성공하면 이름을 바꾼다.
+   * 그래서 부모 변경이 거부되면 아무것도 바뀌지 않고, 오류는 모달 안에 보여준다.
+   */
+  async function save(category: Category, change: CategoryChange) {
+    move.reset()
+    rename.reset()
+    setSaving(true)
+    try {
+      if (change.parentId !== undefined) await move.mutateAsync({ id: category.id, parentId: change.parentId })
+      if (change.name !== undefined) await rename.mutateAsync({ id: category.id, name: change.name })
+      close()
+      notify(`"${change.name ?? category.name}" 카테고리를 변경했습니다.`)
+    } catch {
+      // 오류는 mutation 상태(move.error·rename.error)로 모달 안에 보여준다.
+    } finally {
+      setSaving(false)
+    }
+  }
   const reasonFor = (extra: string | null = null) => (!writable ? NO_WRITE_REASON : busy ? '처리 중입니다.' : extra)
 
   function askDelete(category: Category, isTop: boolean) {
@@ -58,18 +81,16 @@ export function CategoriesPanel({ writable, confirm }: Props) {
     </span>
     <span className="taxonomy-actions">
       {isTop && writable && <RowAction label="소분류 추가" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'create-child', parent: category })} />}
-      <RowAction label="이름 변경" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'rename', category })} />
-      <RowAction label={isTop ? '소분류로 변경' : '부모 변경'} target={category.name} reason={reasonFor(isTop && childCount > 0 ? NOT_DEMOTABLE_REASON : null)} onClick={() => show({ kind: 'move', category })} />
+      <RowAction label="변경" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'edit', category })} />
       <RowAction label="삭제" target={category.name} danger reason={reasonFor(isTop && childCount > 0 ? HAS_CHILDREN_REASON : null)} onClick={() => askDelete(category, isTop)} />
     </span>
   </li>
 
   return <section className="panel taxonomy-panel" aria-label="카테고리">
     <div className="panel-heading">
-      <div><p className="eyebrow">CATEGORIES</p><h2>카테고리</h2></div>
+      <div><p className="eyebrow">CATEGORIES</p><div className="taxonomy-title"><h2>카테고리</h2><FieldTip label="카테고리 안내">{TIP}</FieldTip></div></div>
       {writable && <button type="button" className="inbound-action-button" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create-top' })}>대분류 추가</button>}
     </div>
-    <p className="employee-hint taxonomy-hint">상품은 소분류 하나를 카테고리로 가집니다. 소분류가 하나도 없으면 상품을 등록할 수 없습니다.</p>
     {query.isLoading && <p>카테고리를 불러오는 중입니다...</p>}
     {query.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(query.error)}</p>}
     {remove.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(remove.error)}</p>}
@@ -98,27 +119,15 @@ export function CategoriesPanel({ writable, confirm }: Props) {
         create.mutate({ name, parentId: parent?.id ?? null }, { onSuccess: () => { close(); notify(parent ? `"${parent.name}" 아래에 소분류 "${name}"을 추가했습니다.` : `대분류 "${name}"을 추가했습니다.`) } })
       }}
     />
-    <NameFormModal
-      open={open && dialog?.kind === 'rename'}
-      title={dialog?.kind === 'rename' ? `이름 변경 · ${dialog.category.name}` : '이름 변경'}
-      label="이름"
-      placeholder="카테고리 이름"
-      initialName={dialog?.kind === 'rename' ? dialog.category.name : undefined}
-      submitLabel="저장"
-      hint="바꾼 이름은 바로 반영되며, 이 카테고리를 쓰는 상품에는 영향이 없습니다."
-      pending={rename.isPending}
-      error={rename.error}
-      onClose={close}
-      onSubmit={(name) => dialog?.kind === 'rename' && rename.mutate({ id: dialog.category.id, name }, { onSuccess: () => { close(); notify('카테고리 이름을 바꿨습니다.') } })}
-    />
-    {dialog?.kind === 'move' && <MoveCategoryModal
+    {dialog?.kind === 'edit' && <EditCategoryModal
       open={open}
       category={dialog.category}
       topLevels={categories.filter((category) => category.parentId === null && category.id !== dialog.category.id)}
-      pending={move.isPending}
-      error={move.error}
+      childCount={categories.filter((category) => category.parentId === dialog.category.id).length}
+      pending={saving}
+      error={move.error ?? rename.error}
       onClose={close}
-      onSubmit={(parentId) => move.mutate({ id: dialog.category.id, parentId }, { onSuccess: () => { close(); notify(parentId === null ? `"${dialog.category.name}"을 대분류로 승격했습니다.` : '카테고리의 부모를 바꿨습니다.') } })}
+      onSubmit={(change) => void save(dialog.category, change)}
     />}
   </section>
 }

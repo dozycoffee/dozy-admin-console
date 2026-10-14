@@ -27,7 +27,7 @@ const fns = {
 }
 const countProducts = vi.fn()
 const idle = { isPending: false, isError: false, error: null, reset: vi.fn() }
-const mutation = (mutate: ReturnType<typeof vi.fn>, extra: object = {}) => ({ ...idle, mutate, ...extra }) as never
+const mutation = (mutate: ReturnType<typeof vi.fn>, extra: object = {}) => ({ ...idle, mutate, mutateAsync: mutate, ...extra }) as never
 
 function setup(overrides: { [key in keyof typeof fns]?: object } = {}) {
   vi.mocked(useCategories).mockReturnValue({ isLoading: false, isError: false, data: categories } as never)
@@ -81,6 +81,16 @@ describe('탭', () => {
 })
 
 describe('카테고리', () => {
+  it('설명은 본문에 늘어놓지 않고 제목 옆 ? 툴팁으로 보여준다', async () => {
+    setup()
+    renderPage()
+
+    const tip = screen.getByText(/소분류가 하나도 없으면 상품을 등록할 수 없습니다/)
+    expect(tip).not.toBeVisible()
+    await userEvent.setup().hover(screen.getByRole('img', { name: '카테고리 안내' }))
+    expect(tip).toBeVisible()
+  })
+
   it('대분류 아래에 소분류를 계층으로 보여주고 소분류 수를 알려 준다', () => {
     setup()
     renderPage()
@@ -89,19 +99,6 @@ describe('카테고리', () => {
     expect(within(row('MD')).getByText('대분류 · 소분류 0개')).toBeInTheDocument()
     expect(within(row('커피')).getByText('소분류')).toBeInTheDocument()
     expect(row('커피').closest('ul')).toBe(row('음료').closest('ul'))
-  })
-
-  it('소분류가 있는 대분류는 삭제·소분류로 변경을 막고 사유를 알린다', async () => {
-    setup()
-    renderPage()
-
-    expect(button('삭제', '음료')).toBeDisabled()
-    expect(button('소분류로 변경', '음료')).toBeDisabled()
-    expect(button('삭제', 'MD')).toBeEnabled()
-    expect(button('소분류로 변경', 'MD')).toBeEnabled()
-    await userEvent.setup().hover(button('삭제', '음료').parentElement!)
-    // 소분류가 있는 대분류(음료·푸드)마다 같은 사유를 툴팁으로 단다
-    expect(await screen.findAllByText(/소분류가 있는 대분류는 삭제할 수 없습니다/)).toHaveLength(2)
   })
 
   it('대분류를 추가한다(parentId null)', async () => {
@@ -142,21 +139,55 @@ describe('카테고리', () => {
     expect(within(dialog()).getByLabelText('이름')).toHaveFocus()
   })
 
-  it('이름 변경은 현재 이름을 채워 열고 같은 이름이면 요청 없이 닫는다', async () => {
+  it('소분류가 있는 대분류는 삭제를 막고 사유를 알리며 변경은 할 수 있다', async () => {
+    setup()
+    renderPage()
+
+    expect(button('삭제', '음료')).toBeDisabled()
+    expect(button('변경', '음료')).toBeEnabled()
+    expect(button('삭제', 'MD')).toBeEnabled()
+    await userEvent.setup().hover(button('삭제', '음료').parentElement!)
+    // 소분류가 있는 대분류(음료·푸드)마다 같은 사유를 툴팁으로 단다
+    expect(await screen.findAllByText(/소분류가 있는 대분류는 삭제할 수 없습니다/)).toHaveLength(2)
+  })
+
+  it('줄마다 변경 버튼 하나로 이름과 부모를 함께 바꾼다(이름 변경·부모 변경 버튼은 따로 없다)', () => {
+    setup()
+    renderPage()
+
+    expect(button('변경', '커피')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /이름 변경/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /부모 변경/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /소분류로 변경/ })).not.toBeInTheDocument()
+  })
+
+  it('변경 모달은 현재 이름과 상위 대분류를 채워 열고 바뀐 게 없으면 요청 없이 닫는다', async () => {
     setup()
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('이름 변경', '커피'))
+    await user.click(button('변경', '커피'))
+    expect(screen.getByRole('dialog', { name: '카테고리 변경 · 커피' })).toBeInTheDocument()
     expect(within(dialog()).getByLabelText('이름')).toHaveValue('커피')
+    expect(within(dialog()).getByLabelText('상위 대분류')).toHaveValue('1')
     await user.click(within(dialog()).getByRole('button', { name: '저장' }))
-    expect(fns.renameCategory).not.toHaveBeenCalled()
 
-    await user.click(button('이름 변경', '커피'))
+    expect(fns.renameCategory).not.toHaveBeenCalled()
+    expect(fns.moveCategory).not.toHaveBeenCalled()
+  })
+
+  it('이름만 바꾸면 이름 변경만 요청한다', async () => {
+    setup()
+    renderPage()
+    const user = userEvent.setup()
+
+    await user.click(button('변경', '커피'))
     await user.clear(within(dialog()).getByLabelText('이름'))
     await user.type(within(dialog()).getByLabelText('이름'), '에스프레소')
     await user.click(within(dialog()).getByRole('button', { name: '저장' }))
-    expect(fns.renameCategory).toHaveBeenCalledWith({ id: 5, name: '에스프레소' }, expect.any(Object))
+
+    expect(fns.renameCategory).toHaveBeenCalledWith({ id: 5, name: '에스프레소' })
+    expect(fns.moveCategory).not.toHaveBeenCalled()
   })
 
   it('소분류를 다른 대분류로 옮긴다', async () => {
@@ -164,13 +195,12 @@ describe('카테고리', () => {
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('부모 변경', '커피'))
-    const select = within(dialog()).getByLabelText('상위 대분류')
-    expect(select).toHaveValue('1')
-    await user.selectOptions(select, '푸드')
-    await user.click(within(dialog()).getByRole('button', { name: '변경' }))
+    await user.click(button('변경', '커피'))
+    await user.selectOptions(within(dialog()).getByLabelText('상위 대분류'), '푸드')
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
 
-    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 5, parentId: 2 }, expect.any(Object))
+    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 5, parentId: 2 })
+    expect(fns.renameCategory).not.toHaveBeenCalled()
   })
 
   it('소분류를 대분류로 승격하면 parentId를 null로 보낸다', async () => {
@@ -178,40 +208,91 @@ describe('카테고리', () => {
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('부모 변경', '디저트'))
+    await user.click(button('변경', '디저트'))
     await user.selectOptions(within(dialog()).getByLabelText('상위 대분류'), '대분류로 승격 (상위 없음)')
     expect(within(dialog()).getByText(/쓰는 상품이 있으면 승격할 수 없습니다/)).toBeInTheDocument()
-    await user.click(within(dialog()).getByRole('button', { name: '변경' }))
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
 
-    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 7, parentId: null }, expect.any(Object))
+    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 7, parentId: null })
   })
 
-  it('부모를 바꾸지 않으면 요청 없이 닫는다', async () => {
+  it('이름과 부모를 함께 바꾸면 부모를 먼저 바꾼 뒤 이름을 바꾸고 토스트로 알린다', async () => {
     setup()
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('부모 변경', '커피'))
-    await user.click(within(dialog()).getByRole('button', { name: '변경' }))
+    await user.click(button('변경', '커피'))
+    await user.clear(within(dialog()).getByLabelText('이름'))
+    await user.type(within(dialog()).getByLabelText('이름'), '에스프레소')
+    await user.selectOptions(within(dialog()).getByLabelText('상위 대분류'), '푸드')
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
 
-    expect(fns.moveCategory).not.toHaveBeenCalled()
+    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 5, parentId: 2 })
+    expect(fns.renameCategory).toHaveBeenCalledWith({ id: 5, name: '에스프레소' })
+    expect(fns.moveCategory.mock.invocationCallOrder[0]).toBeLessThan(fns.renameCategory.mock.invocationCallOrder[0])
+    expect(await screen.findByText('"에스프레소" 카테고리를 변경했습니다.')).toBeInTheDocument()
   })
 
-  it('소분류가 없는 대분류는 다른 대분류 아래로 내릴 수 있고 고르지 않으면 안내한다', async () => {
+  it('부모 변경이 거부되면 이름도 바꾸지 않고 모달을 열어 둔다', async () => {
+    fns.moveCategory.mockRejectedValueOnce(new ApiError('x', { status: 409, code: 'REFERENCED_CATEGORY_NOT_PROMOTABLE' }))
     setup()
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('소분류로 변경', 'MD'))
-    expect(screen.getByRole('dialog', { name: '소분류로 변경 · MD' })).toBeInTheDocument()
-    expect(within(dialog()).queryByRole('option', { name: '대분류로 승격 (상위 없음)' })).not.toBeInTheDocument()
-    await user.click(within(dialog()).getByRole('button', { name: '변경' }))
-    expect(fns.moveCategory).not.toHaveBeenCalled()
-    expect(within(dialog()).getByText('대분류를 선택하세요.')).toBeInTheDocument()
+    await user.click(button('변경', '커피'))
+    await user.clear(within(dialog()).getByLabelText('이름'))
+    await user.type(within(dialog()).getByLabelText('이름'), '에스프레소')
+    await user.selectOptions(within(dialog()).getByLabelText('상위 대분류'), '대분류로 승격 (상위 없음)')
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
 
-    await user.selectOptions(within(dialog()).getByLabelText('소분류로 들어갈 대분류'), '음료')
-    await user.click(within(dialog()).getByRole('button', { name: '변경' }))
-    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 3, parentId: 1 }, expect.any(Object))
+    expect(fns.renameCategory).not.toHaveBeenCalled()
+    expect(dialog()).toBeInTheDocument()
+  })
+
+  it('저장이 서버에서 거부되면 모달 안에 code별 안내를 보여준다', async () => {
+    setup({ moveCategory: { isError: true, error: new ApiError('x', { status: 409, code: 'REFERENCED_CATEGORY_NOT_PROMOTABLE' }) } })
+    renderPage()
+
+    await userEvent.setup().click(button('변경', '커피'))
+
+    expect(within(dialog()).getByRole('alert')).toHaveTextContent('대분류로 바꿀 수 없습니다')
+  })
+
+  it('이름을 비우면 요청하지 않고 안내한다', async () => {
+    setup()
+    renderPage()
+    const user = userEvent.setup()
+
+    await user.click(button('변경', '커피'))
+    await user.clear(within(dialog()).getByLabelText('이름'))
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
+
+    expect(within(dialog()).getByText('이름을 입력하세요.')).toBeInTheDocument()
+    expect(fns.renameCategory).not.toHaveBeenCalled()
+  })
+
+  it('소분류가 있는 대분류는 이름만 바꿀 수 있고 상위 대분류 선택은 잠긴다', async () => {
+    setup()
+    renderPage()
+
+    await userEvent.setup().click(button('변경', '음료'))
+
+    expect(within(dialog()).getByLabelText('상위 대분류')).toBeDisabled()
+    expect(within(dialog()).getByText('소분류가 있는 대분류는 다른 대분류의 소분류로 바꿀 수 없습니다.')).toBeInTheDocument()
+  })
+
+  it('소분류가 없는 대분류는 다른 대분류 아래의 소분류로 바꿀 수 있다', async () => {
+    setup()
+    renderPage()
+    const user = userEvent.setup()
+
+    await user.click(button('변경', 'MD'))
+    expect(within(dialog()).getByLabelText('상위 대분류')).toHaveValue('none')
+    expect(within(dialog()).queryByRole('option', { name: 'MD' })).not.toBeInTheDocument()
+    await user.selectOptions(within(dialog()).getByLabelText('상위 대분류'), '음료')
+    await user.click(within(dialog()).getByRole('button', { name: '저장' }))
+
+    expect(fns.moveCategory).toHaveBeenCalledWith({ id: 3, parentId: 1 })
   })
 
   it('삭제는 확인 모달을 거친 뒤에만 요청한다', async () => {
@@ -233,15 +314,6 @@ describe('카테고리', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('이 카테고리를 쓰는 상품이 있어 삭제할 수 없습니다.')
   })
 
-  it('저장이 서버에서 거부되면 모달 안에 안내한다', async () => {
-    setup({ moveCategory: { isError: true, error: new ApiError('x', { status: 409, code: 'REFERENCED_CATEGORY_NOT_PROMOTABLE' }) } })
-    renderPage()
-
-    await userEvent.setup().click(button('부모 변경', '커피'))
-
-    expect(within(dialog()).getByRole('alert')).toHaveTextContent('대분류로 바꿀 수 없습니다')
-  })
-
   it('성공하면 토스트로 알린다', async () => {
     fns.createCategory.mockImplementation((_body, handlers) => handlers.onSuccess())
     setup()
@@ -261,7 +333,7 @@ describe('카테고리', () => {
 
     expect(screen.queryByRole('button', { name: '대분류 추가' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /소분류 추가/ })).not.toBeInTheDocument()
-    expect(button('이름 변경', '커피')).toBeDisabled()
+    expect(button('변경', '커피')).toBeDisabled()
     expect(button('삭제', 'MD')).toBeDisabled()
     await userEvent.setup().hover(button('삭제', 'MD').parentElement!)
     expect((await screen.findAllByText('분류를 변경할 권한이 없습니다.')).length).toBeGreaterThan(0)
@@ -290,7 +362,10 @@ describe('태그', () => {
 
     expect(screen.getByText('베스트', { selector: 'strong' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /추가/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/상품 등록·수정에서 이름을 입력하면 만들어집니다/)).toBeInTheDocument()
+    const tip = screen.getByText(/상품 등록·수정에서 이름을 입력하면 만들어집니다/)
+    expect(tip).not.toBeVisible()
+    await userEvent.setup().hover(screen.getByRole('img', { name: '태그 안내' }))
+    expect(tip).toBeVisible()
   })
 
   it('검색어로 목록을 거른다', async () => {
@@ -313,7 +388,7 @@ describe('태그', () => {
     renderPage()
     const user = await openTags()
 
-    await user.click(button('이름 변경', '베스트'))
+    await user.click(button('변경', '베스트'))
     await user.clear(within(dialog()).getByLabelText('이름'))
     await user.type(within(dialog()).getByLabelText('이름'), 'BEST')
     await user.click(within(dialog()).getByRole('button', { name: '저장' }))
@@ -326,7 +401,7 @@ describe('태그', () => {
     renderPage()
     const user = await openTags()
 
-    await user.click(button('이름 변경', '베스트'))
+    await user.click(button('변경', '베스트'))
 
     expect(within(dialog()).getByRole('alert')).toHaveTextContent('이미 있는 태그 이름입니다.')
   })
@@ -373,7 +448,7 @@ describe('태그', () => {
     renderPage([permissions.catalogRead])
     await openTags()
 
-    expect(button('이름 변경', '베스트')).toBeDisabled()
+    expect(button('변경', '베스트')).toBeDisabled()
     expect(button('삭제', '베스트')).toBeDisabled()
   })
 })
@@ -402,7 +477,7 @@ describe('상품 그룹', () => {
     renderPage()
     const user = await openGroups()
 
-    await user.click(button('이름 변경', '여름 시즌'))
+    await user.click(button('변경', '여름 시즌'))
     await user.clear(within(dialog()).getByLabelText('이름'))
     await user.type(within(dialog()).getByLabelText('이름'), '여름 한정')
     await user.click(within(dialog()).getByRole('button', { name: '저장' }))
