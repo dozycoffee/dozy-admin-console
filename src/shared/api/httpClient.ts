@@ -73,6 +73,9 @@ function shouldRefreshToken(config: RetriableConfig, apiError: ApiError): boolea
 /** 업무 API(dozy-wms-api 등) 호출용 클라이언트 */
 export const httpClient = createClient(import.meta.env.VITE_API_BASE_URL)
 
+/** 재고 서비스(dozy-inventory-api) 호출용 클라이언트. 인증은 Bearer 토큰만 쓰므로 쿠키를 보내지 않는다. */
+export const inventoryHttpClient = createClient(import.meta.env.VITE_INVENTORY_BASE_URL)
+
 /** dozy-auth 호출용 클라이언트. refresh 쿠키(HttpOnly)를 주고받으므로 credentials를 포함한다. */
 export const authHttpClient = createClient(import.meta.env.VITE_AUTH_BASE_URL, { withCredentials: true })
 
@@ -112,7 +115,7 @@ function extractMessage(data: unknown): string | undefined {
 }
 
 function extractCode(data: unknown): string | undefined {
-  // dozy-wms-api는 에러 코드를 errorCode로, dozy-auth(RFC 9457 Problem Details)와 mock 서버는 code로 내려준다.
+  // dozy-wms-api는 에러 코드를 errorCode로, dozy-auth·dozy-inventory-api(RFC 9457 Problem Details)와 mock 서버는 code로 내려준다.
   const code = getField(data, 'errorCode') ?? getField(data, 'code')
   return typeof code === 'string' ? code : undefined
 }

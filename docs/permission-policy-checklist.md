@@ -25,7 +25,7 @@
 | Permission | 의미 | 적용 위치 |
 |---|---|---|
 | `dashboard.read` | 대시보드 조회 | `/` |
-| `inventory.read` | 재고·창고 현황 조회 | `/inventory` |
+| `inventory.read` | 재고·창고 현황 조회 | 창고 관리자 모드의 `/inventory`, `/warehouse-map`, 재고 관리 모드의 `/stock` |
 | `inventory.write` | 재고 조정 등 쓰기 동작 | 미구현 — 재고 쓰기 화면 추가 시 적용 |
 | `inbound.read` | 입고 작업 조회 | 창고 관리자 모드의 `/inbounds`, `/inbounds/history` |
 | `inbound.write` | 입고 등록, 처리 시작, 품목 검수, 입고 완료 | `/inbounds`의 등록·작업 버튼 |

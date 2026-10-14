@@ -43,8 +43,9 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
       permissions.returnWrite,
     ],
   },
-  'wms:hq_inventory_manager': {
-    actorModes: [actorModeIds.headquartersInventoryManager],
+  // 재고 서비스가 WMS에서 분리되어 재고 관리 모드는 inventory 서비스의 관리자 role(`inventory:admin`)에 매핑한다.
+  'inventory:admin': {
+    actorModes: [actorModeIds.inventoryManager],
     permissions: [permissions.dashboardRead, permissions.inventoryRead],
   },
   // dozy-catalog-api는 본사 직원 role을 `catalog:admin` 하나로 두고 `/admin/**` 전체를 허용한다.
@@ -56,7 +57,7 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
 }
 
 /** 창고 데이터(AccessScope.warehouseIds)를 다루는 모드. auth에는 창고 개념이 없다. */
-const warehouseScopedModes: readonly ActorModeId[] = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager]
+const warehouseScopedModes: readonly ActorModeId[] = [actorModeIds.warehouseManager]
 
 /** `VITE_WAREHOUSE_IDS`(쉼표로 구분한 창고 id)를 숫자 배열로 바꾼다. 숫자가 아닌 항목은 버린다. */
 export function parseWarehouseIds(raw: string | undefined): number[] {

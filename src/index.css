@@ -832,6 +832,42 @@ a { color: inherit; text-decoration: none; }
 .dash-recent time { flex: none; width: 168px; color: #9b918c; font-size: 12px; }
 .dash-recent .audit-category { margin-bottom: 0; }
 .dash-recent strong { color: #33241e; font-size: 13px; }
+/* 재고 관리 모드: 재고 현황 */
+.stock-filters { min-height: 0; margin-bottom: 16px; padding: 20px 26px; }
+.stock-filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stock-filters label { display: grid; gap: 4px; min-width: 0; color: #6f6862; font-size: 12px; }
+.stock-filters input, .stock-filters select { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #e4ddd9; border-radius: 7px; background: #fff; font: inherit; }
+.stock-filter-actions { display: flex; gap: 8px; margin-top: 14px; }
+.stock-filter-actions .inbound-action-button { margin-top: 0; }
+.stock-table { table-layout: fixed; min-width: 820px; }
+.stock-table th, .stock-table td { white-space: normal; }
+.stock-table th { white-space: nowrap; }
+.stock-table th:nth-child(1), .stock-table td:nth-child(1) { width: 21%; padding-left: 0; }
+.stock-table th:nth-child(2), .stock-table td:nth-child(2) { width: 13%; }
+.stock-table th:nth-child(3), .stock-table td:nth-child(3) { width: 18%; }
+.stock-table th:nth-child(4), .stock-table td:nth-child(4) { width: 20%; }
+.stock-table th:nth-child(5), .stock-table td:nth-child(5), .stock-table th:nth-child(6), .stock-table td:nth-child(6), .stock-table th:nth-child(7), .stock-table td:nth-child(7) { width: 7%; }
+.stock-table th:nth-child(8), .stock-table td:nth-child(8) { width: 7%; }
+.stock-table .audit-view { white-space: nowrap; }
+.stock-table td strong { display: block; }
+.stock-num { text-align: right; font-variant-numeric: tabular-nums; }
+.stock-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.stock-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; background: #ececec; color: #6b6b6b; font-size: 10.5px; font-weight: 800; white-space: nowrap; }
+.stock-quality-normal { background: #e1f3e6; color: #25683a; }
+.stock-quality-defective { background: #fde4e1; color: #9c3b3b; }
+.stock-quality-disposal_scheduled { background: #ececec; color: #6b6b6b; }
+.stock-lot-expiring_soon { background: #fff3d6; color: #8a5a00; }
+.stock-lot-expired { background: #fde4e1; color: #9c3b3b; }
+.stock-hold { background: #e8f1ff; color: #2864ac; }
+.stock-history { margin-top: 18px; }
+.stock-history h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 6px; font-size: 14px; }
+.stock-history h3 small { color: #9b918c; font-size: 12px; font-weight: 500; }
+.stock-history-table { table-layout: auto; min-width: 0; }
+.stock-history-table th, .stock-history-table td { width: auto; white-space: normal; }
+.stock-plus { color: #25683a; font-variant-numeric: tabular-nums; }
+.stock-minus { color: #9c3b3b; font-variant-numeric: tabular-nums; }
+.stock-modal { width: min(720px, calc(100vw - 32px)); }
+.stock-task-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 
 /* 옵션 그룹: 넓은 모달, 옵션 행 편집기, 상세의 옵션 표 */
 .form-modal.option-form-modal { width: min(100%, 780px); }

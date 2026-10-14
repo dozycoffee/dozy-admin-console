@@ -117,8 +117,28 @@ describe('AppLayout', () => {
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
 
+  it('재고 관리 모드에는 대시보드와 재고 현황 메뉴만 보여주고 창고 업무 메뉴는 없다', () => {
+    render(
+      <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.inventoryManager, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<div>page content</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    )
+
+    expect(screen.getByRole('link', { name: /재고 현황/ })).toHaveAttribute('href', '/stock')
+    expect(screen.getByRole('link', { name: /대시보드/ })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('link', { name: /창고 평면도/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /입고 관리/ })).not.toBeInTheDocument()
+    expect(screen.getByText('재고 관리', { selector: 'strong' })).toBeInTheDocument()
+  })
+
   describe('내 계정 메뉴', () => {
-    const modes = [actorModeIds.accountAdministrator, actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager, actorModeIds.merchandiser]
+    const modes = [actorModeIds.accountAdministrator, actorModeIds.warehouseManager, actorModeIds.inventoryManager, actorModeIds.merchandiser]
 
     function renderWith(mode: (typeof modes)[number] | null, { can = () => true as boolean, path = '/' }: { can?: () => boolean; path?: string } = {}) {
       return render(

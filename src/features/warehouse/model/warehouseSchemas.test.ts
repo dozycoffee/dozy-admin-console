@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { warehouseSchema } from './warehouseSchemas'
+import { warehouseListSchema, warehouseSchema } from './warehouseSchemas'
 
 const validWarehouse = {
   warehouseId: 1,
@@ -20,5 +20,18 @@ describe('warehouseSchema', () => {
 
   it('알 수 없는 warehouseStatus 값이면 파싱에 실패한다', () => {
     expect(() => warehouseSchema.parse({ ...validWarehouse, warehouseStatus: 'CLOSED' })).toThrow()
+  })
+})
+
+describe('warehouseListSchema', () => {
+  it('items 래퍼의 창고 목록을 파싱한다', () => {
+    const result = warehouseListSchema.parse({ items: [validWarehouse, { ...validWarehouse, warehouseId: 2 }] })
+
+    expect(result.items.map((warehouse) => warehouse.warehouseId)).toEqual([validWarehouse.warehouseId, 2])
+  })
+
+  it('빈 목록도 파싱하고 items가 없으면 실패한다', () => {
+    expect(warehouseListSchema.parse({ items: [] }).items).toEqual([])
+    expect(() => warehouseListSchema.parse([validWarehouse])).toThrow()
   })
 })

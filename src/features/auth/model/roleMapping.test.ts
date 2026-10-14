@@ -60,21 +60,25 @@ describe('buildCurrentUser', () => {
     expect(user.scope.warehouseIds).toEqual([1, 2])
   })
 
-  it('본사 재고 담당자 role은 재고 조회만 허용한다', () => {
-    const user = buildCurrentUser({ ...base, roles: ['wms:hq_inventory_manager'] }, [1])
+  it('inventory:admin role은 재고 관리 모드의 재고 조회만 허용하고 창고 범위는 두지 않는다', () => {
+    const user = buildCurrentUser({ ...base, roles: ['inventory:admin'] }, [1])
 
-    expect(user.actorModes).toEqual([actorModeIds.headquartersInventoryManager])
+    expect(user.actorModes).toEqual([actorModeIds.inventoryManager])
     expect(user.permissions).toEqual([permissions.dashboardRead, permissions.inventoryRead])
-    expect(user.scope.warehouseIds).toEqual([1])
+    expect(user.scope.warehouseIds).toEqual([])
+  })
+
+  it('예전 본사 재고 담당자 role(wms:hq_inventory_manager)은 더 이상 어떤 모드도 주지 않는다', () => {
+    expect(buildCurrentUser({ ...base, roles: ['wms:hq_inventory_manager'] }, [1]).actorModes).toEqual([])
   })
 
   it('여러 role의 모드와 권한을 합치고 중복을 제거하며 모드는 레지스트리 순서를 따른다', () => {
-    const user = buildCurrentUser({ ...base, roles: ['wms:hq_inventory_manager', 'auth:owner', 'wms:warehouse_manager'] }, [1])
+    const user = buildCurrentUser({ ...base, roles: ['inventory:admin', 'auth:owner', 'wms:warehouse_manager'] }, [1])
 
     expect(user.actorModes).toEqual([
       actorModeIds.accountAdministrator,
       actorModeIds.warehouseManager,
-      actorModeIds.headquartersInventoryManager,
+      actorModeIds.inventoryManager,
     ])
     expect(new Set(user.permissions).size).toBe(user.permissions.length)
   })
