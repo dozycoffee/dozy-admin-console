@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { catalogHttpClient } from '../../../shared/api/httpClient'
 import {
   categoryListSchema,
+  effectiveOptionsSchema,
   optionGroupListSchema,
   productGroupListSchema,
   productPageSchema,
@@ -79,5 +80,14 @@ export function useCountProducts() {
     queryKey: ['catalog', 'products', 'count', filter],
     queryFn: async () => productPageSchema.parse((await catalogHttpClient.get(`${ADMIN}/products`, { params: { ...filter, page: 0, size: 1 } })).data).totalElements,
     staleTime: 0,
+  })
+}
+
+/** 상품의 유효 옵션 구성과 표시용 시작가(서버 계산). 상품이 바뀌면 상품 목록과 함께 다시 받는다. */
+export function useEffectiveOptions(productId: number, enabled = true) {
+  return useQuery({
+    queryKey: ['catalog', 'products', 'effective-options', productId],
+    queryFn: async () => effectiveOptionsSchema.parse((await catalogHttpClient.get(`${ADMIN}/products/${productId}/effective-options`)).data),
+    enabled,
   })
 }

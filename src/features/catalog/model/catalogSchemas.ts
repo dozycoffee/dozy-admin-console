@@ -98,3 +98,25 @@ export type OptionInput = { optionKey: string; name: string; price: number }
 export type CreateOptionGroupRequest = { name: string; selectionType: SelectionType; required: boolean; options: OptionInput[] }
 /** 이름·선택 방식·필수 여부. 옵션 목록은 별도 요청으로 바꾼다. */
 export type UpdateOptionGroupRequest = { name: string; selectionType: SelectionType; required: boolean }
+
+/** 상품에서 옵션 하나에 지정하는 예외: 이 상품에서만 가격을 다르게 하거나(0 이상) 선택할 수 없게 제외한다. */
+export type OptionOverrideInput = { type: 'PRICE'; price: number } | { type: 'EXCLUDE' }
+
+/**
+ * 연결된 옵션 그룹에 이 상품의 예외를 반영한 결과와 표시용 시작가. 업무 규칙이 들어간 계산이라 서버가 제공하며 콘솔은 그대로 보여준다.
+ * 제외된 옵션은 빠지고, 필수 그룹에 유효 옵션이 1개면 `autoSelectedOptionKey`가 그 키다.
+ */
+export const effectiveOptionsSchema = z.object({
+  productId: z.number(),
+  basePrice: z.number(),
+  displayStartingPrice: z.number(),
+  groups: z.array(z.object({
+    optionGroupId: z.number(),
+    name: z.string(),
+    selectionType: z.enum(['SINGLE', 'MULTI']),
+    required: z.boolean(),
+    autoSelectedOptionKey: z.string().nullable(),
+    options: z.array(z.object({ optionKey: z.string(), name: z.string(), price: z.number(), priceOverridden: z.boolean() })),
+  })),
+})
+export type EffectiveOptions = z.infer<typeof effectiveOptionsSchema>
