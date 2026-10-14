@@ -17,12 +17,12 @@ const warehouseManagerNavigation = [...operationsNavigation, { label: '입고 �
 
 const navigationByMode: Record<ActorModeId, Array<{ label: string; to: string; permission: Permission }>> = {
   [actorModeIds.accountAdministrator]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }, { label: '직원 관리', to: '/employees', permission: permissions.accountRead }, { label: 'role 관리', to: '/roles', permission: permissions.accountRead }, { label: '시스템 클라이언트', to: '/system-clients', permission: permissions.accountRead }, { label: 'owner 양도', to: '/owner', permission: permissions.accountManage }, { label: '감사 로그', to: '/audit-logs', permission: permissions.accountManage }],
-  [actorModeIds.merchandiser]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }, { label: '상품 관리', to: '/products', permission: permissions.catalogRead }, { label: '분류 관리', to: '/taxonomy', permission: permissions.catalogRead }],
+  [actorModeIds.merchandiser]: [{ label: '대시보드', to: '/', permission: permissions.dashboardRead }, { label: '상품 관리', to: '/products', permission: permissions.catalogRead }, { label: '분류 관리', to: '/taxonomy', permission: permissions.catalogRead }, { label: '옵션 그룹', to: '/option-groups', permission: permissions.catalogRead }],
   [actorModeIds.warehouseManager]: warehouseManagerNavigation,
   [actorModeIds.headquartersInventoryManager]: operationsNavigation,
 }
 
-type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'clients' | 'owner' | 'audit' | 'product' | 'taxonomy' | 'account' | 'logout'
+type NavIconName = 'dashboard' | 'inventory' | 'map' | 'inbound' | 'outbound' | 'disposal' | 'return' | 'employees' | 'roles' | 'clients' | 'owner' | 'audit' | 'product' | 'taxonomy' | 'options' | 'account' | 'logout'
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, string> = {
     dashboard: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
@@ -38,6 +38,7 @@ function NavIcon({ name }: { name: NavIconName }) {
     owner: 'M5 8l4 3 3-6 3 6 4-3-2 10H7zM7 21h10',
     audit: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
     product: 'M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8M8 6l8 4',
+    options: 'M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6',
     taxonomy: 'M4 6h7v7H4zM13 6h7M13 10h7M4 17h16M4 21h10',
     account: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
     logout: 'M10 5H5v14h5M14 8l4 4-4 4M18 12H9',
@@ -84,7 +85,7 @@ export function AppLayout() {
                 state={allowed ? undefined : { from: item.to, permission: item.permission }}
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
-                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/inbounds' ? 'inbound' : item.to === '/outbounds' ? 'outbound' : item.to === '/disposals' ? 'disposal' : item.to === '/returns' ? 'return' : item.to === '/employees' ? 'employees' : item.to === '/roles' ? 'roles' : item.to === '/audit-logs' ? 'audit' : item.to === '/products' ? 'product' : item.to === '/taxonomy' ? 'taxonomy' : item.to === '/system-clients' ? 'clients' : item.to === '/owner' ? 'owner' : 'map'} />
+                <NavIcon name={item.to === '/' ? 'dashboard' : item.to === '/inventory' ? 'inventory' : item.to === '/inbounds' ? 'inbound' : item.to === '/outbounds' ? 'outbound' : item.to === '/disposals' ? 'disposal' : item.to === '/returns' ? 'return' : item.to === '/employees' ? 'employees' : item.to === '/roles' ? 'roles' : item.to === '/audit-logs' ? 'audit' : item.to === '/products' ? 'product' : item.to === '/taxonomy' ? 'taxonomy' : item.to === '/option-groups' ? 'options' : item.to === '/system-clients' ? 'clients' : item.to === '/owner' ? 'owner' : 'map'} />
                 <span className="nav-link-label">{item.label}</span>
                 {!allowed && <small aria-label="접근 제한">잠김</small>}
               </NavLink>
