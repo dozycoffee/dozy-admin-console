@@ -41,6 +41,7 @@ describe('AppLayout', () => {
     renderAppLayout(vi.fn(), actorModeIds.merchandiser)
 
     expect(screen.getByRole('link', { name: /상품 관리/ })).toHaveAttribute('href', '/products')
+    expect(screen.getByRole('link', { name: /분류 관리/ })).toHaveAttribute('href', '/taxonomy')
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
 
