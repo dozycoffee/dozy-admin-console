@@ -276,7 +276,7 @@
     "id": "catalog-taxonomy",
     "name": "Catalog 카테고리·태그·상품 그룹 관리",
     "description": "카테고리(대분류·소분류, 이름 변경·부모 변경·삭제), 태그(이름 변경·삭제), 상품 그룹(등록·이름 변경·삭제) 관리 화면.",
-    "status": "pending",
+    "status": "in_progress",
     "dependencies": ["catalog-product-list"]
   },
   {
