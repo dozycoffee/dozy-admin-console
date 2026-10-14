@@ -1,4 +1,4 @@
-import type { Category, CreateOptionGroupRequest, CreateProductRequest, OptionGroup, OptionInput, Product, ProductGroup, Tag, UpdateOptionGroupRequest, UpdateProductRequest } from '../features/catalog/model/catalogSchemas'
+import type { Category, CreateOptionGroupRequest, CreateProductRequest, EffectiveOptions, OptionGroup, OptionInput, OptionOverrideInput, Product, ProductGroup, Tag, UpdateOptionGroupRequest, UpdateProductRequest } from '../features/catalog/model/catalogSchemas'
 
 /** 실패는 HTTP 상태와 Problem Details의 `code`로 돌려준다(dozy-catalog-api 명세와 같다). */
 export type MockFailure = { ok: false; status: number; code: string; currentVersion?: number }
@@ -53,6 +53,29 @@ export function createMockCatalogStore(seed: Seed) {
     if (version === null) return fail(428, 'VERSION_REQUIRED')
     if (version !== current.version) return fail(409, 'VERSION_CONFLICT', current.version)
     return null
+  }
+
+  /** 낙관적 잠금 검사(상품). 버전이 없으면 428, 화면이 보던 버전과 다르면 409(`currentVersion` 포함)다. */
+  function checkProductVersion(current: Product, version: number | null): MockFailure | null {
+    if (version === null) return fail(428, 'VERSION_REQUIRED')
+    if (version !== current.version) return fail(409, 'VERSION_CONFLICT', current.version)
+    return null
+  }
+
+  /**
+   * 상품의 옵션 그룹 연결을 바꾸는 요청의 공통 처리: 상품 확인 → 버전 확인 → 변경. 변경에 성공하면 상품 version이 오른다.
+   * `change`가 실패를 돌려주면 아무것도 바꾸지 않는다.
+   */
+  function changeOptionLinks(id: number, version: number | null, change: (product: Product) => Product['optionGroups'] | MockFailure): MockResult {
+    const current = find(id)
+    if (!current) return fail(404, 'PRODUCT_NOT_FOUND')
+    const conflict = checkProductVersion(current, version)
+    if (conflict) return conflict
+    const next = change(current)
+    if (!Array.isArray(next)) return next
+    const product = { ...current, optionGroups: next, version: current.version + 1 }
+    replace(product)
+    return { ok: true, product }
   }
 
   function validate(input: UpdateProductRequest): MockResult | null {
@@ -252,6 +275,71 @@ export function createMockCatalogStore(seed: Seed) {
       if (products.some((product) => product.optionGroups.some((link) => link.optionGroupId === id))) return fail(409, 'OPTION_GROUP_STILL_REFERENCED')
       optionGroups = optionGroups.filter((group) => group.id !== id)
       return { ok: true, value: null }
+    },
+
+    /** 옵션 그룹을 기존 연결들 뒤에 붙인다. */
+    linkOptionGroup: (id: number, version: number | null, optionGroupId: number): MockResult => changeOptionLinks(id, version, (product) => {
+      if (!optionGroups.some((group) => group.id === optionGroupId)) return fail(404, 'OPTION_GROUP_NOT_FOUND')
+      if (product.optionGroups.some((link) => link.optionGroupId === optionGroupId)) return fail(409, 'DUPLICATE_OPTION_GROUP_LINK')
+      return [...product.optionGroups, { optionGroupId, overrides: [] }]
+    }),
+
+    /** 연결을 해제한다. 그 연결의 예외도 함께 사라진다. */
+    unlinkOptionGroup: (id: number, version: number | null, optionGroupId: number): MockResult => changeOptionLinks(id, version, (product) => {
+      if (!product.optionGroups.some((link) => link.optionGroupId === optionGroupId)) return fail(404, 'PRODUCT_OPTION_GROUP_NOT_LINKED')
+      return product.optionGroups.filter((link) => link.optionGroupId !== optionGroupId)
+    }),
+
+    /** 연결된 옵션 그룹 전체를 정확히 한 번씩 담아야 한다. 연결되지 않은 그룹이 있으면 404, 빠지거나 겹치면 400이다. */
+    reorderOptionGroups: (id: number, version: number | null, optionGroupIds: readonly number[]): MockResult => changeOptionLinks(id, version, (product) => {
+      if (optionGroupIds.some((groupId) => !product.optionGroups.some((link) => link.optionGroupId === groupId))) return fail(404, 'PRODUCT_OPTION_GROUP_NOT_LINKED')
+      if (new Set(optionGroupIds).size !== optionGroupIds.length || optionGroupIds.length !== product.optionGroups.length) return fail(400, 'INVALID_OPTION_GROUP_ORDER')
+      return optionGroupIds.map((groupId) => product.optionGroups.find((link) => link.optionGroupId === groupId)!)
+    }),
+
+    /** 옵션에 가격 예외나 제외를 지정한다. 같은 키의 기존 예외는 대체하고, 제외로 선택 가능한 옵션이 0개가 되면 거부한다. */
+    setOptionOverride: (id: number, version: number | null, optionGroupId: number, optionKey: string, override: OptionOverrideInput): MockResult => changeOptionLinks(id, version, (product) => {
+      const group = optionGroups.find((item) => item.id === optionGroupId)
+      if (!group) return fail(404, 'OPTION_GROUP_NOT_FOUND')
+      const link = product.optionGroups.find((item) => item.optionGroupId === optionGroupId)
+      if (!link) return fail(404, 'PRODUCT_OPTION_GROUP_NOT_LINKED')
+      if (!group.options.some((option) => option.optionKey === optionKey)) return fail(404, 'OPTION_KEY_NOT_FOUND')
+      if (override.type === 'PRICE' && override.price < 0) return fail(400, 'INVALID_MONEY_AMOUNT')
+      const others = link.overrides.filter((item) => item.optionKey !== optionKey)
+      if (override.type === 'EXCLUDE') {
+        const excluded = new Set([optionKey, ...others.filter((item) => item.type === 'EXCLUDE').map((item) => item.optionKey)])
+        if (group.options.every((option) => excluded.has(option.optionKey))) return fail(422, 'NO_SELECTABLE_OPTION')
+      }
+      const next = override.type === 'PRICE' ? { optionKey, type: 'PRICE' as const, price: override.price } : { optionKey, type: 'EXCLUDE' as const, price: null }
+      return product.optionGroups.map((item) => (item.optionGroupId === optionGroupId ? { ...item, overrides: [...others, next] } : item))
+    }),
+
+    /** 예외를 해제한다. */
+    clearOptionOverride: (id: number, version: number | null, optionGroupId: number, optionKey: string): MockResult => changeOptionLinks(id, version, (product) => {
+      if (!product.optionGroups.some((item) => item.optionGroupId === optionGroupId)) return fail(404, 'PRODUCT_OPTION_GROUP_NOT_LINKED')
+      return product.optionGroups.map((item) => (item.optionGroupId === optionGroupId ? { ...item, overrides: item.overrides.filter((override) => override.optionKey !== optionKey) } : item))
+    }),
+
+    /**
+     * 유효 옵션 구성과 표시용 시작가(서버가 계산하는 값). 제외된 옵션은 빠지고 가격 예외는 반영하며,
+     * 필수 그룹에 유효 옵션이 1개면 자동 선택이다. 시작가는 기준가에 필수 그룹마다 유효 옵션 중 최저가를 더한 값이다.
+     */
+    effectiveOptions(id: number): MockValueResult<EffectiveOptions> {
+      const current = find(id)
+      if (!current) return fail(404, 'PRODUCT_NOT_FOUND')
+      const groups = current.optionGroups.flatMap((link) => {
+        const group = optionGroups.find((item) => item.id === link.optionGroupId)
+        if (!group) return []
+        const options = group.options
+          .filter((option) => !link.overrides.some((override) => override.optionKey === option.optionKey && override.type === 'EXCLUDE'))
+          .map((option) => {
+            const price = link.overrides.find((override) => override.optionKey === option.optionKey && override.type === 'PRICE')
+            return { optionKey: option.optionKey, name: option.name, price: price?.price ?? option.price, priceOverridden: price !== undefined }
+          })
+        return [{ optionGroupId: group.id, name: group.name, selectionType: group.selectionType, required: group.required, autoSelectedOptionKey: group.required && options.length === 1 ? options[0].optionKey : null, options }]
+      })
+      const startingPrice = current.basePrice + groups.filter((group) => group.required).reduce((sum, group) => sum + Math.min(...group.options.map((option) => option.price)), 0)
+      return { ok: true, value: { productId: id, basePrice: current.basePrice, displayStartingPrice: startingPrice, groups } }
     },
   }
 }

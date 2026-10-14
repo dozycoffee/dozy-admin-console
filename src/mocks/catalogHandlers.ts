@@ -40,7 +40,7 @@ const nameOf = async (request: Request) => ((await request.json()) as { name: st
 const numberParam = (value: string | null) => (value === null || value === '' ? undefined : Number(value))
 
 /**
- * dozy-auth 로그인과 dozy-catalog-api 상품 조회·등록·수정·상태 전환·삭제와 분류(카테고리·태그·상품 그룹)·옵션 그룹 관리를 MSW로 대신한다(상태는 메모리에만 있고 새로고침하면 초기화된다). `VITE_MOCK_CATALOG=true`일 때만 켜진다.
+ * dozy-auth 로그인과 dozy-catalog-api 상품 조회·등록·수정·상태 전환·삭제와 분류(카테고리·태그·상품 그룹)·옵션 그룹 관리, 상품의 옵션 그룹 연결·예외를 MSW로 대신한다(상태는 메모리에만 있고 새로고침하면 초기화된다). `VITE_MOCK_CATALOG=true`일 때만 켜진다.
  * Catalog를 띄우기 어려운 환경에서 MD 화면을 확인하는 용도이며, 어떤 비밀번호로든 MD 직원으로 로그인된다.
  */
 export const catalogMockHandlers: RequestHandler[] = [
@@ -86,6 +86,12 @@ export const catalogMockHandlers: RequestHandler[] = [
   http.delete(`${ADMIN}/categories/:id`, ({ params }) => respondValue(store.deleteCategory(Number(params.id)))),
   http.post(`${ADMIN}/products`, async ({ request }) => respond(store.create(await request.json() as never), 201)),
   http.put(`${ADMIN}/products/:id`, async ({ request, params }) => respond(store.update(Number(params.id), versionOf(request), await request.json() as never))),
+  http.get(`${ADMIN}/products/:id/effective-options`, ({ params }) => respondValue(store.effectiveOptions(Number(params.id)))),
+  http.post(`${ADMIN}/products/:id/option-groups`, async ({ request, params }) => respond(store.linkOptionGroup(Number(params.id), versionOf(request), ((await request.json()) as { optionGroupId: number }).optionGroupId))),
+  http.delete(`${ADMIN}/products/:id/option-groups/:groupId`, ({ request, params }) => respond(store.unlinkOptionGroup(Number(params.id), versionOf(request), Number(params.groupId)))),
+  http.put(`${ADMIN}/products/:id/option-groups/order`, async ({ request, params }) => respond(store.reorderOptionGroups(Number(params.id), versionOf(request), ((await request.json()) as { optionGroupIds: number[] }).optionGroupIds))),
+  http.put(`${ADMIN}/products/:id/option-groups/:groupId/overrides/:optionKey`, async ({ request, params }) => respond(store.setOptionOverride(Number(params.id), versionOf(request), Number(params.groupId), decodeURIComponent(String(params.optionKey)), await request.json() as never))),
+  http.delete(`${ADMIN}/products/:id/option-groups/:groupId/overrides/:optionKey`, ({ request, params }) => respond(store.clearOptionOverride(Number(params.id), versionOf(request), Number(params.groupId), decodeURIComponent(String(params.optionKey))))),
   http.post(`${ADMIN}/products/:id/activate`, ({ params }) => respond(store.transition(Number(params.id), 'ACTIVE'))),
   http.post(`${ADMIN}/products/:id/discontinue`, ({ params }) => respond(store.transition(Number(params.id), 'DISCONTINUED'))),
   http.delete(`${ADMIN}/products/:id`, ({ params }) => respond(store.remove(Number(params.id)))),

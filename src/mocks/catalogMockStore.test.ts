@@ -234,3 +234,123 @@ describe('옵션 그룹', () => {
     expect(store.create({ ...body, tracksInventory: false, optionGroupIds: [4] })).toMatchObject({ ok: true })
   })
 })
+
+describe('상품의 옵션 그룹 연결', () => {
+  // 상품 12(버전 4)는 사이즈(1: LARGE 가격 700·XLARGE 제외 예외)와 샷 추가(2)를 연결했고, 상품 14는 연결이 없다.
+  const links = (productId: number) => store.products().find((product) => product.id === productId)?.optionGroups ?? []
+
+  it('연결은 기존 연결 뒤에 붙고 버전이 오른다', () => {
+    expect(store.linkOptionGroup(14, 1, 3)).toMatchObject({ ok: true, product: { version: 2, optionGroups: [{ optionGroupId: 3, overrides: [] }] } })
+    expect(store.linkOptionGroup(12, 4, 3)).toMatchObject({ ok: true })
+    expect(links(12).map((link) => link.optionGroupId)).toEqual([1, 2, 3])
+  })
+
+  it('같은 그룹을 두 번 연결하거나 없는 그룹·상품을 지정하면 거부한다', () => {
+    expect(failure(store.linkOptionGroup(12, 4, 1))).toMatchObject({ status: 409, code: 'DUPLICATE_OPTION_GROUP_LINK' })
+    expect(failure(store.linkOptionGroup(12, 4, 99))).toMatchObject({ status: 404, code: 'OPTION_GROUP_NOT_FOUND' })
+    expect(failure(store.linkOptionGroup(99, 1, 3))).toMatchObject({ status: 404, code: 'PRODUCT_NOT_FOUND' })
+  })
+
+  it('모든 변경은 상품 버전을 검사한다(없으면 428, 다르면 409와 현재 버전)하고 거부되면 바꾸지 않는다', () => {
+    expect(failure(store.linkOptionGroup(12, 3, 3))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT', currentVersion: 4 })
+    expect(failure(store.unlinkOptionGroup(12, null, 1))).toMatchObject({ status: 428, code: 'VERSION_REQUIRED' })
+    expect(failure(store.reorderOptionGroups(12, 1, [2, 1]))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT' })
+    expect(failure(store.setOptionOverride(12, 1, 1, 'REGULAR', { type: 'EXCLUDE' }))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT' })
+    expect(failure(store.clearOptionOverride(12, 1, 1, 'LARGE'))).toMatchObject({ status: 409, code: 'VERSION_CONFLICT' })
+    expect(links(12).map((link) => link.optionGroupId)).toEqual([1, 2])
+    expect(store.products().find((product) => product.id === 12)?.version).toBe(4)
+  })
+
+  it('해제하면 그 연결의 예외도 함께 사라지고 다시 연결해도 복원되지 않는다', () => {
+    expect(store.unlinkOptionGroup(12, 4, 1)).toMatchObject({ ok: true, product: { version: 5 } })
+    expect(links(12).map((link) => link.optionGroupId)).toEqual([2])
+    store.linkOptionGroup(12, 5, 1)
+    expect(links(12).find((link) => link.optionGroupId === 1)?.overrides).toEqual([])
+    expect(failure(store.unlinkOptionGroup(12, 6, 3))).toMatchObject({ status: 404, code: 'PRODUCT_OPTION_GROUP_NOT_LINKED' })
+  })
+
+  it('노출 순서는 연결된 전체를 한 번씩 담아야 바꿀 수 있다', () => {
+    expect(store.reorderOptionGroups(12, 4, [2, 1])).toMatchObject({ ok: true })
+    expect(links(12).map((link) => link.optionGroupId)).toEqual([2, 1])
+    expect(links(12)[1].overrides).toHaveLength(2)
+    expect(failure(store.reorderOptionGroups(12, 5, [2]))).toMatchObject({ status: 400, code: 'INVALID_OPTION_GROUP_ORDER' })
+    expect(failure(store.reorderOptionGroups(12, 5, [2, 2]))).toMatchObject({ status: 400, code: 'INVALID_OPTION_GROUP_ORDER' })
+    expect(failure(store.reorderOptionGroups(12, 5, [2, 3]))).toMatchObject({ status: 404, code: 'PRODUCT_OPTION_GROUP_NOT_LINKED' })
+  })
+})
+
+describe('상품의 옵션 예외', () => {
+  const overridesOf = (productId: number, groupId: number) => store.products().find((product) => product.id === productId)?.optionGroups.find((link) => link.optionGroupId === groupId)?.overrides
+
+  it('가격 예외를 추가하고 같은 키의 기존 예외는 대체한다', () => {
+    expect(store.setOptionOverride(12, 4, 1, 'REGULAR', { type: 'PRICE', price: 100 })).toMatchObject({ ok: true })
+    expect(store.setOptionOverride(12, 5, 1, 'LARGE', { type: 'PRICE', price: 900 })).toMatchObject({ ok: true })
+
+    expect(overridesOf(12, 1)).toEqual(expect.arrayContaining([{ optionKey: 'REGULAR', type: 'PRICE', price: 100 }, { optionKey: 'LARGE', type: 'PRICE', price: 900 }]))
+    expect(overridesOf(12, 1)?.filter((override) => override.optionKey === 'LARGE')).toHaveLength(1)
+  })
+
+  it('다른 옵션 그룹의 옵션에도 가격 예외를 지정할 수 있다', () => {
+    store.setOptionOverride(12, 4, 2, 'SHOT', { type: 'PRICE', price: 100 })
+    expect(overridesOf(12, 2)).toEqual([{ optionKey: 'SHOT', type: 'PRICE', price: 100 }])
+  })
+
+  it('음수 가격·없는 옵션 키·연결되지 않은 그룹을 거부한다', () => {
+    expect(failure(store.setOptionOverride(12, 4, 1, 'REGULAR', { type: 'PRICE', price: -1 }))).toMatchObject({ status: 400, code: 'INVALID_MONEY_AMOUNT' })
+    expect(failure(store.setOptionOverride(12, 4, 1, 'NOPE', { type: 'EXCLUDE' }))).toMatchObject({ status: 404, code: 'OPTION_KEY_NOT_FOUND' })
+    expect(failure(store.setOptionOverride(12, 4, 3, 'HOT', { type: 'EXCLUDE' }))).toMatchObject({ status: 404, code: 'PRODUCT_OPTION_GROUP_NOT_LINKED' })
+    expect(failure(store.setOptionOverride(12, 4, 99, 'HOT', { type: 'EXCLUDE' }))).toMatchObject({ status: 404, code: 'OPTION_GROUP_NOT_FOUND' })
+  })
+
+  it('제외로 선택 가능한 옵션이 0개가 되면 거부한다', () => {
+    // 상품 12는 이미 XLARGE를 제외했다. REGULAR를 제외하면 LARGE가 남고, LARGE까지 제외하면 0개다.
+    expect(store.setOptionOverride(12, 4, 1, 'REGULAR', { type: 'EXCLUDE' })).toMatchObject({ ok: true })
+    expect(failure(store.setOptionOverride(12, 5, 1, 'LARGE', { type: 'EXCLUDE' }))).toMatchObject({ status: 422, code: 'NO_SELECTABLE_OPTION' })
+    expect(store.products().find((product) => product.id === 12)?.version).toBe(5)
+  })
+
+  it('옵션이 하나뿐인 그룹은 그 옵션을 제외할 수 없다', () => {
+    expect(failure(store.setOptionOverride(12, 4, 2, 'SHOT', { type: 'EXCLUDE' }))).toMatchObject({ status: 422, code: 'NO_SELECTABLE_OPTION' })
+  })
+
+  it('예외를 해제하면 그 옵션만 지워진다', () => {
+    expect(store.clearOptionOverride(12, 4, 1, 'LARGE')).toMatchObject({ ok: true, product: { version: 5 } })
+    expect(overridesOf(12, 1)).toEqual([{ optionKey: 'XLARGE', type: 'EXCLUDE', price: null }])
+    expect(failure(store.clearOptionOverride(12, 5, 3, 'HOT'))).toMatchObject({ status: 404, code: 'PRODUCT_OPTION_GROUP_NOT_LINKED' })
+  })
+})
+
+describe('유효 옵션 구성', () => {
+  const effective = (productId: number) => (store.effectiveOptions(productId) as { ok: true; value: import('../features/catalog/model/catalogSchemas').EffectiveOptions }).value
+
+  it('제외한 옵션은 빠지고 가격 예외는 반영하며 선택 그룹은 시작가에 더하지 않는다', () => {
+    const result = effective(12)
+
+    expect(result.groups.map((group) => group.name)).toEqual(['사이즈', '샷 추가'])
+    expect(result.groups[0].options).toEqual([
+      { optionKey: 'REGULAR', name: '레귤러', price: 0, priceOverridden: false },
+      { optionKey: 'LARGE', name: '라지', price: 700, priceOverridden: true },
+    ])
+    expect(result.displayStartingPrice).toBe(4500)
+  })
+
+  it('필수 그룹의 시작가는 유효 옵션 중 최저가를 기준가에 더한다', () => {
+    store.setOptionOverride(12, 4, 1, 'REGULAR', { type: 'PRICE', price: 300 })
+
+    expect(effective(12).displayStartingPrice).toBe(4800)
+  })
+
+  it('필수 그룹에 유효 옵션이 1개 남으면 자동 선택으로 표시한다', () => {
+    store.setOptionOverride(12, 4, 1, 'REGULAR', { type: 'EXCLUDE' })
+
+    const size = effective(12).groups[0]
+    expect(size.options.map((option) => option.optionKey)).toEqual(['LARGE'])
+    expect(size.autoSelectedOptionKey).toBe('LARGE')
+    expect(effective(12).displayStartingPrice).toBe(5200)
+  })
+
+  it('옵션 그룹이 없는 상품은 기준가가 시작가다', () => {
+    expect(effective(14)).toMatchObject({ groups: [], displayStartingPrice: 24000 })
+    expect(failure(store.effectiveOptions(99))).toMatchObject({ status: 404, code: 'PRODUCT_NOT_FOUND' })
+  })
+})
