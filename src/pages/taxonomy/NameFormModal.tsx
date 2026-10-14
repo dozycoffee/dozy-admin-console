@@ -45,8 +45,8 @@ function NameForm({ label, placeholder, initialName = '', submitLabel, pending, 
     </div>
     {hint && <p className="employee-hint">{hint}</p>}
     <div className="inbound-form-actions">
-      <button type="button" className="inbound-action-button employee-secondary" disabled={pending} onClick={onClose}>취소</button>
-      <button type="submit" className="inbound-action-button" disabled={pending}>{pending ? '저장 중...' : submitLabel}</button>
+      <button type="button" className="inbound-action-button compact employee-secondary" disabled={pending} onClick={onClose}>취소</button>
+      <button type="submit" className="inbound-action-button compact" disabled={pending}>{pending ? '저장 중...' : submitLabel}</button>
     </div>
     {error !== null && error !== undefined && <p className="inbound-error" role="alert">{toCatalogErrorMessage(error)}</p>}
   </form>

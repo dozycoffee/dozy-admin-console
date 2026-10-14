@@ -72,8 +72,8 @@ function EditForm({ category, topLevels, childCount, pending, error, onSubmit, o
       {!isTop && parentId !== null && '다른 대분류로 옮겨도 이 카테고리를 쓰는 상품에는 영향이 없습니다.'}
     </p>
     <div className="inbound-form-actions">
-      <button type="button" className="inbound-action-button employee-secondary" disabled={pending} onClick={onClose}>취소</button>
-      <button type="submit" className="inbound-action-button" disabled={pending}>{pending ? '저장 중...' : '저장'}</button>
+      <button type="button" className="inbound-action-button compact employee-secondary" disabled={pending} onClick={onClose}>취소</button>
+      <button type="submit" className="inbound-action-button compact" disabled={pending}>{pending ? '저장 중...' : '저장'}</button>
     </div>
     {error !== null && error !== undefined && <p className="inbound-error" role="alert">{toCatalogErrorMessage(error)}</p>}
   </form>

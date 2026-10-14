@@ -66,8 +66,8 @@ function OverrideForm({ option, current, pending, error, onSubmit, onClose }: Om
       {mode === 'exclude' && '이 상품에서 이 옵션을 고를 수 없게 합니다. 선택할 수 있는 옵션이 하나도 남지 않게 되면 저장할 수 없습니다.'}
     </p>
     <div className="inbound-form-actions">
-      <button type="button" className="inbound-action-button employee-secondary" disabled={pending} onClick={onClose}>취소</button>
-      <button type="submit" className="inbound-action-button" disabled={pending}>{pending ? '저장 중...' : '저장'}</button>
+      <button type="button" className="inbound-action-button compact employee-secondary" disabled={pending} onClick={onClose}>취소</button>
+      <button type="submit" className="inbound-action-button compact" disabled={pending}>{pending ? '저장 중...' : '저장'}</button>
     </div>
     {error !== null && error !== undefined && <p className="inbound-error" role="alert">{toCatalogErrorMessage(error)}</p>}
   </form>

@@ -54,7 +54,7 @@ export function GroupsPanel({ writable, confirm }: Props) {
   return <section className="panel taxonomy-panel" aria-label="상품 그룹">
     <div className="panel-heading">
       <div><p className="eyebrow">PRODUCT GROUPS</p><div className="taxonomy-title"><h2>상품 그룹</h2><FieldTip label="상품 그룹 안내">상품 관리 편의를 위해 본사가 상품을 묶는 내부용 분류입니다. 가맹점과 손님에게는 보이지 않습니다.</FieldTip></div></div>
-      {writable && <button type="button" className="inbound-action-button" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create' })}>그룹 추가</button>}
+      {writable && <button type="button" className="inbound-action-button compact" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create' })}>그룹 추가</button>}
     </div>
     {query.isLoading && <p>상품 그룹을 불러오는 중입니다...</p>}
     {query.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(query.error)}</p>}

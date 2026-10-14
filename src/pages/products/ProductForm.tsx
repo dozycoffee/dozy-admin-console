@@ -149,8 +149,8 @@ export function ProductForm({ product, initialTagNames = [], categories, tags: e
       {noCategory && <p className="inbound-error" role="alert">지정할 수 있는 소분류가 없어 상품을 저장할 수 없습니다. 먼저 카테고리(대분류와 소분류)를 등록하세요.</p>}
       {!editing && <p className="employee-hint">등록한 상품은 "판매 대기" 상태로 만들어지며, 활성화해야 판매됩니다.</p>}
       <div className="inbound-form-actions">
-        <button type="button" className="inbound-action-button employee-secondary" disabled={locked} onClick={onCancel}>취소</button>
-        <button type="submit" className="inbound-action-button" disabled={locked || noCategory}>{locked ? '저장 중...' : editing ? '저장' : '상품 등록하기'}</button>
+        <button type="button" className="inbound-action-button compact employee-secondary" disabled={locked} onClick={onCancel}>취소</button>
+        <button type="submit" className="inbound-action-button compact" disabled={locked || noCategory}>{locked ? '저장 중...' : editing ? '저장' : '상품 등록하기'}</button>
       </div>
       {mutation.isError && !conflict && <p className="inbound-error" role="alert">{toCatalogErrorMessage(mutation.error)}</p>}
     </form>

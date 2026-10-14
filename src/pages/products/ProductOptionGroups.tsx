@@ -135,7 +135,7 @@ export function ProductOptionGroups({ product, optionGroups, writable, confirm }
           {unlinked.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
         </select>
       </label>
-      {gate(reason ?? (selectedGroup === '' ? '연결할 옵션 그룹을 먼저 선택하세요.' : null), <button type="button" className="inbound-action-button employee-secondary" disabled={reason !== null || selectedGroup === ''} onClick={() => {
+      {gate(reason ?? (selectedGroup === '' ? '연결할 옵션 그룹을 먼저 선택하세요.' : null), <button type="button" className="inbound-action-button compact employee-secondary" disabled={reason !== null || selectedGroup === ''} onClick={() => {
         const optionGroupId = Number(selectedGroup)
         run((handlers) => link.mutate({ ...base, optionGroupId }, handlers), '옵션 그룹을 연결했습니다.', () => setSelectedGroup(''))
       }}>연결</button>)}

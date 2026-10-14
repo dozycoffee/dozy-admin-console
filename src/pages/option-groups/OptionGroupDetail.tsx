@@ -32,8 +32,8 @@ export function OptionGroupDetail({ group, writable, confirm, onDeleted }: Props
     <div className="panel-heading inbound-detail-heading">
       <div><p className="eyebrow">OPTION GROUP</p><h2>{group.name}</h2></div>
       <div className="detail-actions">
-        {gate(<button type="button" className="inbound-action-button employee-secondary" disabled={reason !== null} onClick={() => { remove.reset(); setEditOpen(true) }}>변경</button>)}
-        {gate(<button type="button" className="inbound-action-button employee-danger" disabled={reason !== null} onClick={() => confirm({
+        {gate(<button type="button" className="inbound-action-button compact employee-secondary" disabled={reason !== null} onClick={() => { remove.reset(); setEditOpen(true) }}>변경</button>)}
+        {gate(<button type="button" className="inbound-action-button compact employee-danger" disabled={reason !== null} onClick={() => confirm({
           title: `"${group.name}" 옵션 그룹을 삭제할까요?`,
           description: '이 옵션 그룹을 연결한 상품이 있으면 삭제할 수 없습니다. 삭제하면 되돌릴 수 없습니다.',
           confirmLabel: '삭제',

@@ -52,7 +52,7 @@ export function TagPicker({ tags, selected, onChange, disabled }: Props) {
     </div>}
     <div className="tag-picker-input">
       <input value={draft} placeholder="태그 이름 입력 후 Enter" aria-label="태그 이름 입력" onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} autoComplete="off" />
-      <button type="button" className="inbound-action-button employee-secondary" disabled={draft.trim() === ''} onClick={add}>추가</button>
+      <button type="button" className="inbound-action-button compact employee-secondary" disabled={draft.trim() === ''} onClick={add}>추가</button>
     </div>
     <p className="employee-hint">같은 이름의 태그가 있으면 그 태그를 쓰고, 없으면 저장할 때 새로 만들어집니다.</p>
   </fieldset>

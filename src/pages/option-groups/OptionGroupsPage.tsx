@@ -35,7 +35,7 @@ export function OptionGroupsPage() {
   return <>
     <header className="page-header inbound-page-header">
       <div><p>MERCHANDISING</p><h1>옵션 그룹</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" onClick={() => setAddOpen(true)}>옵션 그룹 추가</button>}
+      {writable && <button type="button" className="inbound-action-button compact employee-invite-toggle" aria-haspopup="dialog" onClick={() => setAddOpen(true)}>옵션 그룹 추가</button>}
     </header>
     <Modal open={addOpen} title="옵션 그룹 추가" className="option-form-modal" onClose={() => setAddOpen(false)}>
       <OptionGroupForm
@@ -49,7 +49,7 @@ export function OptionGroupsPage() {
       <label className="employee-filter-search">이름
         <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="옵션 그룹 이름" autoComplete="off" />
       </label>
-      <button type="submit" className="inbound-action-button">검색</button>
+      <button type="submit" className="inbound-action-button compact">검색</button>
     </form>
     {query.isLoading && <section className="panel"><p>옵션 그룹을 불러오는 중입니다...</p></section>}
     {query.isError && <section className="panel"><h2>옵션 그룹을 불러오지 못했습니다</h2><p role="alert">{toCatalogErrorMessage(query.error)}</p></section>}

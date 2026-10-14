@@ -59,7 +59,7 @@ export function ProductsPage() {
   return <>
     <header className="page-header inbound-page-header">
       <div><p>MERCHANDISING</p><h1>상품 관리</h1></div>
-      {writable && <button type="button" className="inbound-action-button employee-invite-toggle" aria-haspopup="dialog" disabled={!categoriesQuery.data} onClick={() => setAddOpen(true)}>상품 등록</button>}
+      {writable && <button type="button" className="inbound-action-button compact employee-invite-toggle" aria-haspopup="dialog" disabled={!categoriesQuery.data} onClick={() => setAddOpen(true)}>상품 등록</button>}
     </header>
     <Modal open={addOpen} title="상품 등록" onClose={() => setAddOpen(false)}>
       <ProductForm
@@ -108,7 +108,7 @@ export function ProductsPage() {
       <label className="employee-filter-search">상품명·SKU
         <input value={keywordInput} onChange={(event) => setKeywordInput(event.target.value)} placeholder="상품명 또는 SKU(DZ-00000012)" />
       </label>
-      <button type="submit" className="inbound-action-button">검색</button>
+      <button type="submit" className="inbound-action-button compact">검색</button>
     </form>
     {productsQuery.isLoading && <section className="panel"><p>상품 목록을 불러오는 중입니다...</p></section>}
     {productsQuery.isError && <section className="panel"><h2>상품 목록을 불러오지 못했습니다</h2><p role="alert">{toCatalogErrorMessage(productsQuery.error)}</p></section>}

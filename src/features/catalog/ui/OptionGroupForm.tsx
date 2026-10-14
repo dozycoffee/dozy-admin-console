@@ -135,8 +135,8 @@ export function OptionGroupForm({ group, onDone, onCancel, onConflict }: Props) 
         <p className="employee-hint">옵션 키는 상품의 가격 변경·제외 예외가 옵션을 가리키는 식별자입니다. 저장한 뒤에는 바꿀 수 없으니 신중히 정하세요. 가격은 0 이상의 정수(원)입니다.</p>
       </fieldset>
       <div className="inbound-form-actions">
-        <button type="button" className="inbound-action-button employee-secondary" disabled={saving} onClick={onCancel}>취소</button>
-        <button type="submit" className="inbound-action-button" disabled={saving}>{saving ? '저장 중...' : editing ? '저장' : '옵션 그룹 등록하기'}</button>
+        <button type="button" className="inbound-action-button compact employee-secondary" disabled={saving} onClick={onCancel}>취소</button>
+        <button type="submit" className="inbound-action-button compact" disabled={saving}>{saving ? '저장 중...' : editing ? '저장' : '옵션 그룹 등록하기'}</button>
       </div>
       {error !== null && <p className="inbound-error" role="alert">{toCatalogErrorMessage(error)}</p>}
       <ConfirmModal

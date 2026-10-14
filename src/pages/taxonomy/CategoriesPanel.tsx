@@ -89,7 +89,7 @@ export function CategoriesPanel({ writable, confirm }: Props) {
   return <section className="panel taxonomy-panel" aria-label="카테고리">
     <div className="panel-heading">
       <div><p className="eyebrow">CATEGORIES</p><div className="taxonomy-title"><h2>카테고리</h2><FieldTip label="카테고리 안내">{TIP}</FieldTip></div></div>
-      {writable && <button type="button" className="inbound-action-button" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create-top' })}>대분류 추가</button>}
+      {writable && <button type="button" className="inbound-action-button compact" aria-haspopup="dialog" disabled={busy} onClick={() => show({ kind: 'create-top' })}>대분류 추가</button>}
     </div>
     {query.isLoading && <p>카테고리를 불러오는 중입니다...</p>}
     {query.isError && <p className="inbound-error" role="alert">{toCatalogErrorMessage(query.error)}</p>}

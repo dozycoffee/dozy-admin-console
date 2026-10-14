@@ -69,20 +69,20 @@ export function ProductDetail({ product, categories, tags, groups, optionGroups,
     <div className="panel-heading inbound-detail-heading">
       <div><p className="eyebrow">PRODUCT</p><div className="detail-title"><h2>{product.name}</h2><ProductStatusBadge status={product.status} /></div></div>
       <div className="detail-actions">
-        {gate(editReason, <button type="button" className="inbound-action-button employee-secondary" disabled={!can(editReason)} onClick={() => start(() => setEditOpen(true))}>정보 수정</button>)}
-        {gate(activateReason, <button type="button" className="inbound-action-button" disabled={!can(activateReason)} onClick={() => confirm({
+        {gate(editReason, <button type="button" className="inbound-action-button compact employee-secondary" disabled={!can(editReason)} onClick={() => start(() => setEditOpen(true))}>정보 수정</button>)}
+        {gate(activateReason, <button type="button" className="inbound-action-button compact" disabled={!can(activateReason)} onClick={() => confirm({
           title: product.status === 'DISCONTINUED' ? '단종된 상품을 다시 판매할까요?' : '상품을 활성화할까요?',
           description: product.status === 'DISCONTINUED' ? '각 매장은 단종 전의 진열·노출 설정을 그대로 이어서 사용합니다.' : '활성화하면 판매 범위에 해당하는 매장에서 판매할 수 있습니다.',
           confirmLabel: '활성화',
           run: () => start(() => activate.mutate(product.id, { onSuccess: () => notify('상품을 활성화했습니다.') })),
         })}>활성화</button>)}
-        {gate(discontinueReason, <button type="button" className="inbound-action-button employee-danger" disabled={!can(discontinueReason)} onClick={() => confirm({
+        {gate(discontinueReason, <button type="button" className="inbound-action-button compact employee-danger" disabled={!can(discontinueReason)} onClick={() => confirm({
           title: '상품을 단종할까요?',
           description: '매장의 판매 목록에서 이 상품이 제외됩니다. 단종 후에도 정보 수정과 다시 활성화는 할 수 있습니다.',
           confirmLabel: '단종',
           run: () => start(() => discontinue.mutate(product.id, { onSuccess: () => notify('상품을 단종했습니다.') })),
         })}>단종</button>)}
-        {gate(deleteReason, <button type="button" className="inbound-action-button employee-danger" disabled={!can(deleteReason)} onClick={() => confirm({
+        {gate(deleteReason, <button type="button" className="inbound-action-button compact employee-danger" disabled={!can(deleteReason)} onClick={() => confirm({
           title: '상품을 삭제할까요?',
           description: '옵션 그룹 연결과 매장 설정이 함께 삭제되며 되돌릴 수 없습니다. SKU도 다시 쓰이지 않습니다.',
           confirmLabel: '삭제',
