@@ -7,6 +7,7 @@ import { ModeHomePage } from './ModeHomePage'
 
 vi.mock('../dashboard/AccountDashboard', () => ({ AccountDashboard: () => <div>계정 관리자 대시보드</div> }))
 vi.mock('../dashboard/DashboardPage', () => ({ DashboardPage: () => <div>창고 대시보드</div> }))
+vi.mock('../dashboard/StockDashboard', () => ({ StockDashboard: () => <div>재고 관리 대시보드</div> }))
 
 function renderHome(mode: ActorModeId | null) {
   return render(
@@ -26,10 +27,17 @@ describe('ModeHomePage', () => {
     expect(screen.queryByText(/세부 기능은 해당 업무 서비스 연동과 함께 제공됩니다/)).not.toBeInTheDocument()
   })
 
-  it.each([actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager])('%s 모드는 창고 대시보드를 그대로 보여준다', (mode) => {
-    renderHome(mode)
+  it('창고 관리자 모드는 창고 대시보드를 그대로 보여준다', () => {
+    renderHome(actorModeIds.warehouseManager)
 
     expect(screen.getByText('창고 대시보드')).toBeInTheDocument()
+  })
+
+  it('재고 관리 모드는 창고 대시보드가 아니라 재고 관리 대시보드를 보여준다', () => {
+    renderHome(actorModeIds.inventoryManager)
+
+    expect(screen.getByText('재고 관리 대시보드')).toBeInTheDocument()
+    expect(screen.queryByText('창고 대시보드')).not.toBeInTheDocument()
   })
 
   it('MD 모드는 이전처럼 안내 카드를 보여준다', () => {

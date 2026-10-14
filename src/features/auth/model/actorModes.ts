@@ -2,7 +2,7 @@ export const actorModeIds = {
   accountAdministrator: 'account-administrator',
   merchandiser: 'merchandiser',
   warehouseManager: 'warehouse-manager',
-  headquartersInventoryManager: 'headquarters-inventory-manager',
+  inventoryManager: 'inventory-manager',
 } as const
 
 export type ActorModeId = (typeof actorModeIds)[keyof typeof actorModeIds]
@@ -38,10 +38,10 @@ export const actorModes: readonly ActorMode[] = [
     description: '입출고 작업과 창고 재고 및 공간을 관리합니다.',
   },
   {
-    id: actorModeIds.headquartersInventoryManager,
-    label: '본사 재고 담당자',
-    shortLabel: '본사 재고',
-    description: '전체 창고의 재고 현황과 배분을 관리합니다.',
+    id: actorModeIds.inventoryManager,
+    label: '재고 관리',
+    shortLabel: '재고 관리',
+    description: '전체 창고의 재고 현황과 변동 이력을 확인합니다.',
   },
 ]
 

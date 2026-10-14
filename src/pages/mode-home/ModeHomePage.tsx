@@ -2,6 +2,7 @@ import { actorModeIds, getActorMode } from '../../features/auth/model/actorModes
 import { useAuth } from '../../features/auth/model/useAuth'
 import { AccountDashboard } from '../dashboard/AccountDashboard'
 import { DashboardPage } from '../dashboard/DashboardPage'
+import { StockDashboard } from '../dashboard/StockDashboard'
 
 const modeHomeContent = {
   [actorModeIds.merchandiser]: {
@@ -15,9 +16,9 @@ const modeHomeContent = {
 export function ModeHomePage() {
   const { activeActorMode } = useAuth()
 
-  if (activeActorMode === actorModeIds.warehouseManager || activeActorMode === actorModeIds.headquartersInventoryManager) {
-    return <DashboardPage />
-  }
+  if (activeActorMode === actorModeIds.warehouseManager) return <DashboardPage />
+
+  if (activeActorMode === actorModeIds.inventoryManager) return <StockDashboard />
 
   if (activeActorMode === actorModeIds.accountAdministrator) return <AccountDashboard />
 

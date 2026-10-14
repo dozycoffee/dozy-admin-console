@@ -6,7 +6,7 @@ import { AuthContext, type AuthContextValue } from '../model/authContext'
 import { ActorModeModal } from './ActorModeModal'
 
 function renderModal(activeActorMode: AuthContextValue['activeActorMode'] = null) {
-  const allowedModes = [actorModeIds.warehouseManager, actorModeIds.headquartersInventoryManager]
+  const allowedModes = [actorModeIds.warehouseManager, actorModeIds.inventoryManager]
   const selectActorMode = vi.fn((modeId) => allowedModes.includes(modeId))
   const onClose = vi.fn()
   const onSelected = vi.fn()
