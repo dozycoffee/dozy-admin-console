@@ -4,10 +4,14 @@ export const mockCategories: Category[] = [
   { id: 1, name: '음료', parentId: null },
   { id: 2, name: '푸드', parentId: null },
   { id: 3, name: 'MD', parentId: null },
+  // 소분류가 없는 대분류(삭제·소분류로 변경 시연용)
+  { id: 4, name: '시즌 기획', parentId: null },
   { id: 5, name: '커피', parentId: 1 },
   { id: 6, name: '티', parentId: 1 },
   { id: 7, name: '디저트', parentId: 2 },
   { id: 8, name: '굿즈', parentId: 3 },
+  // 아직 쓰는 상품이 없는 소분류(삭제·승격 시연용)
+  { id: 9, name: '샌드위치', parentId: 2 },
 ]
 
 export const mockTags: Tag[] = [

@@ -1,11 +1,14 @@
 import type { Category, CreateProductRequest, OptionGroup, Product, ProductGroup, Tag, UpdateProductRequest } from '../features/catalog/model/catalogSchemas'
 
 /** 실패는 HTTP 상태와 Problem Details의 `code`로 돌려준다(dozy-catalog-api 명세와 같다). */
-export type MockResult = { ok: true; product: Product } | { ok: false; status: number; code: string; currentVersion?: number }
+export type MockFailure = { ok: false; status: number; code: string; currentVersion?: number }
+export type MockResult = { ok: true; product: Product } | MockFailure
+/** 분류(카테고리·태그·상품 그룹) 쓰기 결과. 삭제는 `value`가 null이다. */
+export type MockValueResult<T> = { ok: true; value: T | null } | MockFailure
 
 type Seed = { products: readonly Product[]; categories: readonly Category[]; tags: readonly Tag[]; groups: readonly ProductGroup[]; optionGroups: readonly OptionGroup[] }
 
-const fail = (status: number, code: string, currentVersion?: number): MockResult => ({ ok: false, status, code, currentVersion })
+const fail = (status: number, code: string, currentVersion?: number): MockFailure => ({ ok: false, status, code, currentVersion })
 
 /**
  * dozy-catalog-api 상품 쓰기 동작을 메모리에서 흉내 낸다. 화면(개발 서버)을 새로고침하면 처음 상태로 돌아간다.
@@ -14,8 +17,12 @@ const fail = (status: number, code: string, currentVersion?: number): MockResult
 export function createMockCatalogStore(seed: Seed) {
   let products = [...seed.products]
   let tags = [...seed.tags]
+  let categories = [...seed.categories]
+  let groups = [...seed.groups]
   let nextProductId = Math.max(0, ...products.map((product) => product.id)) + 1
   let nextTagId = Math.max(0, ...tags.map((tag) => tag.id)) + 1
+  let nextCategoryId = Math.max(0, ...categories.map((category) => category.id)) + 1
+  let nextGroupId = Math.max(0, ...groups.map((group) => group.id)) + 1
 
   const find = (id: number) => products.find((product) => product.id === id)
   const replace = (product: Product) => { products = products.map((item) => (item.id === product.id ? product : item)) }
@@ -32,17 +39,19 @@ export function createMockCatalogStore(seed: Seed) {
   }
 
   function validate(input: UpdateProductRequest): MockResult | null {
-    const category = seed.categories.find((item) => item.id === input.categoryId)
+    const category = categories.find((item) => item.id === input.categoryId)
     if (!category) return fail(404, 'CATEGORY_NOT_FOUND')
     if (category.parentId === null) return fail(400, 'CATEGORY_NOT_ASSIGNABLE')
     if (input.basePrice < 0) return fail(400, 'INVALID_MONEY_AMOUNT')
-    if (input.groupIds.some((id) => !seed.groups.some((group) => group.id === id))) return fail(404, 'PRODUCT_GROUP_NOT_FOUND')
+    if (input.groupIds.some((id) => !groups.some((group) => group.id === id))) return fail(404, 'PRODUCT_GROUP_NOT_FOUND')
     return null
   }
 
   return {
     products: () => products,
     tags: () => tags,
+    categories: () => categories,
+    groups: () => groups,
 
     create(body: CreateProductRequest): MockResult {
       const invalid = validate(body)
@@ -89,6 +98,86 @@ export function createMockCatalogStore(seed: Seed) {
       if (current.status !== 'DRAFT') return fail(409, 'PRODUCT_NOT_DELETABLE')
       products = products.filter((product) => product.id !== id)
       return { ok: true, product: null }
+    },
+
+    /** 대분류(`parentId` null)나 그 아래 소분류를 만든다. 부모는 대분류여야 한다. */
+    createCategory(name: string, parentId: number | null): MockValueResult<Category> {
+      if (parentId !== null && !categories.some((category) => category.id === parentId && category.parentId === null)) return fail(404, 'TOP_LEVEL_CATEGORY_NOT_FOUND')
+      const created: Category = { id: nextCategoryId++, name, parentId }
+      categories = [...categories, created]
+      return { ok: true, value: created }
+    },
+
+    renameCategory(id: number, name: string): MockValueResult<Category> {
+      const current = categories.find((category) => category.id === id)
+      if (!current) return fail(404, 'CATEGORY_NOT_FOUND')
+      const renamed = { ...current, name }
+      categories = categories.map((category) => (category.id === id ? renamed : category))
+      return { ok: true, value: renamed }
+    },
+
+    /**
+     * 소분류 이동, 대분류 강등, 소분류 승격(`parentId` null). 소분류가 있는 대분류는 강등할 수 없고,
+     * 상품이 참조 중인 소분류는 승격할 수 없다. 대분류를 null로 바꾸면 변화가 없다.
+     */
+    moveCategory(id: number, parentId: number | null): MockValueResult<Category> {
+      const current = categories.find((category) => category.id === id)
+      if (!current) return fail(404, 'CATEGORY_NOT_FOUND')
+      if (parentId === id) return fail(400, 'INVALID_PARENT_CATEGORY')
+      if (parentId !== null && !categories.some((category) => category.id === parentId && category.parentId === null)) return fail(404, 'TOP_LEVEL_CATEGORY_NOT_FOUND')
+      if (current.parentId === null && parentId !== null && categories.some((category) => category.parentId === id)) return fail(409, 'CATEGORY_WITH_CHILDREN_NOT_DEMOTABLE')
+      if (current.parentId !== null && parentId === null && products.some((product) => product.categoryId === id)) return fail(409, 'REFERENCED_CATEGORY_NOT_PROMOTABLE')
+      const moved = { ...current, parentId }
+      categories = categories.map((category) => (category.id === id ? moved : category))
+      return { ok: true, value: moved }
+    },
+
+    deleteCategory(id: number): MockValueResult<Category> {
+      if (!categories.some((category) => category.id === id)) return fail(404, 'CATEGORY_NOT_FOUND')
+      if (categories.some((category) => category.parentId === id)) return fail(409, 'CATEGORY_HAS_CHILDREN')
+      if (products.some((product) => product.categoryId === id)) return fail(409, 'CATEGORY_STILL_REFERENCED')
+      categories = categories.filter((category) => category.id !== id)
+      return { ok: true, value: null }
+    },
+
+    /** 다른 태그와 같은 이름으로는 바꿀 수 없다(자기 이름 그대로는 허용). */
+    renameTag(id: number, name: string): MockValueResult<Tag> {
+      const current = tags.find((tag) => tag.id === id)
+      if (!current) return fail(404, 'TAG_NOT_FOUND')
+      if (tags.some((tag) => tag.id !== id && tag.name === name)) return fail(409, 'TAG_NAME_DUPLICATED')
+      const renamed = { ...current, name }
+      tags = tags.map((tag) => (tag.id === id ? renamed : tag))
+      return { ok: true, value: renamed }
+    },
+
+    /** 삭제하면 참조하던 모든 상품에서 태그가 빠진다. */
+    deleteTag(id: number): MockValueResult<Tag> {
+      if (!tags.some((tag) => tag.id === id)) return fail(404, 'TAG_NOT_FOUND')
+      tags = tags.filter((tag) => tag.id !== id)
+      products = products.map((product) => (product.tagIds.includes(id) ? { ...product, tagIds: product.tagIds.filter((tagId) => tagId !== id) } : product))
+      return { ok: true, value: null }
+    },
+
+    createGroup(name: string): MockValueResult<ProductGroup> {
+      const created = { id: nextGroupId++, name }
+      groups = [...groups, created]
+      return { ok: true, value: created }
+    },
+
+    renameGroup(id: number, name: string): MockValueResult<ProductGroup> {
+      const current = groups.find((group) => group.id === id)
+      if (!current) return fail(404, 'PRODUCT_GROUP_NOT_FOUND')
+      const renamed = { ...current, name }
+      groups = groups.map((group) => (group.id === id ? renamed : group))
+      return { ok: true, value: renamed }
+    },
+
+    /** 삭제하면 참조하던 모든 상품에서 그룹이 빠진다. */
+    deleteGroup(id: number): MockValueResult<ProductGroup> {
+      if (!groups.some((group) => group.id === id)) return fail(404, 'PRODUCT_GROUP_NOT_FOUND')
+      groups = groups.filter((group) => group.id !== id)
+      products = products.map((product) => (product.groupIds.includes(id) ? { ...product, groupIds: product.groupIds.filter((groupId) => groupId !== id) } : product))
+      return { ok: true, value: null }
     },
   }
 }
