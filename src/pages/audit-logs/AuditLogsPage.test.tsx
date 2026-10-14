@@ -161,6 +161,34 @@ describe('AuditLogsPage', () => {
     expect(writeText).toHaveBeenLastCalledWith(JSON.stringify(granted.detail, null, 2))
   })
 
+  it('행위자 머리글의 "?" 배지에 올리면 무엇을 뜻하는지 설명이 뜬다', async () => {
+    setup([granted])
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+    await userEvent.setup().hover(screen.getByRole('img', { name: '행위자 설명' }))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('이 작업을 실행한 계정입니다.')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('비어 있으면(-)')
+  })
+
+  it('대상 머리글의 "?" 배지에 올리면 대상이 무엇인지 종류와 함께 설명이 뜬다', async () => {
+    setup([granted])
+
+    await userEvent.setup().hover(screen.getByRole('img', { name: '대상 설명' }))
+
+    const tip = screen.getByRole('tooltip')
+    expect(tip).toHaveTextContent('이 작업의 영향을 받은 대상입니다.')
+    expect(tip).toHaveTextContent('PRINCIPAL')
+    expect(tip).toHaveTextContent('본인에게 한 작업은 행위자와 같습니다')
+  })
+
+  it('머리글 이름은 그대로 행위자·대상이다', () => {
+    setup([granted])
+
+    const headers = within(screen.getByRole('table')).getAllByRole('columnheader').map((th) => th.childNodes[0]?.textContent)
+    expect(headers).toEqual(expect.arrayContaining(['행위자', '대상']))
+  })
+
   it('목록 호출에 20건 단위 페이지와 필터 없음 상태를 넘긴다', () => {
     setup([granted])
 
