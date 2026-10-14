@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { pushModal } from './modalStack'
 
 type ConfirmModalProps = {
   open: boolean
@@ -14,9 +15,11 @@ type ConfirmModalProps = {
 export function ConfirmModal({ open, title, description, confirmLabel = '확인', cancelLabel = '취소', onConfirm, onCancel }: ConfirmModalProps) {
   useEffect(() => {
     if (!open) return
-    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onCancel() }
+    // 다른 모달(폼 등) 위에 열렸을 때 Esc가 아래 모달까지 닫지 않도록 맨 위일 때만 처리한다.
+    const layer = pushModal()
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape' && layer.isTop()) onCancel() }
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => { document.removeEventListener('keydown', handleKeyDown); layer.remove() }
   }, [open, onCancel])
 
   if (!open) return null

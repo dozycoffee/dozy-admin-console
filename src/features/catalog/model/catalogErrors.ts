@@ -1,0 +1,42 @@
+import { ApiError } from '../../../shared/api/ApiError'
+
+// dozy-catalog-api의 오류는 RFC 9457 Problem Details이며 `detail`을 화면에 그대로 보여주지 않는다(API 명세). code로만 분기하고 문구는 콘솔이 정한다.
+const messages: Record<string, string> = {
+  UNAUTHENTICATED: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+  FORBIDDEN: '이 작업을 할 권한이 없습니다.',
+  INVALID_REQUEST: '입력값을 확인해 주세요.',
+  PRODUCT_NOT_FOUND: '상품을 찾을 수 없습니다. 목록을 새로고침해 주세요.',
+  CATEGORY_NOT_FOUND: '카테고리를 찾을 수 없습니다.',
+  CATEGORY_NOT_ASSIGNABLE: '소분류만 선택할 수 있습니다. 대분류는 선택할 수 없습니다.',
+  INVALID_MONEY_AMOUNT: '기준가는 0 이상이어야 합니다.',
+  DUPLICATE_OPTION_GROUP_LINK: '같은 옵션 그룹을 두 번 선택할 수 없습니다.',
+  TOP_LEVEL_CATEGORY_NOT_FOUND: '대분류를 찾을 수 없습니다. 화면을 새로고침해 주세요.',
+  INVALID_PARENT_CATEGORY: '자기 자신을 부모로 지정할 수 없습니다.',
+  CATEGORY_HAS_CHILDREN: '소분류가 있는 대분류는 삭제할 수 없습니다. 소분류를 먼저 삭제하거나 다른 대분류로 옮기세요.',
+  CATEGORY_STILL_REFERENCED: '이 카테고리를 쓰는 상품이 있어 삭제할 수 없습니다. 상품의 카테고리를 먼저 바꾸세요.',
+  CATEGORY_WITH_CHILDREN_NOT_DEMOTABLE: '소분류가 있는 대분류는 소분류로 바꿀 수 없습니다.',
+  REFERENCED_CATEGORY_NOT_PROMOTABLE: '이 카테고리를 쓰는 상품이 있어 대분류로 바꿀 수 없습니다.',
+  TAG_NOT_FOUND: '태그를 찾을 수 없습니다. 화면을 새로고침해 주세요.',
+  TAG_NAME_DUPLICATED: '이미 있는 태그 이름입니다.',
+  PRODUCT_NOT_DELETABLE: '판매 대기 상태의 상품만 삭제할 수 있습니다.',
+  INVALID_PRODUCT_STATUS_TRANSITION: '현재 상태에서는 할 수 없는 작업입니다. 최신 상태를 확인해 주세요.',
+  PRODUCT_GROUP_NOT_FOUND: '상품 그룹을 찾을 수 없습니다.',
+  OPTION_GROUP_NOT_FOUND: '옵션 그룹을 찾을 수 없습니다.',
+  EMPTY_OPTION_GROUP: '옵션이 하나 이상 있어야 합니다.',
+  DUPLICATE_OPTION_KEY: '옵션 키가 겹칩니다. 옵션마다 다른 키를 쓰세요.',
+  NO_SELECTABLE_OPTION: '이 변경으로 선택할 수 있는 옵션이 하나도 없는 상품이 생겨 저장할 수 없습니다. 제외한 옵션을 먼저 확인하세요.',
+  PRODUCT_OPTION_GROUP_NOT_LINKED: '이 상품에 연결되지 않은 옵션 그룹입니다. 화면을 새로고침해 주세요.',
+  INVALID_OPTION_GROUP_ORDER: '옵션 그룹 순서가 올바르지 않습니다. 화면을 새로고침해 주세요.',
+  OPTION_KEY_NOT_FOUND: '옵션 그룹에 없는 옵션입니다. 화면을 새로고침해 주세요.',
+  OPTION_GROUP_STILL_REFERENCED: '이 옵션 그룹을 연결한 상품이 있어 삭제할 수 없습니다. 상품에서 연결을 먼저 해제하세요.',
+  VERSION_REQUIRED: '최신 정보를 불러온 뒤 다시 시도해 주세요.',
+  VERSION_CONFLICT: '다른 사용자가 먼저 수정했습니다. 최신 내용을 불러온 뒤 다시 시도해 주세요.',
+}
+
+export function toCatalogErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === null) return error.message
+    return (error.code && messages[error.code]) || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  return '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
