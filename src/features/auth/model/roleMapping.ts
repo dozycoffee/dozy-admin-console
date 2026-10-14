@@ -48,9 +48,11 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
     actorModes: [actorModeIds.inventoryManager],
     permissions: [permissions.dashboardRead, permissions.inventoryRead],
   },
-  'catalog:merchandiser': {
+  // dozy-catalog-api는 본사 직원 role을 `catalog:admin` 하나로 두고 `/admin/**` 전체를 허용한다.
+  // 조회 전용 role이 생기면 그 role에는 catalogRead만 준다.
+  'catalog:admin': {
     actorModes: [actorModeIds.merchandiser],
-    permissions: [permissions.dashboardRead],
+    permissions: [permissions.dashboardRead, permissions.catalogRead, permissions.catalogWrite],
   },
 }
 

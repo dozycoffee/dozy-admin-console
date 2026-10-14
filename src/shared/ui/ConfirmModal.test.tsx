@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ConfirmModal } from './ConfirmModal'
+import { Modal } from './Modal'
 
 function renderModal(props: Partial<React.ComponentProps<typeof ConfirmModal>> = {}) {
   const onConfirm = vi.fn()
@@ -42,5 +44,28 @@ describe('ConfirmModal', () => {
     await user.keyboard('{Escape}')
     await user.pointer({ keys: '[MouseLeft]', target: screen.getByRole('presentation') })
     expect(onCancel).toHaveBeenCalledTimes(3)
+  })
+})
+
+function ModalWithConfirm({ onClose, onCancel }: { onClose: () => void; onCancel: () => void }) {
+  const [confirming, setConfirming] = useState(false)
+  return <Modal open title="바깥" onClose={onClose}>
+    <button type="button" onClick={() => setConfirming(true)}>확인 열기</button>
+    <ConfirmModal open={confirming} title="확인" onCancel={() => { onCancel(); setConfirming(false) }} onConfirm={vi.fn()} />
+  </Modal>
+}
+
+describe('다른 모달 위에 열린 확인 모달', () => {
+  it('Esc는 확인 모달만 닫고 아래 모달은 닫지 않는다', async () => {
+    const onClose = vi.fn()
+    const onCancel = vi.fn()
+    render(<ModalWithConfirm onClose={onClose} onCancel={onCancel} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('확인 열기'))
+    await user.keyboard('{Escape}')
+
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
   })
 })

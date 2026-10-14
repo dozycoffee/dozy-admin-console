@@ -2,8 +2,8 @@
 
 ## 현재 상태
 
-`feature_list.json`의 항목은 모두 완료했고 남은 `pending`은 없다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
-창고 업무는 dozy-wms-api 실 API로 연동되어 있다(테스트 513개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
+`feature_list.json`은 Catalog 상품 관리(`catalog-product-list` 진행 중, 나머지 3개 `pending`)를 빼고 모두 완료했다. 콘솔은 로그인 후 **업무 모드(액터 모드)** 를 고르는 구조이며, 로그인·계정 관리는 dozy-auth 실서비스로,
+창고 업무는 dozy-wms-api 실 API로, MD 상품 조회는 dozy-catalog-api 실 API로 연동되어 있다(테스트 1010개, CI는 PR마다 lint·typecheck·build·commitlint·test+coverage).
 
 ### 구현 현황
 
@@ -13,7 +13,7 @@
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
 | 재고 관리 | 대시보드(주의가 필요한 재고 4종), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용) | dozy-inventory-api 실 API (`inventory:admin`) |
-| MD | 모드 홈 골격만 | 별도 catalog MSA가 미구현이라 화면 없음 (Catalog 화면은 제거함) |
+| MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
   `httpClient`가 토큰을 갱신해 한 번 재시도하고 갱신까지 실패하면 로그아웃한다. dozy-auth의 role은 `roleMapping.ts` 한 곳에서 액터 모드·Permission으로 변환한다.
@@ -23,7 +23,7 @@
 
 ### 알려진 한계·미해결
 
-- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`inventory:admin`·`catalog:merchandiser`는 운영 role 정의와 맞춰야 한다. dozy-auth가 시드하는 role은
+- **role 이름은 임시값이다.** `roleMapping.ts`의 `wms:warehouse_manager`·`inventory:admin`은 운영 role 정의와 맞춰야 한다(`catalog:admin`은 dozy-catalog-api 명세의 이름). dozy-auth가 시드하는 role은
   `auth:owner`/`auth:admin`뿐이라 나머지는 `/roles`에서 등록해야 한다.
 - **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관리자 모드 사용자에게 `VITE_WAREHOUSE_IDS`를 준다. 재고 관리 모드는 inventory API가 전체 창고를 주므로 범위를 두지 않는다.
 - **dozy-wms-api는 아직 토큰을 검증하지 않는다**(dozy-wms-api ADR-0010의 `CurrentAccessScopeProvider`·`warehouseIds` 교차검증은 인증 연동 때 처리 예정). WMS는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
@@ -42,7 +42,8 @@
   ./gradlew :auth-server:bootRun --args='--spring.profiles.active=local'`(dozy-auth 저장소에서)로 띄우고 콘솔 `.env`에 `VITE_AUTH_BASE_URL=http://localhost:8081`을 둔다.
   첫 기동 때 owner 초대 메일이 Mailpit(`http://localhost:8025`)으로 가며, 링크가 콘솔의 `/invitation`을 연다. 처음에는 role이 `auth:owner`/`auth:admin`뿐이라 업무 role을 `/roles`에서 등록하고
   직원을 초대해 부여해야 창고 모드 등을 쓸 수 있다.
-- MSW 핸들러는 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다.
+- **dozy-catalog-api**: 기본 포트가 8080이라 wms-api와 겹친다. `SERVER_PORT=8082`로 띄우고 `CATALOG_CORS_ALLOWED_ORIGINS=http://localhost:5173`, `DOZY_AUTH_ISSUER_BASE_URI`(auth 주소)를 주고, 콘솔 `.env`에 `VITE_CATALOG_BASE_URL=http://localhost:8082`를 둔다. auth에 audience `catalog`와 role `admin`(`catalog:admin`)을 등록해 직원에게 부여해야 MD 모드를 쓸 수 있다.
+- MSW 핸들러는 기본적으로 비어 있다(`src/mocks/handlers.ts`). 백엔드 계약이 없는 API가 생기면 거기에 추가한다. `VITE_MOCK_CATALOG=true`일 때만 MD 화면용 로그인·Catalog 목이 켜진다.
 - UI 확인은 `npm run dev`(5173)와 위 서버들로 한다. 헤드리스 브라우저(Playwright)로도 확인할 수 있고 MSW 서비스 워커가 필요하지 않다.
 
 ### 컨벤션
@@ -66,10 +67,82 @@
 - **role 구성**(2026-10-14 합의, WMS ADR-0025·inventory ADR-0041): 재고 관리 모드는 `inventory:admin`, 창고 이름은 `wms:viewer`, 창고 관리자는 `wms:warehouse_manager`+`inventory:warehouse_manager`, 원자재 담당은 `inventory:material_manager`(원자재 관리 모드는 미구현), `wms:warehouse_admin`은 `wms:admin`(콘솔 모드 없음)으로 바뀌었다.
 - **모드 홈**: 주의가 필요한 재고 4개 카드(유통기한 만료·임박, 할당 보류, 불량)의 행 수를 `size=1`로 세어 보여주고 재고 현황의 같은 조건으로 연결한다.
 - inventory API는 `inventoryHttpClient`(`VITE_INVENTORY_BASE_URL`)로 호출한다. 오류는 Problem Details의 `code`로 분기한다(`stockErrors.ts`). CORS는 dozy-inventory-api에서 먼저 추가했다(이슈 #125, PR #126).
-- 검증: build/lint/test(755) 통과. 실서버(dozy-auth 로그인 → dozy-inventory-api)에서 `inventory:admin` 직원으로 대시보드 카드 건수, 카드 → 재고 현황 필터 이동, 상세·이력 모달을 확인했고,
+- 검증: build/lint/test(1049, main 병합 후) 통과. 실서버(dozy-auth 로그인 → dozy-inventory-api·dozy-wms-api)에서 `inventory:admin` 직원으로 대시보드 카드 건수, 카드 → 재고 현황 필터 이동, 상세·이력 모달을 확인했고,
   재고 관리 모드에서 `/inventory`·`/inbounds`·`/warehouse-map`, 계정 관리자 모드에서 `/stock`으로 직접 들어가면 모드 가드가 홈으로 돌려보내는 것도 확인했다.
   확인용으로 로컬 auth DB에 `inventory` audience와 `inventory:admin`·`wms:viewer` 등 새 role, 직원 `stock.admin@dozycoffee.com`(`inventory:admin`+`wms:viewer`)을 만들었고 inventory DB에 상품 3개와 재고 행 6개를, 격리 DB `dozy_wms_e2e`에 창고 2개(543, 762)를 시드했다.
 - 후속: 원자재 관리 모드(inventory 상품 마스터), 창고 관리자 모드의 재고 화면을 inventory API로 교체, 상품 관리·대사 보정안·Outbox 격리 이벤트 화면, `inventory:warehouse_manager`(배정 창고만) 지원.
+
+### 2026-10-14 (카탈로그 버튼 크기 축소 — 카탈로그 화면에만 적용)
+
+- 카탈로그 화면의 버튼이 커 보인다는 피드백으로 버튼을 한 단계 줄이되, **다른 서비스 화면(창고·계정 관리 등)에는 영향을 주지 않는다.** 처음에는 공통 클래스(`.inbound-action-button`·`.button`)의 값을 줄였다가 다른 화면의 버튼까지 함께 작아져, 공통 클래스를 원래 값(여백 `11px 15px`, `.button` 높이 40px)으로 되돌렸다
+- 대신 `.inbound-action-button.compact`(여백 `8px 13px`, 글자 13px)를 만들고 카탈로그 전용 파일(`pages/products`·`pages/taxonomy`·`pages/option-groups`·`features/catalog/ui`)의 `inbound-action-button` 24곳에만 `compact`를 붙였다. 앞으로 카탈로그 화면에 버튼을 추가할 때도 `compact`를 붙인다. `index.css`는 main 대비 기존 규칙을 바꾸지 않고 규칙만 더했다
+- 알려진 한계: 확인 모달의 `.button`(취소·삭제)과 로그인 버튼은 공통 크기 그대로라 카탈로그 화면의 `compact` 버튼보다 조금 크다. 같이 줄이려면 확인 모달을 공유하는 다른 화면까지 영향을 받는다
+- 참고: 이 브랜치가 기존 공통 코드에 준 영향은 이것뿐이 아니다. `shared/ui/Modal`·`ConfirmModal`은 겹쳐 열린 모달에서 Esc·Tab을 맨 위 모달만 처리하도록 바뀌었다(모달이 하나만 열려 있을 때의 동작은 같다). `AppLayout`에는 MD 모드 메뉴와 아이콘만, `AppRouter`·`permissions`·`roleMapping`·`httpClient`에는 카탈로그용 항목만 추가했다
+
+### 2026-10-14 (Catalog 상품의 옵션 그룹 연결·예외)
+
+- 이슈 #86, 같은 브랜치(`feat/catalog-product-list`)에서 `catalog-product-options` 구현. 이로써 Catalog 상품 관리(요구사항 1.2~1.9, 1.11~1.12)의 화면 범위가 끝났다. 남은 것은 예약 변경(1.3·1.4)·판매 범위 변경(1.5)·노출 현황(1.10)이다
+- **상품 상세의 옵션 그룹 구역(`ProductOptionGroups`):** 연결된 옵션 그룹을 노출 순서대로("1. 사이즈") 카드로 보여주고 옵션별로 기본 가격과 "이 상품" 상태(기본·가격 변경 N원·제외)를 표시한다(제외된 옵션은 흐리게). 그룹마다 ↑↓(노출 순서)·"연결 해제", 옵션 줄마다 "예외", 아래에 "옵션 그룹 연결" 선택과 "연결"
+- **API:** 연결 `POST /products/{id}/option-groups`(기존 연결 뒤에 붙음), 해제 `DELETE …/option-groups/{gid}`, 순서 `PUT …/option-groups/order`(연결된 전체를 한 번씩), 예외 `PUT·DELETE …/overrides/{optionKey}`(옵션 키는 경로에 쓰기 전에 인코딩). 모두 상품의 `If-Match` 버전이 필요하고 변경된 상품을 돌려준다
+- **연속 변경 보호:** 변경할 때마다 상품 버전이 올라 연속 클릭이 낡은 버전으로 나가면 충돌한다. 그래서 이 mutation들은 `onSettled`에서 상품 목록 재조회(`invalidateQueries`)를 **기다려** `isPending`이 재조회가 끝날 때까지 이어지게 하고, 그동안 모든 버튼과 선택을 비활성화한다("처리 중입니다." 툴팁). 409 `VERSION_CONFLICT`는 오류 토스트로 알리고 상품은 이미 재조회돼 최신이다
+- **연결 해제 확인:** 그 연결의 가격 변경·제외 예외도 함께 삭제되고 다시 연결해도 복원되지 않는다고 확인 모달로 알린다(옵션 그룹 자체는 삭제되지 않음)
+- **옵션 예외 모달(`OptionOverrideModal`):** "옵션 그룹의 기본값 사용"(예외 해제) / "이 상품에서만 가격 변경"(0 이상 정수) / "이 상품에서는 선택할 수 없게 제외". 현재 예외로 열리고 같은 값이면 요청 없이 닫는다. 선택 가능한 옵션이 0개가 되는 제외는 서버가 `NO_SELECTABLE_OPTION`으로 거부하며 모달 안에만 안내한다(구역에는 중복해서 보여주지 않는다)
+- **판매 옵션 미리보기:** 버튼을 눌러 열면 `GET …/effective-options`의 결과(표시용 시작가, 제외·가격 예외를 반영한 옵션, 자동 선택, "이 상품 가격")를 **서버가 계산한 그대로** 보여준다. 콘솔은 다시 계산하지 않는다(조합 금액·선택 검증은 주문·POS의 책임)
+- **상품 등록 중 옵션 그룹 만들기:** 등록 폼의 옵션 그룹 구역에 "새 옵션 그룹 만들기" 버튼을 두고 모달 위에 옵션 그룹 모달을 겹쳐 연다. 만들면 그 그룹이 바로 선택(맨 뒤, 노출 순서 포함)되고 토스트로 알린다. 안쪽 모달은 상품 폼의 `<form>` 밖에 그려 제출 이벤트가 React 트리를 따라 올라가 상품이 같이 등록되는 일을 막는다. 이를 위해 옵션 그룹 폼을 `features/catalog/ui/OptionGroupForm`으로 옮겨 두 화면이 공유한다
+- **겹친 모달 처리(`shared/ui/modalStack.ts`):** 지금까지 `Modal`은 겹쳐 열린 모달을 몰라 Esc가 모든 모달을 닫고, Tab 포커스 가두기가 안쪽 모달에서 바깥 모달로 포커스를 끌어왔다(옵션 삭제 확인 모달에서 Esc를 누르면 폼까지 닫히는 잠재 문제도 같은 원인). 열린 순서를 스택으로 두고 맨 위 모달(`Modal`·`ConfirmModal`)만 Esc·Tab을 처리하게 했다
+- **오류 문구:** `PRODUCT_OPTION_GROUP_NOT_LINKED`·`INVALID_OPTION_GROUP_ORDER`·`OPTION_KEY_NOT_FOUND`를 추가하고 `NO_SELECTABLE_OPTION`은 옵션 그룹 변경과 예외 지정 양쪽에 맞게 다듬었다
+- **목 모드:** 목 저장소가 중복 연결 거부, 해제 시 예외 삭제, 순서 검증(연결 안 된 그룹 404·빠지거나 겹치면 400), 예외 규칙(없는 키·음수 가격·선택 가능 옵션 0개), 모든 변경의 버전 검사(428·409), 서버가 계산하는 유효 옵션·시작가·자동 선택을 흉내 낸다
+- 검증: build/lint/test(1010) 통과. **목 모드**에서 Chrome으로 연결 그룹 카드와 옵션 상태, 순서 변경(연속으로 이어서 변경 가능), 레귤러 제외 저장, 마지막 옵션 제외 시 `NO_SELECTABLE_OPTION` 거부(모달 안 안내), 판매 옵션 미리보기(시작가 5,200원·자동 선택·이 상품 가격), 상품 등록 모달 위에 옵션 그룹 모달을 열고 Esc가 안쪽만 닫는 것, 새 옵션 그룹 생성 후 자동 선택("1번째")과 상품이 같이 등록되지 않는 것을 확인했고 콘솔 에러는 없었다. 연결·해제와 예외 해제, 버전 충돌은 단위 테스트로만 검증했다. **실서버로는 확인하지 못했다**
+- 알려진 한계: 옵션 그룹 구성이 바뀐 뒤 상품의 예외가 어떻게 되는지(사라진 키의 예외 삭제)는 서버 규칙이라 목으로만 확인했다. 상품 등록 폼에서 만든 옵션 그룹은 목록이 다시 받아질 때까지 잠깐 체크 상태로만 보일 수 있다. 예약 변경(옵션 그룹 연결·예외 예약)은 범위 밖이다
+
+### 2026-10-14 (Catalog 옵션 그룹 관리 화면)
+
+- 이슈 #85, 같은 브랜치(`feat/catalog-product-list`)에서 `catalog-option-groups` 구현. 옵션 그룹은 상품에 직접 영향을 주고 내용이 커서(옵션이 여러 개) 분류 관리 탭이 아니라 **독립 메뉴 "옵션 그룹"**(`/option-groups`, `catalog.read`)으로 뒀다. 이번 범위는 옵션 그룹 자체의 관리이고, 상품에 연결·예외·유효 옵션 미리보기는 `catalog-product-options`(후속)다. 예약 변경(옵션 목록 예약)과 "이 옵션 그룹을 쓰는 상품" 표시는 범위 밖으로 정했다(상품 목록 API에 옵션 그룹 조건이 없어 전체 상품을 받아 걸러야 한다)
+- **화면:** 왼쪽 목록(이름 검색, 선택 방식·필수·옵션 수)과 오른쪽 상세(선택 방식, 필수 여부, 옵션 표, version). 변경·삭제 버튼은 카드 우상단(제목 줄)에 두고 삭제 거부 안내는 본문 맨 위에 보여준다. 서버가 옵션 그룹을 페이징하지 않으므로 목록도 페이징하지 않는다
+- **등록·변경 폼(한 모달):** 이름, 선택 방식(단일/복수), 필수 여부, 옵션 행 편집기(옵션 키·이름·가격, ↑↓ 순서 변경, 행 삭제, 옵션 추가). 옵션 키는 상품의 가격 변경·제외 예외가 옵션을 가리키는 식별자라 **저장한 옵션의 키는 읽기 전용**이고 폼에서 저장 뒤에는 바꿀 수 없다고 안내한다(새로 추가한 행은 입력 가능). 입력 오류(이름·옵션 1개 이상·키 필수·키 중복·가격 0 이상 정수)는 입력칸을 벗어나거나 제출했을 때 칸 아래에 보인다(`optionGroupValidation.ts`)
+- **저장은 두 요청이다:** 이름·선택 방식·필수 여부는 `PUT /option-groups/{id}`, 옵션 목록은 `PUT /option-groups/{id}/options`이고 둘 다 `If-Match`가 필요하다. 거부될 수 있는 규칙(옵션 0개, 선택 가능한 옵션 0개)이 옵션 교체에 있어 **옵션 목록을 먼저 보내고**, 이름 변경에는 옵션 교체가 돌려준 새 `version`을 쓴다. 그래서 옵션 교체가 거부되면 이름도 바뀌지 않는다. 바뀐 게 없으면 요청 없이 닫는다
+- **옵션을 빼는 저장 확인:** 목록에서 사라지는 옵션 키가 있으면 저장 전에 확인 모달로 "삭제하는 옵션(LARGE)에 대해 이 옵션 그룹을 연결한 모든 상품의 가격 변경·제외 예외가 함께 삭제되며, 같은 키를 다시 추가해도 되돌아오지 않습니다"를 알린다. 서버는 사라진 키의 상품별 예외를 모든 연결 상품에서 지운다. 이름·가격만 바꾸는 저장은 묻지 않는다
+- **버전 충돌:** 409 `VERSION_CONFLICT`이면 폼에 오류를 쓰지 않고 모달을 닫은 뒤 오류 토스트로 알린다(상품 수정과 같은 흐름). 모든 mutation이 실패해도 옵션 그룹 목록을 다시 받는다. 옵션 교체는 상품 목록도 함께 갱신한다(예외가 지워지므로)
+- **삭제:** 확인 모달을 거치고, 연결한 상품이 있으면 서버가 `OPTION_GROUP_STILL_REFERENCED`로 거부해 상세 안에 안내한다(어느 상품이 연결했는지는 API로 알 수 없다). `catalog.write`가 없으면 추가 버튼은 숨기고 변경·삭제는 비활성화한다
+- **오류 문구:** `EMPTY_OPTION_GROUP`·`DUPLICATE_OPTION_KEY`·`NO_SELECTABLE_OPTION`·`OPTION_GROUP_STILL_REFERENCED`를 추가했다
+- **목 모드:** 목 저장소가 옵션 그룹 규칙(버전 충돌·428, 옵션 0개·키 중복·음수 가격, 선택 가능한 옵션 0개 거부, 사라진 키의 예외 삭제, 연결된 그룹 삭제 거부, 이름 검색)을 흉내 낸다. 삭제 시연을 위해 연결한 상품이 없는 옵션 그룹(온도)을 시드에 추가했다
+- 검증: build/lint/test(947) 통과. **목 모드**에서 Chrome으로 목록·상세·변경 모달(키 읽기 전용, 순서 버튼)을 확인했고, 옵션을 빼는 저장의 확인 모달 → 저장(옵션 2개, 버전 3), 연결 상품의 제외 예외 때문에 `NO_SELECTABLE_OPTION`으로 거부되는 안내, 연결된 그룹 삭제 거부 안내, 등록(새 그룹 선택·토스트)을 확인했고 콘솔 에러는 없었다. 연결 안 된 그룹의 삭제 성공과 버전 충돌은 단위 테스트로만 검증했다. **실서버로는 확인하지 못했다**
+- 알려진 한계: 옵션 그룹을 쓰는 상품을 보여주지 않아 삭제가 거부된 뒤 어떤 상품에서 연결을 풀어야 하는지는 상품 화면에서 직접 찾아야 한다. 옵션 키 형식 규칙은 명세에 없어 입력 형식을 제한하지 않았다
+
+### 2026-10-14 (Catalog 분류 관리 — 카테고리·태그·상품 그룹)
+
+- 이슈 #82, 같은 브랜치(`feat/catalog-product-list`)에서 `catalog-taxonomy` 구현. MD 모드 사이드바에 "분류 관리" 메뉴(`/taxonomy`, `catalog.read`)를 두고 카테고리·태그·상품 그룹을 한 화면의 탭으로 묶었다. 변경은 `catalog.write`가 있어야 하며 없으면 추가 버튼은 숨기고 변경 버튼은 비활성화한다
+- **카테고리(1.6):** 대분류 아래에 소분류를 들여 쓴 계층으로 보여준다. 줄마다 **"변경" 버튼 하나**로 이름과 상위 대분류(소분류 이동·승격, 소분류가 없는 대분류의 강등)를 한 모달에서 바꾼다(이전에는 "이름 변경"·"부모 변경"·"소분류로 변경"이 따로 있어 어색했다). 두 값이 모두 바뀌면 **부모를 먼저 바꾼 뒤 이름을 바꾼다** — 규칙 위반은 부모 변경에서 나므로 거부되면 아무것도 바뀌지 않는다. 그 밖에 대분류 추가, 대분류 줄의 "추가"(그 아래에 소분류를 만든다. 모달 제목은 "소분류 추가 · 대분류 이름"), 삭제. 소분류가 있는 대분류는 삭제를 미리 비활성화하고(툴팁으로 사유) 변경 모달에서는 상위 대분류 선택을 잠근다. 상품이 참조 중인 카테고리의 삭제·승격은 서버가 거부하므로(`CATEGORY_STILL_REFERENCED`·`REFERENCED_CATEGORY_NOT_PROMOTABLE`) code별 안내로 보여준다(모달 안 또는 패널 위). 승격은 `parentId`를 `null`로 **명시해서** 보낸다(필드를 빼면 서버가 `INVALID_REQUEST`로 거부)
+- **설명은 툴팁으로:** 패널 제목(카테고리·태그·상품 그룹) 옆 `?` 배지(`FieldTip`)의 툴팁으로 옮겼다. 본문에 안내 문장을 늘어놓지 않는 이 프로젝트의 패턴을 따른다
+- **태그(1.7):** 목록·검색, "변경"(이름, `TAG_NAME_DUPLICATED`는 모달 안에 안내), 삭제. 태그는 상품 등록·수정에서만 만들어지므로 등록 버튼은 없고 화면에 그렇게 안내한다
+- **상품 그룹(1.8):** 목록, 추가, "변경"(이름), 삭제
+- **삭제 영향 안내:** 태그·상품 그룹을 지우면 서버가 그것을 쓰던 모든 상품에서 자동으로 빼는데 API에 사용 수가 없다. 그래서 삭제를 누르면 그 조건(`tagId`·`groupId`)으로 상품을 한 건만 조회해 `totalElements`로 "이 태그가 붙은 N개 상품에서 제거됩니다"를 확인 모달에 보여준다(`useCountProducts`, 조회에 실패하면 수 없이 안내하고 삭제는 막지 않는다). 삭제 뒤에는 태그·그룹 목록과 상품 목록을 함께 갱신한다
+- **오류 문구:** `TOP_LEVEL_CATEGORY_NOT_FOUND`·`INVALID_PARENT_CATEGORY`·`CATEGORY_HAS_CHILDREN`·`CATEGORY_WITH_CHILDREN_NOT_DEMOTABLE`·`TAG_NOT_FOUND`·`TAG_NAME_DUPLICATED` 등을 추가했다
+- **목 모드:** `catalogMockStore.ts`가 분류 규칙(대분류만 부모로 지정, 강등·승격 제약, 참조 중 삭제 거부, 태그 이름 유일, 태그·그룹 삭제 시 상품에서 제거)을 흉내 낸다. 승격·삭제 시연을 위해 시드에 안 쓰는 소분류(샌드위치)와 소분류가 없는 대분류(시즌 기획)를 추가했다
+- 검증: build/lint/test(876) 통과. **목 모드**에서 Chrome으로 계층 표시와 비활성 버튼, 참조 중인 소분류 승격 시 서버 거부 안내, 안 쓰는 소분류 삭제(확인 모달·토스트·목록 갱신), 태그 삭제 확인 모달의 영향 상품 수("3개 상품")를 확인했고 콘솔 에러는 없었다. 상품 그룹 화면과 대분류·소분류 추가, 강등은 단위 테스트로만 검증했다. 이름과 부모를 함께 바꾸는 변경(커피 → 에스프레소, 푸드 아래로)과 `?` 툴팁은 화면에서 확인했다. **실서버로는 확인하지 못했다**
+- 알려진 한계: 카테고리 삭제·승격은 참조 여부를 미리 알지 못해 서버 응답으로만 막힌다(소분류별로 상품 수를 세려면 요청이 많아진다). 태그·상품 그룹 이름 변경은 같은 이름 중복 검사를 서버에 맡긴다
+
+### 2026-10-14 (Catalog 상품 등록·수정·상태 전환)
+
+- 이슈 #81, 같은 브랜치(`feat/catalog-product-list`)에서 이어서 `catalog-product-write` 구현(여러 항목을 한 PR로 머지하기로 해 브랜치를 나누지 않았다). 항목마다 이슈는 따로 둔다
+- **등록(`POST /products`):** 모달 폼. 상품명·카테고리(소분류만)·기준가·재고 관리 여부·설명·이미지 URL·태그(기존 태그는 칩으로 눌러 고르고, 없는 태그는 이름을 입력해 "새 태그" 칩으로 더한다. 입력하면 기존 목록이 걸러지고 고른 태그는 계속 보이며, 기존과 같은 이름이면 그 태그를 쓰고 새 태그는 저장할 때 서버가 만든다. 요구사항 1.7)·상품 그룹·옵션 그룹(선택한 순서가 노출 순서). 재고 관리 여부는 등록 뒤 바꿀 수 없다고 폼에 안내한다. 항상 `DRAFT`로 만들어지고 성공하면 필터를 풀고 1페이지에서 새 상품을 선택하며 토스트에 SKU를 보여준다
+- **수정(`PUT /products/{id}`):** 재고 관리 여부·옵션 그룹을 뺀 값 전체를 교체한다. `If-Match: "{version}"`에 화면이 보던 `version`을 보낸다(`useUpdateProduct`). 설명·이미지를 비우면 `null`로 보내 지운다. 태그는 상품이 id로만 갖고 있어 태그 목록으로 이름을 채워 선택 상태로 시작하므로, 태그를 못 받았거나 id를 이름으로 못 바꾸면 태그를 잃지 않도록 수정을 막고 툴팁으로 이유를 알린다
+- **낙관적 잠금:** 409 `VERSION_CONFLICT`이면 폼에 오류를 쓰지 않고 모달을 닫은 뒤 오류 토스트로 "다른 사용자가 먼저 수정했습니다. 최신 내용을 불러왔으니 확인한 뒤 다시 수정해 주세요."를 알린다. 모든 쓰기 mutation은 성공·실패와 관계없이 상품 목록을 다시 받으므로(`onSettled`) 상세가 최신 `version`으로 바뀐다. 서버는 자동 재시도하지 않으므로 콘솔도 값을 덮어쓰지 않고 관리자가 다시 판단하게 한다
+- **상태 전환·삭제:** 활성화(`DRAFT`·`DISCONTINUED`)·단종(`ACTIVE`)·삭제(`DRAFT`만, 되돌릴 수 없음)는 확인 모달을 거친다. 상태상 불가한 버튼은 숨기지 않고 항상 같은 자리에 비활성화하며 사유를 툴팁으로 알린다(직원 상세와 같은 패턴). 작업 버튼은 상세 카드 **우상단(제목 줄)**에 두고 상태 배지는 상품명 바로 오른쪽에 붙이며(옵션 그룹 상세와 같은 `detail-actions`·`detail-title` 스타일), 작업 실패 안내는 본문 맨 위에 보여준다. `catalog.write`가 없으면 "상품 등록" 버튼은 숨기고 상세의 작업 버튼은 모두 비활성화한다
+- **오류:** `CATEGORY_NOT_ASSIGNABLE`·`INVALID_MONEY_AMOUNT`·`DUPLICATE_OPTION_GROUP_LINK`·`PRODUCT_NOT_DELETABLE`·`INVALID_PRODUCT_STATUS_TRANSITION` 문구를 추가했다. 입력 오류는 필드를 벗어나거나 제출했을 때 필드 아래에 보이고 첫 오류 필드로 포커스를 옮긴다(`productValidation.ts`). 지정할 수 있는 소분류가 하나도 없으면 안내하고 등록을 막는다(요구사항 1.6)
+- **목 모드 쓰기:** `catalogMockStore.ts`가 등록·수정·상태 전환·삭제를 메모리에서 흉내 낸다(version 증가, `If-Match` 불일치 409에 `currentVersion`, 헤더 없으면 428, 태그 재사용·생성, 대분류 거부 등). 새로고침하면 처음 상태로 돌아간다
+- 검증: build/lint/test(774) 통과. **목 모드**에서 Chrome으로 등록(검증 문구·포커스, 기존 태그 선택과 새 태그 입력, 옵션 그룹 순서 표시) → 활성화 → 정보 수정 → 수정 모달을 연 채 같은 상품을 다른 쪽에서 먼저 수정해 `VERSION_CONFLICT`(오류 토스트, 모달 닫힘, 상세가 최신 버전·값으로 갱신) → 단종 → 삭제와 버튼 활성·비활성 규칙·툴팁을 확인했고 콘솔 에러는 없었다. **실서버로는 확인하지 못했다.** 특히 `If-Match`·`ETag`가 CORS에서 실제로 통하는지, 오류 `code`가 명세와 같은지는 목으로 알 수 없다
+- 알려진 한계: 판매 범위·옵션 그룹 연결·예외 변경은 아직 없다(`catalog-option-groups`). 이미지는 URL 입력만 있고 업로드는 없다. 상품 삭제는 SKU를 되살리지 않는다
+
+### 2026-10-13 (Catalog 연동 기반과 상품 조회 화면)
+
+- 이슈 #76, `feat/catalog-product-list` 브랜치. 옆 저장소 `dozy-catalog-api`가 구현돼 있어(`/api/v1/admin/**`, role `catalog:admin`) "catalog MSA 미구현"이던 MD 모드에 연동한다. 상품 관리를 `catalog-product-list`(이번) → `catalog-product-write` → `catalog-taxonomy` → `catalog-option-groups`로 나눠 `feature_list.json`에 등록했다
+- **기반:** `catalogHttpClient`(`VITE_CATALOG_BASE_URL`)는 Bearer 토큰만 보내고 쿠키는 쓰지 않는다(Catalog CORS가 credentials를 허용하지 않음). 401 갱신·재시도는 기존 `createClient` 인터셉터를 공유한다. role 매핑은 `catalog:merchandiser`(임시값)를 `catalog:admin`으로 바꾸고 `catalog.read`·`catalog.write` Permission을 추가했다. 조회 전용 role이 생기면 그 role에는 `catalog.read`만 준다
+- **화면(`/products`, MD 모드, `catalog.read`):** 상태·카테고리(대분류 선택 시 소분류 포함)·태그·상품 그룹 필터와 상품명·SKU 검색, 서버 페이지네이션(10건), 선택한 상품의 상세(SKU·기준가·카테고리 "대분류 > 소분류"·재고형 여부·태그·상품 그룹·판매 범위·연결된 옵션 그룹과 예외·version). Catalog는 리소스 단위 API라 상품 응답에 id만 있으므로 카테고리·태그·그룹·옵션 그룹 목록을 따로 받아 이름을 붙인다(없는 id는 `#id`). 목록 응답이 상품 전체라 상세는 별도 조회 없이 선택한 항목을 쓴다
+- **오류:** Problem Details의 `code`로만 분기하고 문구는 콘솔이 정한다(`catalogErrors.ts`). `VERSION_CONFLICT`는 쓰기 화면(`catalog-product-write`)에서 `If-Match`와 함께 쓸 때 재조회 흐름을 붙인다
+- **목 모드:** `VITE_MOCK_CATALOG=true`로 `npm run dev`를 띄우면 MSW가 dozy-auth 로그인(`catalog:admin`을 가진 MD 직원, 아무 비밀번호나 통과)과 Catalog 조회를 대신한다(`src/mocks/catalogHandlers.ts`, 데이터·필터는 `catalogMockData.ts`). 기본은 꺼져 있어 실서버로 그대로 나간다. 목 데이터는 14개 상품·분류·옵션 그룹이며 쓰기 API는 없다
+- 검증: build/lint/test(697) 통과. **목 모드**에서 헤드리스가 아닌 Chrome으로 로그인 → MD 모드만 선택 가능(나머지 잠금) → 목록·상세(옵션 예외·태그·그룹 이름 조립)·필터 조합(음료 전체+판매중=6개)·페이지 이동·MD 모드에서 `/inventory` 직접 접근 시 홈으로 복귀를 확인했고 콘솔 에러는 없었다. **실서버(dozy-auth + dozy-catalog-api)로는 아직 확인하지 못했다** — 로컬의 Catalog 컨테이너(8081·8082)는 부하테스트용(prod 프로필, CORS가 `localhost:3000`만 허용)이라 쓸 수 없었다. `RequirePermission` 리다이렉트는 `catalog:admin`이 두 Permission을 모두 주므로 화면으로 만들 수 없어 단위 테스트로만 검증했다
+- 알려진 한계: 매장 이름을 알 수 없어 판매 범위는 매장 id만 보여준다(매장 목록 API 없음). 이미지는 링크로만 보여준다. 쓰기·분류 관리·옵션 그룹 관리·예약·노출 현황은 후속 항목이다
 
 ### 2026-10-13 (계정 관리자 대시보드)
 
@@ -411,7 +484,7 @@
 
 - 새 작업은 `feature_list.json`에 항목을 먼저 등록하고 `docs/git-workflow.md`의 이슈 → 브랜치 → PR 순서를 지킨다(이슈는 템플릿 구조·라벨·네이티브 Issue Type까지 맞춰 작성). 작업 중에는 `in_progress`, 끝나면 `completed`로 바꾸고 PROGRESS.md를 갱신한다
 - 화면은 해당 모드의 `navigationByMode`·`AppRouter`에 함께 등록하고 `permissions.ts`·권한 정책 체크리스트에 Permission을 정의한다
-- `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다. 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
+- `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다(`catalog:admin`은 Catalog 명세 기준). 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다. dozy-wms-api가 토큰 검증을 붙이면 role·scope 연동을 함께 확인한다
 - 창고 평면도·대시보드 Zone 카드·Location별 재고를 실 `zone-summary`/재고 API로 옮기는 작업은 아직 없다(F Zone은 dozy-wms-api에 Zone이 생긴 뒤)
 - 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다

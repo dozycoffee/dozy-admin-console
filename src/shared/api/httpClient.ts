@@ -79,6 +79,9 @@ export const inventoryHttpClient = createClient(import.meta.env.VITE_INVENTORY_B
 /** dozy-auth 호출용 클라이언트. refresh 쿠키(HttpOnly)를 주고받으므로 credentials를 포함한다. */
 export const authHttpClient = createClient(import.meta.env.VITE_AUTH_BASE_URL, { withCredentials: true })
 
+/** dozy-catalog-api 호출용 클라이언트. Bearer 토큰만 받고 쿠키는 쓰지 않으므로 credentials를 포함하지 않는다. */
+export const catalogHttpClient = createClient(import.meta.env.VITE_CATALOG_BASE_URL)
+
 export function toApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) {
     return new ApiError('알 수 없는 오류가 발생했습니다.', { status: null, cause: error })

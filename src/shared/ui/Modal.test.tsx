@@ -171,3 +171,56 @@ function ModalWithClass() {
     <Modal open={open} title="넓은 모달" className="wide" onClose={() => setOpen(false)}><p>내용</p></Modal>
   </>
 }
+
+describe('겹쳐 열린 모달', () => {
+  function Stacked({ onOuterClose, onInnerClose }: { onOuterClose: () => void; onInnerClose: () => void }) {
+    const [outer, setOuter] = useState(true)
+    const [inner, setInner] = useState(false)
+    return <>
+      <Modal open={outer} title="바깥" onClose={() => { onOuterClose(); setOuter(false) }}>
+        <button type="button" onClick={() => setInner(true)}>안쪽 열기</button>
+        <Modal open={inner} title="안쪽" onClose={() => { onInnerClose(); setInner(false) }}>
+          <input aria-label="안쪽 입력" />
+        </Modal>
+      </Modal>
+    </>
+  }
+
+  it('Esc는 맨 위 모달만 닫고 아래 모달은 그대로 둔다', async () => {
+    const onOuterClose = vi.fn()
+    const onInnerClose = vi.fn()
+    render(<Stacked onOuterClose={onOuterClose} onInnerClose={onInnerClose} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('안쪽 열기'))
+    await user.keyboard('{Escape}')
+
+    expect(onInnerClose).toHaveBeenCalledTimes(1)
+    expect(onOuterClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog', { name: '바깥' })).toBeInTheDocument()
+  })
+
+  it('안쪽 모달이 닫히면 Esc가 다시 바깥 모달을 닫는다', async () => {
+    const onOuterClose = vi.fn()
+    render(<Stacked onOuterClose={onOuterClose} onInnerClose={vi.fn()} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('안쪽 열기'))
+    await user.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
+
+    expect(onOuterClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('안쪽 모달 안에서 Tab을 눌러도 포커스를 바깥 모달로 끌어가지 않는다', async () => {
+    render(<Stacked onOuterClose={vi.fn()} onInnerClose={vi.fn()} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('안쪽 열기'))
+    const dialog = screen.getByRole('dialog', { name: '안쪽' })
+    await user.click(within(dialog).getByLabelText('안쪽 입력'))
+    await user.tab()
+
+    expect(dialog.contains(document.activeElement)).toBe(true)
+  })
+})
