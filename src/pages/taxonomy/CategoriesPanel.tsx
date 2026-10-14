@@ -80,7 +80,7 @@ export function CategoriesPanel({ writable, confirm }: Props) {
       <small>{isTop ? `대분류 · 소분류 ${childCount}개` : '소분류'}</small>
     </span>
     <span className="taxonomy-actions">
-      {isTop && writable && <RowAction label="소분류 추가" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'create-child', parent: category })} />}
+      {isTop && writable && <RowAction label="추가" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'create-child', parent: category })} />}
       <RowAction label="변경" target={category.name} reason={reasonFor()} onClick={() => show({ kind: 'edit', category })} />
       <RowAction label="삭제" target={category.name} danger reason={reasonFor(isTop && childCount > 0 ? HAS_CHILDREN_REASON : null)} onClick={() => askDelete(category, isTop)} />
     </span>

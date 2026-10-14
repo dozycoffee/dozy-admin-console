@@ -118,7 +118,7 @@ describe('카테고리', () => {
     renderPage()
     const user = userEvent.setup()
 
-    await user.click(button('소분류 추가', '푸드'))
+    await user.click(button('추가', '푸드'))
     expect(screen.getByRole('dialog', { name: '소분류 추가 · 푸드' })).toBeInTheDocument()
     await user.type(within(dialog()).getByLabelText('이름'), '빵')
     await user.click(within(dialog()).getByRole('button', { name: '추가' }))
@@ -332,7 +332,7 @@ describe('카테고리', () => {
     renderPage([permissions.catalogRead])
 
     expect(screen.queryByRole('button', { name: '대분류 추가' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /소분류 추가/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^추가 · / })).not.toBeInTheDocument()
     expect(button('변경', '커피')).toBeDisabled()
     expect(button('삭제', 'MD')).toBeDisabled()
     await userEvent.setup().hover(button('삭제', 'MD').parentElement!)
