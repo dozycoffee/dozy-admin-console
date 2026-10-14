@@ -12,6 +12,12 @@ export const employeeStatusLabels: Record<EmployeeStatus, string> = {
 
 export const employeeStatuses = employeeStatusSchema.options
 
+/** 주소 쿼리(`?status=PENDING`)의 값을 상태로 바꾼다. 비었거나 알 수 없는 값이면 빈 문자열(필터 없음)이다. */
+export function parseEmployeeStatus(value: string | null | undefined): EmployeeStatus | '' {
+  const parsed = employeeStatusSchema.safeParse(value)
+  return parsed.success ? parsed.data : ''
+}
+
 export const employeeSummarySchema = z.object({
   principalId: z.string(),
   email: z.string(),

@@ -271,5 +271,19 @@
     "description": "내 계정(/account) 진입점을 사용자 이름 링크 하나에서 사이드바 메뉴로 넓힌다. 모든 업무 모드의 메뉴 아래에 구분선을 두고 권한 없이 모두에게 보이는 \"내 계정\" 항목을 공통으로 두며, 사이드바를 접어도 아이콘과 툴팁으로 접근할 수 있다. 업무 모드를 아직 고르지 않았을 때는 보이지 않는다. 기존 사용자 이름 링크는 유지한다. 이슈 #73.",
     "status": "completed",
     "dependencies": ["auth-my-account-pages"]
+  },
+  {
+    "id": "account-dashboard",
+    "name": "계정 관리 콘솔 대시보드 구현",
+    "description": "계정 관리자 모드의 대시보드를 dozy-auth 관리 API 데이터로 구현한다(API 변경 없음). 처리가 필요한 일(초대가 만료된 직원, 정지된 직원, secret이 90일 넘은 시스템 클라이언트, 최근 24시간 로그인 실패·잠금(owner)) 카드와 직원·시스템 클라이언트·role 현황 요약, 최근 활동(owner)을 보여주고 해당 화면으로 연결한다. 직원 관리는 /employees?status= 주소 필터를 지원한다. 이슈 #78.",
+    "status": "completed",
+    "dependencies": ["auth-employee-management", "auth-system-clients", "auth-audit-logs"]
+  },
+  {
+    "id": "audit-log-header-tooltips",
+    "name": "감사 로그 행위자·대상 머리글 설명 툴팁",
+    "description": "감사 로그 표의 행위자·대상 머리글 옆 \"?\" 배지에 올리면 각각이 무엇을 뜻하는지 설명 툴팁을 보여준다. 이슈 #79.",
+    "status": "completed",
+    "dependencies": ["audit-log-ui-polish"]
   }
 ]

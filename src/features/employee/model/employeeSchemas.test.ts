@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { employeeDetailSchema, employeePageSchema, inviteEmployeeResponseSchema } from './employeeSchemas'
+import { employeeDetailSchema, employeePageSchema, inviteEmployeeResponseSchema, parseEmployeeStatus } from './employeeSchemas'
 
 const summary = {
   principalId: '0199a3c4-7b2e-7c1a-9f3d-2b6e8a1c4d5f',
@@ -42,5 +42,20 @@ describe('inviteEmployeeResponseSchema', () => {
     const result = inviteEmployeeResponseSchema.parse({ principalId: 'p-1', status: 'PENDING', invitationExpiresAt: '2026-09-27T05:00:00Z' })
 
     expect(result.status).toBe('PENDING')
+  })
+})
+
+describe('parseEmployeeStatus', () => {
+  it('알려진 상태 값은 그대로 돌려준다', () => {
+    expect(parseEmployeeStatus('PENDING')).toBe('PENDING')
+    expect(parseEmployeeStatus('SUSPENDED')).toBe('SUSPENDED')
+  })
+
+  it('비었거나 알 수 없는 값은 필터 없음(빈 문자열)이다', () => {
+    expect(parseEmployeeStatus(null)).toBe('')
+    expect(parseEmployeeStatus(undefined)).toBe('')
+    expect(parseEmployeeStatus('')).toBe('')
+    expect(parseEmployeeStatus('pending')).toBe('')
+    expect(parseEmployeeStatus('NOPE')).toBe('')
   })
 })

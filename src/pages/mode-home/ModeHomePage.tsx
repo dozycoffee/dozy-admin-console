@@ -1,14 +1,9 @@
 import { actorModeIds, getActorMode } from '../../features/auth/model/actorModes'
 import { useAuth } from '../../features/auth/model/useAuth'
+import { AccountDashboard } from '../dashboard/AccountDashboard'
 import { DashboardPage } from '../dashboard/DashboardPage'
 
 const modeHomeContent = {
-  [actorModeIds.accountAdministrator]: {
-    eyebrow: 'ACCOUNT ADMINISTRATION',
-    title: '계정 관리 콘솔',
-    description: '사용자 계정과 역할별 접근 권한을 관리하세요.',
-    tasks: ['사용자 계정 관리', '모드 권한 할당', '접근 이력 확인'],
-  },
   [actorModeIds.merchandiser]: {
     eyebrow: 'MERCHANDISING',
     title: '상품 운영 콘솔',
@@ -23,6 +18,8 @@ export function ModeHomePage() {
   if (activeActorMode === actorModeIds.warehouseManager || activeActorMode === actorModeIds.headquartersInventoryManager) {
     return <DashboardPage />
   }
+
+  if (activeActorMode === actorModeIds.accountAdministrator) return <AccountDashboard />
 
   if (!activeActorMode) return <div className="mode-required-placeholder" aria-hidden="true" />
   const mode = getActorMode(activeActorMode)
