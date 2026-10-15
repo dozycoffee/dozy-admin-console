@@ -60,11 +60,11 @@ describe('buildCurrentUser', () => {
     expect(user.scope.warehouseIds).toEqual([1, 2])
   })
 
-  it('inventory:admin role은 재고 관리 모드의 재고 조회만 허용하고 창고 범위는 두지 않는다', () => {
+  it('inventory:admin role은 원자재·재고 관리 모드의 조회와 쓰기를 허용하고 창고 범위는 두지 않는다', () => {
     const user = buildCurrentUser({ ...base, roles: ['inventory:admin'] }, [1])
 
     expect(user.actorModes).toEqual([actorModeIds.inventoryManager])
-    expect(user.permissions).toEqual([permissions.dashboardRead, permissions.inventoryRead])
+    expect(user.permissions).toEqual([permissions.dashboardRead, permissions.inventoryRead, permissions.inventoryWrite])
     expect(user.scope.warehouseIds).toEqual([])
   })
 

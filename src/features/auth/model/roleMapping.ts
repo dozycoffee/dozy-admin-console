@@ -43,10 +43,11 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
       permissions.returnWrite,
     ],
   },
-  // 재고 서비스가 WMS에서 분리되어 재고 관리 모드는 inventory 서비스의 관리자 role(`inventory:admin`)에 매핑한다.
+  // 재고 서비스가 WMS에서 분리되어 원자재·재고 관리 모드는 inventory 서비스의 관리자 role(`inventory:admin`)에 매핑한다.
+  // 원자재 마스터 담당 role(`material_manager`)은 폐지되어(dozy-inventory-api ADR-0042) 마스터 쓰기도 이 role이 맡는다.
   'inventory:admin': {
     actorModes: [actorModeIds.inventoryManager],
-    permissions: [permissions.dashboardRead, permissions.inventoryRead],
+    permissions: [permissions.dashboardRead, permissions.inventoryRead, permissions.inventoryWrite],
   },
   // dozy-catalog-api는 본사 직원 role을 `catalog:admin` 하나로 두고 `/admin/**` 전체를 허용한다.
   // 조회 전용 role이 생기면 그 role에는 catalogRead만 준다.
