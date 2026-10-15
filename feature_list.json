@@ -362,5 +362,12 @@
     "description": "원자재·재고 관리 모드에 발행 실패 이벤트 화면 /outbox-events를 추가한다. dozy-inventory-api의 GET /api/v1/outbox-events(DEAD 이벤트, payload 포함)로 목록·페이지와 상세 모달(파티션 키, 오류 전문, 들여쓴 payload)을 보여주고, POST .../{id}/requeue로 재발행한다. 재발행 확인창에서 같은 키의 후속 이벤트보다 늦게 도착함을 안내하고 409 INV_INVALID_OUTBOX_STATE·404를 code로 분기한다. 버튼은 inventory.write, 라우트는 inventory.read로 잠그고 모드 홈에 '발행 실패 이벤트' 카드와 사이드바 메뉴를 추가한다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #95.",
     "status": "in_progress",
     "dependencies": ["inventory-management-mode"]
+  },
+  {
+    "id": "inventory-dashboard-layout",
+    "name": "원자재·재고 관리 대시보드 카드 배치 개선",
+    "description": "원자재·재고 관리 모드 대시보드를 처리 카드 + 현황 패널 구성으로 바꾼다. 1행에 '대사 보정 대기'와 '발행 실패 이벤트'를 같은 너비의 카드 둘로 크게(건수 강조) 두고, 2행에 '주의가 필요한 재고' 패널 하나에 유통기한 만료·임박·불량·할당 보류 4칸을 한 줄로 둔다. 칸 아래의 '보기 ›' 텍스트 링크가 /stock?...&view=rows로 연결하고 설명은 짧게 줄여 툴팁으로 두며 건수가 있는 칸은 색(만료·불량 위험, 임박·보류 주의)으로 강조한다. 좁은 화면에서는 처리 카드가 세로로, 재고 4칸이 2×2로 배치된다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #97.",
+    "status": "in_progress",
+    "dependencies": ["inventory-outbox-events-screen"]
   }
 ]
