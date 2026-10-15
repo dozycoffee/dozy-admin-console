@@ -986,3 +986,18 @@ a { color: inherit; text-decoration: none; }
 .reconciliation-actions { display: flex; gap: 6px; }
 .reconciliation-actions .audit-view { white-space: nowrap; }
 .reconciliation-reject { color: #9c3b3b; }
+
+/* 원자재·재고 관리 모드: 발행 실패 이벤트(Outbox) */
+.outbox-table { table-layout: fixed; min-width: 860px; }
+.outbox-table th, .outbox-table td { white-space: normal; overflow-wrap: anywhere; }
+.outbox-table th { white-space: nowrap; }
+.outbox-table th:nth-child(1), .outbox-table td:nth-child(1) { width: 7%; padding-left: 0; }
+.outbox-table th:nth-child(2), .outbox-table td:nth-child(2) { width: 12%; }
+.outbox-table th:nth-child(3), .outbox-table td:nth-child(3) { width: 25%; }
+.outbox-table th:nth-child(4), .outbox-table td:nth-child(4) { width: 7%; }
+.outbox-table th:nth-child(5), .outbox-table td:nth-child(5) { width: 24%; }
+.outbox-table th:nth-child(6), .outbox-table td:nth-child(6) { width: 14%; }
+.outbox-table th:nth-child(7), .outbox-table td:nth-child(7) { width: 11%; }
+.outbox-table th.stock-num, .outbox-table td.stock-num { text-align: right; }
+.outbox-section-title { margin: 16px 0 6px; font-size: 13px; }
+.outbox-pre { max-height: 240px; margin: 0; padding: 10px 12px; overflow: auto; border-radius: 8px; background: #faf7f5; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }

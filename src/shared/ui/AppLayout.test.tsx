@@ -117,7 +117,7 @@ describe('AppLayout', () => {
     expect(screen.queryByRole('link', { name: /재고 현황/ })).not.toBeInTheDocument()
   })
 
-  it('원자재·재고 관리 모드에는 대시보드, 원자재, 재고 현황, 대사 보정 메뉴만 보여주고 창고 업무 메뉴는 없다', () => {
+  it('원자재·재고 관리 모드에는 대시보드, 원자재, 재고 현황, 대사 보정, 발행 실패 메뉴만 보여주고 창고 업무 메뉴는 없다', () => {
     render(
       <AuthContext.Provider value={{ user: stubUser, isLoading: false, activeActorMode: actorModeIds.inventoryManager, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
         <MemoryRouter initialEntries={['/']}>
@@ -133,6 +133,7 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: /원자재/ })).toHaveAttribute('href', '/materials')
     expect(screen.getByRole('link', { name: /재고 현황/ })).toHaveAttribute('href', '/stock')
     expect(screen.getByRole('link', { name: /대사 보정/ })).toHaveAttribute('href', '/reconciliations')
+    expect(screen.getByRole('link', { name: /발행 실패/ })).toHaveAttribute('href', '/outbox-events')
     expect(screen.getByRole('link', { name: /대시보드/ })).toHaveAttribute('href', '/')
     expect(screen.queryByRole('link', { name: /창고 평면도/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /입고 관리/ })).not.toBeInTheDocument()

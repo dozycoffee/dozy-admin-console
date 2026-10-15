@@ -11,6 +11,7 @@ import { InvitationPage } from '../../pages/invitation/InvitationPage'
 import { ForgotPasswordPage } from '../../pages/password-forgot/ForgotPasswordPage'
 import { ResetPasswordPage } from '../../pages/password-reset/ResetPasswordPage'
 import { MaterialsPage } from '../../pages/materials/MaterialsPage'
+import { OutboxEventsPage } from '../../pages/outbox/OutboxEventsPage'
 import { ReconciliationsPage } from '../../pages/reconciliations/ReconciliationsPage'
 import { StockPage } from '../../pages/stock/StockPage'
 import { WarehouseMapPage } from '../../pages/warehouse-map/WarehouseMapPage'
@@ -57,6 +58,7 @@ export function AppRouter() {
           <Route path="inventory" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><InventoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="materials" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><MaterialsPage /></RequirePermission></RequireActorMode>} />
           <Route path="reconciliations" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><ReconciliationsPage /></RequirePermission></RequireActorMode>} />
+          <Route path="outbox-events" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><OutboxEventsPage /></RequirePermission></RequireActorMode>} />
           <Route path="stock" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><StockPage /></RequirePermission></RequireActorMode>} />
           <Route path="warehouse-map" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><WarehouseMapPage /></RequirePermission></RequireActorMode>} />
           <Route path="inbounds" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundManagementPage /></RequirePermission></RequireActorMode>} />
