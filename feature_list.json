@@ -339,7 +339,14 @@
     "id": "inventory-reconciliation-screen",
     "name": "원자재·재고 관리 모드: 대사 보정안 화면",
     "description": "원자재·재고 관리 모드에 대사 보정안 화면 /reconciliations를 추가한다. dozy-inventory-api의 GET /api/v1/reconciliations/proposals로 보정안(창고·상품·Lot·품질 상태별 inventory·WMS 수량과 변동량)을 창고·상태 필터와 페이지로 보여주고, POST .../{id}/approval·rejection으로 항목별 승인·거절한다. 승인 때 수량이 달라져 409 INV_RECONCILIATION_CHANGED가 오면 새 값을 확인하고 다시 승인하도록 안내한다. 라우트는 inventory.read, 승인·거절 버튼은 inventory.write로 잠근다. 모드 홈에 '대사 보정 대기' 카드와 사이드바 메뉴를 추가한다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path와 권한 분기 확인. 이슈 #90.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-materials-screen"]
+  },
+  {
+    "id": "inventory-stock-summary",
+    "name": "재고 현황: 상품별 보기와 응답의 상품 정보 사용",
+    "description": "재고 현황 /stock에 행 보기(기본)와 상품별 보기 전환을 추가한다. dozy-inventory-api의 GET /api/v1/inventories/summary(ADR-0043)를 20개 상품씩 서버 페이지로 읽어 상품 한 줄에 창고 수, 총·예약·가용 수량(단위 포함)과 불량·보류·만료·임박 수량을 보여주고, 상품을 펼칠 때만 그 상품의 재고 행을 같은 필터와 productId 조건으로 10건씩 읽어 상세 모달을 연다. 재고 행의 상품 코드·이름·단위는 재고 응답 값을 쓰고 상품 필터 선택지만 원자재 목록을 쓴다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #92.",
+    "status": "in_progress",
+    "dependencies": ["inventory-management-mode", "inventory-materials-screen"]
   }
 ]
