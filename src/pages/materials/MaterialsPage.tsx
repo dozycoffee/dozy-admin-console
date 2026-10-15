@@ -5,6 +5,7 @@ import { toMaterialErrorMessage } from '../../features/material/model/materialEr
 import { labelOf, materialCategories, materialCategoryLabels, materialStatuses, materialStatusLabels, type Material, type MaterialFilters } from '../../features/material/model/materialSchemas'
 import { normalizeMaterialCode } from '../../features/material/model/materialValidation'
 import { useChangeMaterialStatus, useMaterials } from '../../features/material/model/useMaterials'
+import { isTransientApiError } from '../../shared/api/ApiError'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { Modal } from '../../shared/ui/Modal'
 import { useToast } from '../../shared/ui/toastContext'
@@ -63,7 +64,12 @@ export function MaterialsPage() {
       { productId: material.productId, productStatus: next },
       {
         onSuccess: () => notify(`${material.productName}을(를) ${next === 'INACTIVE' ? '사용 중지' : '사용 중'}로 바꿨습니다.`),
-        onError: (error) => setStatusError(toMaterialErrorMessage(error)),
+        // 일시적 실패는 토스트로, 없음(404) 같은 업무 오류는 화면에 남긴다.
+        onError: (error) => {
+          const message = toMaterialErrorMessage(error)
+          if (isTransientApiError(error)) notify(message, 'error')
+          else setStatusError(message)
+        },
       },
     )
   }

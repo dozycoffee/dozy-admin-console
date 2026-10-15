@@ -14,6 +14,8 @@ import { ReconciliationsPage } from './ReconciliationsPage'
 vi.mock('../../features/reconciliation/model/useReconciliations', () => ({ useReconciliationProposals: vi.fn(), useApproveReconciliation: vi.fn(), useRejectReconciliation: vi.fn() }))
 vi.mock('../../features/material/model/useMaterials', () => ({ useAllMaterials: vi.fn() }))
 vi.mock('../../features/warehouse/model/useWarehouses', () => ({ useWarehouseList: vi.fn() }))
+const notify = vi.fn()
+vi.mock('../../shared/ui/toastContext', () => ({ useToast: () => ({ notify }) }))
 
 const proposal = (overrides: Partial<ReconciliationProposal> = {}): ReconciliationProposal => ({
   stockAdjustmentId: 31, warehouseId: 10, reconciliationRunId: 4, status: 'PENDING', productId: 100, lotId: 7, lotNumber: 'LOT-A', qualityStatus: 'NORMAL',
@@ -155,11 +157,55 @@ describe('ReconciliationsPage', () => {
 
       await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 승인' }))
       expect(approve).not.toHaveBeenCalled()
-      expect(screen.getByText(/inventory 10 → WMS 8 \(-2\)/)).toBeInTheDocument()
       await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
 
       expect(approve).toHaveBeenCalledWith(31, expect.anything())
       expect(reject).not.toHaveBeenCalled()
+    })
+
+    it('확인창은 대상(상품·코드·Lot·품질·창고)과 inventory → WMS 수량 비교, 변동량, 결과 안내를 나눠 보여준다', async () => {
+      const user = userEvent.setup()
+      setup([proposal()])
+
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 승인' }))
+
+      const dialog = within(screen.getByRole('dialog', { name: '보정안을 승인할까요?' }))
+      expect(dialog.getByText('에티오피아 원두')).toBeInTheDocument()
+      expect(dialog.getByText('BEAN-1 · Lot LOT-A · 정상')).toBeInTheDocument()
+      expect(dialog.getByText('서울 본사 창고')).toBeInTheDocument()
+      const compare = within(dialog.getByRole('group', { name: '수량 비교' }))
+      expect(compare.getByText('inventory').nextElementSibling).toHaveTextContent('10')
+      expect(compare.getByText('WMS').nextElementSibling).toHaveTextContent('8')
+      expect(compare.getByText('변동').nextElementSibling).toHaveTextContent('-2')
+      expect(compare.getByText('변동').nextElementSibling).toHaveClass('stock-minus')
+      expect(compare.getAllByText('KG')).toHaveLength(2)
+      expect(dialog.getByText('승인하면 재고 수량이 WMS 수량으로 바뀝니다.')).toBeInTheDocument()
+    })
+
+    it('거절 확인창도 같은 모양으로 보여주고 수량이 바뀌지 않는다고 안내하며 늘어난 변동은 +로 표시한다', async () => {
+      const user = userEvent.setup()
+      setup([proposal({ inventoryQuantity: 8, wmsQuantity: 15, quantityChange: 7 })])
+
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 거절' }))
+
+      const dialog = within(screen.getByRole('dialog', { name: '보정안을 거절할까요?' }))
+      const compare = within(dialog.getByRole('group', { name: '수량 비교' }))
+      expect(compare.getByText('변동').nextElementSibling).toHaveTextContent('+7')
+      expect(compare.getByText('변동').nextElementSibling).toHaveClass('stock-plus')
+      expect(dialog.getByText('거절하면 재고 수량은 바뀌지 않습니다.')).toBeInTheDocument()
+    })
+
+    it('이름을 모르는 상품·창고는 id로 보여주고 단위는 생략한다', async () => {
+      const user = userEvent.setup()
+      setup([proposal({ productId: 999, warehouseId: 77 })])
+
+      await user.click(screen.getByRole('button', { name: '상품 999 LOT-A 승인' }))
+
+      const dialog = within(screen.getByRole('dialog'))
+      expect(dialog.getByText('상품 999')).toBeInTheDocument()
+      expect(dialog.getByText('Lot LOT-A · 정상')).toBeInTheDocument()
+      expect(dialog.getByText('창고 77')).toBeInTheDocument()
+      expect(dialog.queryByText('KG')).not.toBeInTheDocument()
     })
 
     it('거절도 확인을 거치며 승인 요청은 보내지 않는다', async () => {
@@ -184,7 +230,7 @@ describe('ReconciliationsPage', () => {
       expect(reject).not.toHaveBeenCalled()
     })
 
-    it('승인 중 수량이 바뀌어 409가 오면 새 값을 확인하고 다시 승인하라고 안내한다', async () => {
+    it('승인 중 수량이 바뀌어 409가 오면 새 값을 확인하고 다시 승인하라고 화면에 남긴다(토스트가 아니다)', async () => {
       const user = userEvent.setup()
       approve.mockImplementation((_id: number, options: { onError: (error: unknown) => void }) => options.onError(new ApiError('changed', { status: 409, code: 'INV_RECONCILIATION_CHANGED' })))
       setup([proposal()])
@@ -193,6 +239,34 @@ describe('ReconciliationsPage', () => {
       await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
 
       expect(await screen.findByRole('alert')).toHaveTextContent('다시 승인해 주세요')
+      expect(notify).not.toHaveBeenCalled()
+    })
+
+    it('WMS 조회 실패(502)나 네트워크 오류 같은 일시적 실패는 오류 토스트로 알리고 화면에는 남기지 않는다', async () => {
+      const user = userEvent.setup()
+      approve.mockImplementation((_id: number, options: { onError: (error: unknown) => void }) => options.onError(new ApiError('wms', { status: 502, code: 'INV_WMS_UNAVAILABLE' })))
+      reject.mockImplementation((_id: number, options: { onError: (error: unknown) => void }) => options.onError(new ApiError('서버에 연결할 수 없습니다.', { status: null })))
+      setup([proposal()])
+
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 승인' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
+      expect(notify).toHaveBeenLastCalledWith('WMS에서 현재 수량을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error')
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 거절' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '거절' }))
+      expect(notify).toHaveBeenLastCalledWith('서버에 연결할 수 없습니다.', 'error')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('성공하면 결과를 성공 토스트로 알린다', async () => {
+      const user = userEvent.setup()
+      approve.mockImplementation((_id: number, options: { onSuccess: () => void }) => options.onSuccess())
+      setup([proposal()])
+
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 LOT-A 승인' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
+
+      expect(notify).toHaveBeenCalledWith('보정안을 승인해 재고에 반영했습니다.')
     })
 
     it('요청하는 동안 승인·거절 버튼을 잠근다', () => {

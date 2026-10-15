@@ -9,6 +9,7 @@ import { labelOf, reconciliationStatuses, reconciliationStatusLabels, type Recon
 import { useApproveReconciliation, useReconciliationProposals, useRejectReconciliation } from '../../features/reconciliation/model/useReconciliations'
 import { labelOf as stockLabelOf, qualityStatusLabels } from '../../features/stock/model/stockSchemas'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
+import { isTransientApiError } from '../../shared/api/ApiError'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { useToast } from '../../shared/ui/toastContext'
 
@@ -18,6 +19,26 @@ const POSITIVE_INTEGER = /^[1-9]\d*$/
 type Pending = { proposal: ReconciliationProposal; action: 'approve' | 'reject' }
 
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value))
+
+type ReviewSummaryProps = { proposal: ReconciliationProposal; productName: string; productCode: string | null; unit: string | null; warehouse: string }
+
+/** 승인·거절 확인창에서 무엇을 어떻게 바꾸는지 한눈에 보이도록 대상(상품·Lot·창고)과 수량 비교(inventory → WMS, 변동)를 나눠 보여준다. */
+function ReviewSummary({ proposal, productName, productCode, unit, warehouse }: ReviewSummaryProps) {
+  const quantity = (value: number) => <><b>{value}</b>{unit && <i>{unit}</i>}</>
+  return <>
+    <div className="review-target">
+      <strong>{productName}</strong>
+      <small>{[productCode, `Lot ${proposal.lotNumber}`, stockLabelOf(qualityStatusLabels, proposal.qualityStatus)].filter(Boolean).join(' · ')}</small>
+      <small>{warehouse}</small>
+    </div>
+    <div className="review-compare" role="group" aria-label="수량 비교">
+      <div><span>inventory</span>{quantity(proposal.inventoryQuantity)}</div>
+      <span className="review-arrow" aria-hidden="true">→</span>
+      <div><span>WMS</span>{quantity(proposal.wmsQuantity)}</div>
+      <div className="review-change"><span>변동</span><b className={proposal.quantityChange > 0 ? 'stock-plus' : 'stock-minus'}>{signed(proposal.quantityChange)}</b></div>
+    </div>
+  </>
+}
 
 /** 주소의 `?status=PENDING`으로 처음 상태 필터를 정한다. 없거나 알 수 없는 값이면 처리가 필요한 승인 대기부터 보여준다. */
 function initialStatus(search: URLSearchParams): string {
@@ -83,14 +104,18 @@ export function ReconciliationsPage() {
     setActionError(null)
     const options = {
       onSuccess: () => notify(action === 'approve' ? '보정안을 승인해 재고에 반영했습니다.' : '보정안을 거절했습니다.'),
-      onError: (error: unknown) => setActionError(toReconciliationErrorMessage(error)),
+      // WMS 조회 실패 같은 일시적 실패는 토스트로, 이미 처리됨·수량 변경 같은 업무 오류는 읽고 조치할 수 있게 화면에 남긴다.
+      onError: (error: unknown) => {
+        const message = toReconciliationErrorMessage(error)
+        if (isTransientApiError(error)) notify(message, 'error')
+        else setActionError(message)
+      },
     }
     if (action === 'approve') approve.mutate(proposal.stockAdjustmentId, options)
     else reject.mutate(proposal.stockAdjustmentId, options)
   }
 
   const label = (proposal: ReconciliationProposal) => `${productName(proposal.productId)} ${proposal.lotNumber}`
-  const comparison = (proposal: ReconciliationProposal) => `${label(proposal)}: inventory ${proposal.inventoryQuantity} → WMS ${proposal.wmsQuantity} (${signed(proposal.quantityChange)})`
 
   return <>
     <header className="page-header inbound-page-header">
@@ -161,10 +186,12 @@ export function ReconciliationsPage() {
     <ConfirmModal
       open={pending !== null}
       title={pending?.action === 'approve' ? '보정안을 승인할까요?' : '보정안을 거절할까요?'}
-      description={pending ? (pending.action === 'approve' ? `${comparison(pending.proposal)}. 승인하면 재고 수량이 WMS 수량으로 바뀝니다.` : `${comparison(pending.proposal)}. 거절하면 재고 수량은 바뀌지 않습니다.`) : undefined}
+      description={pending ? (pending.action === 'approve' ? '승인하면 재고 수량이 WMS 수량으로 바뀝니다.' : '거절하면 재고 수량은 바뀌지 않습니다.') : undefined}
       confirmLabel={pending?.action === 'approve' ? '승인' : '거절'}
       onCancel={() => setPending(null)}
       onConfirm={confirm}
-    />
+    >
+      {pending && <ReviewSummary proposal={pending.proposal} productName={productName(pending.proposal.productId)} productCode={materialById.get(pending.proposal.productId)?.productCode ?? null} unit={materialById.get(pending.proposal.productId)?.unit ?? null} warehouse={warehouseName(pending.proposal.warehouseId) ?? `창고 ${pending.proposal.warehouseId}`} />}
+    </ConfirmModal>
   </>
 }

@@ -9,6 +9,8 @@ import { ApiError } from '../../shared/api/ApiError'
 import { OutboxEventsPage } from './OutboxEventsPage'
 
 vi.mock('../../features/outbox/model/useOutboxEvents', () => ({ useOutboxEvents: vi.fn(), useRequeueOutboxEvent: vi.fn() }))
+const notify = vi.fn()
+vi.mock('../../shared/ui/toastContext', () => ({ useToast: () => ({ notify }) }))
 
 const event = (overrides: Partial<OutboxEvent> = {}): OutboxEvent => ({
   outboxEventId: 7, aggregateType: 'INVENTORY', aggregateId: 500, eventType: 'inventory.quantity.increased', partitionKey: 'inventory-500',
@@ -42,11 +44,16 @@ describe('OutboxEventsPage', () => {
     expect(screen.getByText('1건')).toBeInTheDocument()
   })
 
-  it('긴 오류는 앞부분만 보이고 오류가 없으면 -로 표시한다', () => {
-    setup([event({ lastError: 'x'.repeat(100) }), event({ outboxEventId: 8, lastError: null, deadAt: null })])
+  it('마지막 오류는 한 줄 칸에 담고(넘치면 CSS가 …로 줄인다) 전체는 툴팁으로 보여주며 오류가 없으면 -로 표시한다', () => {
+    const long = 'org.apache.kafka.common.errors.RecordTooLargeException: '.repeat(5).trim()
+    setup([event({ lastError: long }), event({ outboxEventId: 8, lastError: null, deadAt: null })])
 
-    expect(screen.getByText(`${'x'.repeat(60)}…`)).toBeInTheDocument()
-    expect(screen.getAllByText('-').length).toBeGreaterThanOrEqual(2)
+    const cell = screen.getByText(long)
+    expect(cell).toHaveClass('outbox-error')
+    expect(cell).toHaveAttribute('title', long)
+    const empty = screen.getAllByText('-').find((element) => element.classList.contains('outbox-error'))
+    expect(empty).toBeDefined()
+    expect(empty).not.toHaveAttribute('title')
   })
 
   it('격리된 이벤트가 없으면 안내하고 목록을 못 불러오면 오류를 보여준다', () => {
@@ -145,6 +152,19 @@ describe('OutboxEventsPage', () => {
       await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '재발행' }))
 
       expect(await screen.findByRole('alert')).toHaveTextContent('이미 발행 대기 중이거나 발행된')
+      expect(notify).not.toHaveBeenCalled()
+    })
+
+    it('서버 오류(5xx)나 네트워크 오류는 오류 토스트로 알리고 화면에는 남기지 않는다', async () => {
+      const user = userEvent.setup()
+      mutate.mockImplementation((_id: number, options: { onError: (error: unknown) => void }) => options.onError(new ApiError('x', { status: 503 })))
+      setup([event()])
+
+      await user.click(screen.getByRole('button', { name: '이벤트 7 재발행' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '재발행' }))
+
+      expect(notify).toHaveBeenCalledWith('요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('요청하는 동안 재발행 버튼을 잠근다', () => {

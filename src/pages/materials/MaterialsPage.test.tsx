@@ -8,6 +8,8 @@ import { useChangeMaterialStatus, useMaterials, useRegisterMaterial } from '../.
 import { ApiError } from '../../shared/api/ApiError'
 import { MaterialsPage } from './MaterialsPage'
 
+const notify = vi.fn()
+vi.mock('../../shared/ui/toastContext', () => ({ useToast: () => ({ notify }) }))
 vi.mock('../../features/material/model/useMaterials', () => ({ useMaterials: vi.fn(), useChangeMaterialStatus: vi.fn(), useRegisterMaterial: vi.fn() }))
 
 const material = (overrides: Partial<Material> = {}): Material => ({
@@ -162,6 +164,19 @@ describe('MaterialsPage', () => {
       await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '사용 중지' }))
 
       expect(await screen.findByRole('alert')).toHaveTextContent('원자재를 찾을 수 없습니다')
+      expect(notify).not.toHaveBeenCalledWith(expect.anything(), 'error')
+    })
+
+    it('서버 오류(5xx)는 오류 토스트로 알리고 화면에는 남기지 않는다', async () => {
+      const user = userEvent.setup()
+      mutate.mockImplementation((_variables: unknown, options: { onError: (error: unknown) => void }) => options.onError(new ApiError('x', { status: 500 })))
+      setup([material()])
+
+      await user.click(screen.getByRole('button', { name: '에티오피아 원두 사용 중지' }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '사용 중지' }))
+
+      expect(notify).toHaveBeenCalledWith('요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
   })
 })

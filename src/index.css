@@ -140,6 +140,8 @@ a { color: inherit; text-decoration: none; }
 .confirm-modal { width: min(100%, 390px); padding: 26px; border: 1px solid #e4ddd9; border-radius: 14px; background: #fffdfb; box-shadow: 0 24px 60px rgb(63 42 32 / 22%); }
 .confirm-modal h2 { margin: 0; color: #33241e; font-size: 19px; letter-spacing: -.03em; }
 .confirm-modal p { margin: 9px 0 22px; color: #806f67; font-size: 13px; line-height: 1.55; }
+.confirm-modal-body { margin: 16px 0 18px; }
+.confirm-modal-body + p { margin-top: -4px; }
 .confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm-modal-actions .button { min-height: 40px; font-size: 13px; }
 .dashboard-header { margin-bottom: 22px; }
@@ -1013,6 +1015,7 @@ a { color: inherit; text-decoration: none; }
 .outbox-table { table-layout: fixed; min-width: 860px; }
 .outbox-table th, .outbox-table td { white-space: normal; overflow-wrap: anywhere; }
 .outbox-table th { white-space: nowrap; }
+.outbox-table td.outbox-error { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
 .outbox-table th:nth-child(1), .outbox-table td:nth-child(1) { width: 7%; padding-left: 0; }
 .outbox-table th:nth-child(2), .outbox-table td:nth-child(2) { width: 12%; }
 .outbox-table th:nth-child(3), .outbox-table td:nth-child(3) { width: 25%; }
@@ -1023,3 +1026,15 @@ a { color: inherit; text-decoration: none; }
 .outbox-table th.stock-num, .outbox-table td.stock-num { text-align: right; }
 .outbox-section-title { margin: 16px 0 6px; font-size: 13px; }
 .outbox-pre { max-height: 240px; margin: 0; padding: 10px 12px; overflow: auto; border-radius: 8px; background: #faf7f5; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* 대사 보정안 승인·거절 확인창: 대상과 수량 비교 */
+.review-target { display: grid; gap: 2px; margin-bottom: 14px; }
+.review-target strong { color: #33241e; font-size: 15px; }
+.review-target small { color: #9b918c; font-size: 12px; }
+.review-compare { display: grid; grid-template-columns: 1fr auto 1fr 1fr; align-items: center; gap: 6px; padding: 14px 16px; border: 1px solid #efe9e5; border-radius: 10px; background: #faf7f5; }
+.review-compare > div { display: grid; gap: 2px; justify-items: center; min-width: 0; }
+.review-compare span { color: #9b918c; font-size: 11px; font-weight: 800; }
+.review-compare b { color: #33241e; font-size: 22px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.review-compare i { color: #9b918c; font-size: 11px; font-style: normal; }
+.review-compare .review-arrow { color: #b7aca6; font-size: 16px; }
+.review-compare .review-change { padding-left: 10px; border-left: 1px solid #e4ddd9; }
