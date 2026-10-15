@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 원자재·재고 관리 | 대시보드(대사 보정 대기·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절) | dozy-inventory-api 실 API (`inventory:admin`) |
+| 원자재·재고 관리 | 대시보드(대사 보정 대기·발행 실패 이벤트·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절), 발행 실패 이벤트 `/outbox-events`(목록·상세·재발행) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -53,6 +53,17 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-15 (상품 필터 검색형·발행 실패 이벤트 화면)
+
+- 이슈 #94·#95, `feat/inventory-product-search-outbox-events` 브랜치(두 이슈를 한 PR로 처리). 재고 현황 상품별 보기(#92, PR #93)는 머지되어 `completed`로 바꿨다.
+- **상품 필터 검색형(#94)**: 재고 현황의 상품 드롭다운을 공용 `SearchSelect`로 바꿨다. 입력한 글자가 이름·코드에 들어 있는 항목만 보이고(대소문자 무시) 고르면 이름(코드)로 보이며 ×로 지운다. 키보드(↑ ↓ Enter Esc)와 combobox/listbox 속성을 지원하고 목록이 열려 있을 때의 Enter는 폼 제출이 아니라 선택이다.
+  한 번에 50개까지만 보이고 넘으면 더 입력하라고 안내한다. 선택지는 여전히 원자재 마스터 목록(최대 500건)을 콘솔에서 거른다 — 그 이상은 inventory 상품 목록에 이름·코드 부분 일치 검색을 더해야 한다(현재 `code`는 정확히 일치만 찾는다).
+- **발행 실패 이벤트 `/outbox-events`(#95)**: `GET /api/v1/outbox-events`(서버가 DEAD만 준다)를 20건 페이지로 읽어 이벤트 ID, 집계, 이벤트 유형·파티션 키, 시도 횟수, 마지막 오류(앞 60자), 격리 시각을 보여주고 상세 모달에 오류 전문과 들여쓴 payload를 보여준다(목록 응답에 payload가 있어 상세 API는 부르지 않는다).
+  재발행(`POST .../requeue`)은 확인창에서 "재발행한 이벤트는 격리된 사이 먼저 나간 같은 키의 후속 이벤트보다 늦게 도착한다"(inventory ADR-0037)를 안내한 뒤 요청하고 `inventory.write`로 잠근다. 409 `INV_INVALID_OUTBOX_STATE`·404는 code로 안내하고 실패해도 목록을 다시 받는다.
+  모드 홈에 "발행 실패 이벤트" 카드(격리 건수)와 사이드바 "발행 실패" 메뉴를 추가했다. 서버는 `inventory:admin`만 허용한다.
+- 검증: build/lint/test 통과. 🔶 브라우저 확인은 하지 못했다.
+- 후속: 상품 필터의 서버 검색(inventory 상품 목록의 이름·코드 부분 일치), 격리 이벤트 알림.
 
 ### 2026-10-15 (재고 현황 상품별 보기)
 

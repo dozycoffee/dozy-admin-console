@@ -25,8 +25,8 @@
 | Permission | 의미 | 적용 위치 |
 |---|---|---|
 | `dashboard.read` | 대시보드 조회 | `/` |
-| `inventory.read` | 재고·창고 현황, 원자재 마스터 조회 | 창고 관리자 모드의 `/inventory`, `/warehouse-map`, 원자재·재고 관리 모드의 `/materials`, `/stock`, `/reconciliations` |
-| `inventory.write` | 원자재 등록·상태 변경, 대사 보정안 승인·거절 등 inventory 서비스 쓰기 동작 | `/materials`의 "원자재 등록" 버튼과 줄의 "사용 중지/사용 재개" 버튼, `/reconciliations`의 "승인"·"거절" 버튼과 처리 열(없으면 숨김, `PermissionGate`). `inventory:admin`에만 매핑한다 (dozy-inventory-api의 `material_manager` role은 폐지되어 마스터 쓰기도 `admin`이 맡는다) |
+| `inventory.read` | 재고·창고 현황, 원자재 마스터 조회 | 창고 관리자 모드의 `/inventory`, `/warehouse-map`, 원자재·재고 관리 모드의 `/materials`, `/stock`, `/reconciliations`, `/outbox-events` |
+| `inventory.write` | 원자재 등록·상태 변경, 대사 보정안 승인·거절, 격리된 Outbox 이벤트 재발행 등 inventory 서비스 쓰기 동작 | `/materials`의 "원자재 등록" 버튼과 줄의 "사용 중지/사용 재개" 버튼, `/reconciliations`의 "승인"·"거절" 버튼과 처리 열, `/outbox-events`의 "재발행" 버튼(없으면 숨김, `PermissionGate`). `inventory:admin`에만 매핑한다 (dozy-inventory-api의 `material_manager` role은 폐지되어 마스터 쓰기도 `admin`이 맡는다) |
 | `inbound.read` | 입고 작업 조회 | 창고 관리자 모드의 `/inbounds`, `/inbounds/history` |
 | `inbound.write` | 입고 등록, 처리 시작, 품목 검수, 입고 완료 | `/inbounds`의 등록·작업 버튼 |
 | `outbound.read` | 출고 작업 조회 | 창고 관리자 모드의 `/outbounds`, `/outbounds/history` |

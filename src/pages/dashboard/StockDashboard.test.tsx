@@ -2,11 +2,13 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
+import { useOutboxEvents } from '../../features/outbox/model/useOutboxEvents'
 import { useReconciliationProposals } from '../../features/reconciliation/model/useReconciliations'
 import { useStocks } from '../../features/stock/model/useStocks'
 import { StockDashboard } from './StockDashboard'
 
 vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn() }))
+vi.mock('../../features/outbox/model/useOutboxEvents', () => ({ useOutboxEvents: vi.fn() }))
 vi.mock('../../features/reconciliation/model/useReconciliations', () => ({ useReconciliationProposals: vi.fn() }))
 
 const card = (title: string) => screen.getByRole('region', { name: title })
@@ -14,6 +16,7 @@ const card = (title: string) => screen.getByRole('region', { name: title })
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(useReconciliationProposals).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 0 } } as never)
+  vi.mocked(useOutboxEvents).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 0 } } as never)
 })
 
 describe('StockDashboard', () => {
@@ -72,4 +75,31 @@ describe('StockDashboard', () => {
     expect(within(card('대사 보정 대기')).getByRole('alert')).toHaveTextContent('WMS')
     expect(within(card('불량 재고')).getByLabelText('2건')).toBeInTheDocument()
   })
+
+  it('격리된 발행 실패 이벤트 수를 보여주고 발행 실패 이벤트 화면으로 연결한다', () => {
+    vi.mocked(useStocks).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 0 } } as never)
+    vi.mocked(useOutboxEvents).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 3 } } as never)
+    render(<MemoryRouter><StockDashboard /></MemoryRouter>)
+
+    const dead = card('발행 실패 이벤트')
+    expect(within(dead).getByLabelText('3건')).toHaveTextContent('3')
+    expect(within(dead).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/outbox-events')
+    expect(useOutboxEvents).toHaveBeenCalledWith(0, 1)
+  })
+
+  it('격리된 이벤트가 없으면 안내하고 조회가 실패해도 다른 카드는 그대로 보인다', () => {
+    vi.mocked(useStocks).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 2 } } as never)
+    render(<MemoryRouter><StockDashboard /></MemoryRouter>)
+    expect(within(card('발행 실패 이벤트')).getByText('격리된 이벤트가 없습니다.')).toBeInTheDocument()
+  })
+
+  it('발행 실패 이벤트 조회가 실패하면 그 카드에만 오류를 보여준다', () => {
+    vi.mocked(useStocks).mockReturnValue({ isLoading: false, isError: false, data: { totalElements: 2 } } as never)
+    vi.mocked(useOutboxEvents).mockReturnValue({ isLoading: false, isError: true, error: new ApiError('x', { status: 403 }), data: undefined } as never)
+    render(<MemoryRouter><StockDashboard /></MemoryRouter>)
+
+    expect(within(card('발행 실패 이벤트')).getByRole('alert')).toHaveTextContent('이 작업을 할 권한이 없습니다.')
+    expect(within(card('불량 재고')).getByLabelText('2건')).toBeInTheDocument()
+  })
 })
+

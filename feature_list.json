@@ -346,7 +346,21 @@
     "id": "inventory-stock-summary",
     "name": "재고 현황: 상품별 보기와 응답의 상품 정보 사용",
     "description": "재고 현황 /stock에 상품별 보기(기본)와 행 보기 전환을 추가한다(주소의 ?view=rows로 행 보기를 지정하며 홈 카드가 이 값으로 연결한다). dozy-inventory-api의 GET /api/v1/inventories/summary(ADR-0043)를 20개 상품씩 서버 페이지로 읽어 상품 한 줄에 창고 수, 총·예약·가용 수량(단위 포함)과 불량·보류·만료·임박 수량을 보여주고, 상품을 펼칠 때만 그 상품의 재고 행을 같은 필터와 productId 조건으로 10건씩 읽어 상세 모달을 연다. 재고 행의 상품 코드·이름·단위는 재고 응답 값을 쓰고 상품 필터 선택지만 원자재 목록을 쓴다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #92.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-management-mode", "inventory-materials-screen"]
+  },
+  {
+    "id": "inventory-product-search",
+    "name": "재고 현황: 상품 필터를 검색형 선택으로 교체",
+    "description": "재고 현황의 상품 필터를 원자재 전체 드롭다운에서 이름·코드 일부로 찾아 고르는 검색형 선택으로 바꾼다. 공용 SearchSelect(입력 필터, 선택 지우기, 키보드 ↑ ↓ Enter Esc, combobox/listbox 접근성, 보이는 항목 수 상한)를 만들어 쓴다. 선택지는 원자재 마스터 목록(최대 500건)을 콘솔에서 거르며, 그 이상은 서버 검색이 필요하다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #94.",
+    "status": "in_progress",
+    "dependencies": ["inventory-stock-summary"]
+  },
+  {
+    "id": "inventory-outbox-events-screen",
+    "name": "원자재·재고 관리 모드: 발행 실패 이벤트(Outbox) 화면",
+    "description": "원자재·재고 관리 모드에 발행 실패 이벤트 화면 /outbox-events를 추가한다. dozy-inventory-api의 GET /api/v1/outbox-events(DEAD 이벤트, payload 포함)로 목록·페이지와 상세 모달(파티션 키, 오류 전문, 들여쓴 payload)을 보여주고, POST .../{id}/requeue로 재발행한다. 재발행 확인창에서 같은 키의 후속 이벤트보다 늦게 도착함을 안내하고 409 INV_INVALID_OUTBOX_STATE·404를 code로 분기한다. 버튼은 inventory.write, 라우트는 inventory.read로 잠그고 모드 홈에 '발행 실패 이벤트' 카드와 사이드바 메뉴를 추가한다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #95.",
+    "status": "in_progress",
+    "dependencies": ["inventory-management-mode"]
   }
 ]
