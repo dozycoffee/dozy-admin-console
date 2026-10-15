@@ -140,6 +140,8 @@ a { color: inherit; text-decoration: none; }
 .confirm-modal { width: min(100%, 390px); padding: 26px; border: 1px solid #e4ddd9; border-radius: 14px; background: #fffdfb; box-shadow: 0 24px 60px rgb(63 42 32 / 22%); }
 .confirm-modal h2 { margin: 0; color: #33241e; font-size: 19px; letter-spacing: -.03em; }
 .confirm-modal p { margin: 9px 0 22px; color: #806f67; font-size: 13px; line-height: 1.55; }
+.confirm-modal-body { margin: 16px 0 18px; }
+.confirm-modal-body + p { margin-top: -4px; }
 .confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm-modal-actions .button { min-height: 40px; font-size: 13px; }
 .dashboard-header { margin-bottom: 22px; }

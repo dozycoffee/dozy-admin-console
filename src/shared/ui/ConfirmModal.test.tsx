@@ -19,6 +19,22 @@ describe('ConfirmModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('children이 있으면 제목과 설명 사이에 본문으로 보여준다', () => {
+    renderModal({ children: <p data-testid="detail">상세 내용</p> })
+
+    const dialog = screen.getByRole('dialog', { name: '삭제할까요?' })
+    const body = dialog.querySelector('.confirm-modal-body')
+    expect(body).toContainElement(screen.getByTestId('detail'))
+    expect(body?.previousElementSibling?.tagName).toBe('H2')
+    expect(body?.nextElementSibling).toHaveTextContent('되돌릴 수 없습니다.')
+  })
+
+  it('children이 없으면 본문 영역을 만들지 않는다', () => {
+    renderModal()
+
+    expect(screen.getByRole('dialog').querySelector('.confirm-modal-body')).toBeNull()
+  })
+
   it('제목과 설명을 가진 대화상자를 보여준다', () => {
     renderModal()
 
