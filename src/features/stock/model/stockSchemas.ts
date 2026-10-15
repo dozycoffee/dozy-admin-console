@@ -38,11 +38,14 @@ export function labelOf(labels: Record<string, string>, code: string): string {
   return labels[code] ?? code
 }
 
-/** 재고 행 하나(창고 × Lot × 품질 상태). 상품 이름은 응답에 없고 `productId`만 있다. */
+/** 재고 행 하나(창고 × Lot × 품질 상태). 상품 코드·이름·단위는 inventory가 상품 마스터에서 채워 준다. */
 export const stockItemSchema = z.object({
   inventoryId: z.number(),
   warehouseId: z.number(),
   productId: z.number(),
+  productCode: z.string(),
+  productName: z.string(),
+  unit: z.string(),
   lotId: z.number(),
   lotNumber: z.string(),
   manufactureDate: z.string().nullish(),
@@ -64,6 +67,29 @@ const pageFields = { page: z.number(), size: z.number(), totalElements: z.number
 
 export const stockPageSchema = z.object({ items: z.array(stockItemSchema), ...pageFields })
 export type StockPage = z.infer<typeof stockPageSchema>
+
+/**
+ * 상품별 요약 한 줄. 조건에 맞는 재고 행을 상품 단위로 합친 값이다. 가용 수량은 총 수량 − 예약 수량이라 품질 상태와 보류를 반영하지 않고,
+ * 불량·보류·만료·임박 수량은 해당하는 행의 총 수량이며 서로 겹칠 수 있다.
+ */
+export const stockSummarySchema = z.object({
+  productId: z.number(),
+  productCode: z.string(),
+  productName: z.string(),
+  unit: z.string(),
+  warehouseCount: z.number(),
+  rowCount: z.number(),
+  quantity: z.number(),
+  reservedQuantity: z.number(),
+  availableQuantity: z.number(),
+  defectiveQuantity: z.number(),
+  heldQuantity: z.number(),
+  expiredQuantity: z.number(),
+  expiringSoonQuantity: z.number(),
+})
+export type StockSummary = z.infer<typeof stockSummarySchema>
+
+export const stockSummaryPageSchema = z.object({ items: z.array(stockSummarySchema), ...pageFields })
 
 export const stockHistorySchema = z.object({
   inventoryHistoryId: z.number(),
