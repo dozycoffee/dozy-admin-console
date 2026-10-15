@@ -17,16 +17,16 @@ beforeEach(() => {
 })
 
 describe('StockDashboard', () => {
-  it('카드마다 해당하는 재고 행 수를 보여주고 재고 현황의 같은 조건으로 연결한다', () => {
+  it('카드마다 해당하는 재고 행 수를 보여주고 재고 현황의 행 보기에서 같은 조건으로 연결한다', () => {
     vi.mocked(useStocks).mockImplementation(((params: { lotStatus?: string }) => ({ isLoading: false, isError: false, data: { totalElements: params.lotStatus === 'EXPIRED' ? 3 : 0 } })) as never)
     render(<MemoryRouter><StockDashboard /></MemoryRouter>)
 
     const expired = card('유통기한이 지난 재고')
     expect(within(expired).getByLabelText('3건')).toHaveTextContent('3')
-    expect(within(expired).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?lotStatus=EXPIRED')
+    expect(within(expired).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?lotStatus=EXPIRED&view=rows')
     expect(within(card('유통기한 임박 재고')).getByText('해당하는 재고가 없습니다.')).toBeInTheDocument()
-    expect(within(card('할당 보류 재고')).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?allocationHold=true')
-    expect(within(card('불량 재고')).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?qualityStatus=DEFECTIVE')
+    expect(within(card('할당 보류 재고')).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?allocationHold=true&view=rows')
+    expect(within(card('불량 재고')).getByRole('link', { name: /전체 보기/ })).toHaveAttribute('href', '/stock?qualityStatus=DEFECTIVE&view=rows')
   })
 
   it('건수만 세려고 한 건씩만 요청한다', () => {

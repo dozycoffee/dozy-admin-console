@@ -50,10 +50,10 @@ export function StockDashboard() {
     </header>
     <section className="task-grid stock-task-grid" aria-label="처리가 필요한 항목">
       <PendingReconciliationCard />
-      <StockCountCard title="유통기한이 지난 재고" description="유통기한이 만료된 Lot의 재고 행입니다. 폐기 대상인지 확인하세요." filters={{ lotStatus: 'EXPIRED' }} to="/stock?lotStatus=EXPIRED" />
-      <StockCountCard title="유통기한 임박 재고" description="유통기한이 곧 만료되는 Lot의 재고 행입니다." filters={{ lotStatus: 'EXPIRING_SOON' }} to="/stock?lotStatus=EXPIRING_SOON" />
-      <StockCountCard title="할당 보류 재고" description="신규 예약에 할당되지 않도록 보류된 재고 행입니다. 보류 사유를 확인하세요." filters={{ allocationHold: true }} to="/stock?allocationHold=true" />
-      <StockCountCard title="불량 재고" description="품질 상태가 불량으로 분류된 재고 행입니다." filters={{ qualityStatus: 'DEFECTIVE' }} to="/stock?qualityStatus=DEFECTIVE" />
+      <StockCountCard title="유통기한이 지난 재고" description="유통기한이 만료된 Lot의 재고 행입니다. 폐기 대상인지 확인하세요." filters={{ lotStatus: 'EXPIRED' }} to="/stock?lotStatus=EXPIRED&view=rows" />
+      <StockCountCard title="유통기한 임박 재고" description="유통기한이 곧 만료되는 Lot의 재고 행입니다." filters={{ lotStatus: 'EXPIRING_SOON' }} to="/stock?lotStatus=EXPIRING_SOON&view=rows" />
+      <StockCountCard title="할당 보류 재고" description="신규 예약에 할당되지 않도록 보류된 재고 행입니다. 보류 사유를 확인하세요." filters={{ allocationHold: true }} to="/stock?allocationHold=true&view=rows" />
+      <StockCountCard title="불량 재고" description="품질 상태가 불량으로 분류된 재고 행입니다." filters={{ qualityStatus: 'DEFECTIVE' }} to="/stock?qualityStatus=DEFECTIVE&view=rows" />
     </section>
   </>
 }
