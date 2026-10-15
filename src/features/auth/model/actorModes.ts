@@ -39,9 +39,9 @@ export const actorModes: readonly ActorMode[] = [
   },
   {
     id: actorModeIds.inventoryManager,
-    label: '재고 관리',
-    shortLabel: '재고 관리',
-    description: '전체 창고의 재고 현황과 변동 이력을 확인합니다.',
+    label: '원자재·재고 관리',
+    shortLabel: '원자재·재고',
+    description: '원자재 마스터를 관리하고 전체 창고의 재고 현황과 변동 이력을 확인합니다.',
   },
 ]
 
