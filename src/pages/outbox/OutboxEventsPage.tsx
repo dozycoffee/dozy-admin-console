@@ -5,14 +5,12 @@ import { formatDateTime } from '../../features/employee/model/formatDateTime'
 import { toOutboxErrorMessage } from '../../features/outbox/model/outboxErrors'
 import { aggregateTypeLabels, formatPayload, labelOf, outboxStatusLabels, type OutboxEvent } from '../../features/outbox/model/outboxSchemas'
 import { useOutboxEvents, useRequeueOutboxEvent } from '../../features/outbox/model/useOutboxEvents'
+import { isTransientApiError } from '../../shared/api/ApiError'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { Modal } from '../../shared/ui/Modal'
 import { useToast } from '../../shared/ui/toastContext'
 
 const PAGE_SIZE = 20
-const ERROR_PREVIEW_LENGTH = 60
-
-const preview = (text: string) => (text.length > ERROR_PREVIEW_LENGTH ? `${text.slice(0, ERROR_PREVIEW_LENGTH)}…` : text)
 
 /**
  * 원자재·재고 관리 모드의 발행 실패 이벤트. Outbox 발행기가 영구 실패로 격리(DEAD)한 이벤트를 확인하고 재발행(재큐)한다(dozy-inventory-api ADR-0037).
@@ -43,7 +41,12 @@ export function OutboxEventsPage() {
     setDetailOpen(false)
     requeue.mutate(target.outboxEventId, {
       onSuccess: () => notify(`이벤트 ${target.outboxEventId}번을 발행 대기로 되돌렸습니다. 발행되면 목록에서 사라집니다.`),
-      onError: (error) => setActionError(toOutboxErrorMessage(error)),
+      // 일시적 실패는 토스트로, 이미 처리됨(409)·없음(404) 같은 업무 오류는 화면에 남긴다.
+      onError: (error) => {
+        const message = toOutboxErrorMessage(error)
+        if (isTransientApiError(error)) notify(message, 'error')
+        else setActionError(message)
+      },
     })
   }
 
@@ -67,7 +70,8 @@ export function OutboxEventsPage() {
               <td>{labelOf(aggregateTypeLabels, item.aggregateType)}<small>id {item.aggregateId}</small></td>
               <td>{item.eventType}<small>{item.partitionKey}</small></td>
               <td className="stock-num">{item.attemptCount}</td>
-              <td>{item.lastError ? preview(item.lastError) : '-'}</td>
+              {/* 오류는 칸 너비의 한 줄만 보이고 넘치면 …로 줄인다(CSS). 전체는 툴팁과 상세 모달에서 본다. */}
+              <td className="outbox-error" title={item.lastError ?? undefined}>{item.lastError ?? '-'}</td>
               <td>{item.deadAt ? formatDateTime(item.deadAt) : '-'}</td>
               <td><div className="reconciliation-actions">
                 <button type="button" className="audit-view" aria-label={`이벤트 ${item.outboxEventId} 상세 보기`} onClick={() => { setDetail(item); setDetailOpen(true) }}>보기</button>

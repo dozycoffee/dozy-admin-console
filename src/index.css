@@ -1015,6 +1015,7 @@ a { color: inherit; text-decoration: none; }
 .outbox-table { table-layout: fixed; min-width: 860px; }
 .outbox-table th, .outbox-table td { white-space: normal; overflow-wrap: anywhere; }
 .outbox-table th { white-space: nowrap; }
+.outbox-table td.outbox-error { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
 .outbox-table th:nth-child(1), .outbox-table td:nth-child(1) { width: 7%; padding-left: 0; }
 .outbox-table th:nth-child(2), .outbox-table td:nth-child(2) { width: 12%; }
 .outbox-table th:nth-child(3), .outbox-table td:nth-child(3) { width: 25%; }
