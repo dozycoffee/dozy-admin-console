@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import type { Warehouse } from '../../features/warehouse/model/warehouseSchemas'
-import { lotStatuses, lotStatusLabels, qualityStatuses, qualityStatusLabels, type Product, type StockFilters } from '../../features/stock/model/stockSchemas'
+import type { Material } from '../../features/material/model/materialSchemas'
+import { lotStatuses, lotStatusLabels, qualityStatuses, qualityStatusLabels, type StockFilters } from '../../features/stock/model/stockSchemas'
 
 type Props = {
   initial: StockFilters
-  products: readonly Product[]
+  products: readonly Material[]
   /** 창고 이름 목록. 비어 있으면(불러오는 중이거나 실패) 창고 id를 직접 입력한다. */
   warehouses?: readonly Warehouse[]
   onApply: (filters: StockFilters) => void

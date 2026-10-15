@@ -4,11 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
 import type { StockItem } from '../../features/stock/model/stockSchemas'
-import { useProducts, useStockHistories, useStocks } from '../../features/stock/model/useStocks'
+import { useAllMaterials } from '../../features/material/model/useMaterials'
+import { useStockHistories, useStocks } from '../../features/stock/model/useStocks'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
 import { StockPage } from './StockPage'
 
-vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn(), useStockHistories: vi.fn(), useProducts: vi.fn() }))
+vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn(), useStockHistories: vi.fn() }))
+vi.mock('../../features/material/model/useMaterials', () => ({ useAllMaterials: vi.fn() }))
 vi.mock('../../features/warehouse/model/useWarehouses', () => ({ useWarehouseList: vi.fn() }))
 
 const item = (overrides: Partial<StockItem> = {}): StockItem => ({
@@ -20,7 +22,7 @@ const products = [{ productId: 100, productCode: 'BEAN-1', productName: '에티�
 
 function setup(items: StockItem[], { warehouseData = warehouses, page = { page: 0, size: 20, totalElements: items.length, totalPages: 1 }, state = {}, path = '/stock' }: { warehouseData?: unknown; page?: object; state?: object; path?: string } = {}) {
   vi.mocked(useStocks).mockReturnValue({ isLoading: false, isError: false, data: { items, ...page }, ...state } as never)
-  vi.mocked(useProducts).mockReturnValue({ data: products } as never)
+  vi.mocked(useAllMaterials).mockReturnValue({ data: products } as never)
   vi.mocked(useWarehouseList).mockReturnValue({ data: warehouseData } as never)
   vi.mocked(useStockHistories).mockReturnValue({ isLoading: false, isError: false, data: { items: [], page: 0, size: 10, totalElements: 0, totalPages: 1 } } as never)
   return render(<MemoryRouter initialEntries={[path]}><StockPage /></MemoryRouter>)
