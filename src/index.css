@@ -851,6 +851,9 @@ a { color: inherit; text-decoration: none; }
 .stock-table .audit-view { white-space: nowrap; }
 .stock-table td strong { display: block; }
 .stock-num { text-align: right; font-variant-numeric: tabular-nums; }
+/* 표 공통 규칙(th 왼쪽 정렬, td b 작은 회색 글자·오른쪽 여백)보다 우선하도록 .stock-table을 붙인다 */
+.stock-table th.stock-num, .stock-table td.stock-num { text-align: right; }
+.stock-table td.stock-num b { margin-right: 0; color: inherit; font-size: inherit; }
 .stock-badges { display: flex; flex-wrap: wrap; gap: 4px; }
 .stock-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; background: #ececec; color: #6b6b6b; font-size: 10.5px; font-weight: 800; white-space: nowrap; }
 .stock-quality-normal { background: #e1f3e6; color: #25683a; }
