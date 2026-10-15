@@ -3,7 +3,6 @@ import { permissions } from '../../features/auth/model/permissions'
 import { PermissionGate } from '../../features/auth/ui/PermissionGate'
 import { toMaterialErrorMessage } from '../../features/material/model/materialErrors'
 import { labelOf, materialCategories, materialCategoryLabels, materialStatuses, materialStatusLabels, type Material, type MaterialFilters } from '../../features/material/model/materialSchemas'
-import { normalizeMaterialCode } from '../../features/material/model/materialValidation'
 import { useChangeMaterialStatus, useMaterials } from '../../features/material/model/useMaterials'
 import { isTransientApiError } from '../../shared/api/ApiError'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
@@ -22,7 +21,7 @@ type PendingStatusChange = { material: Material; next: 'ACTIVE' | 'INACTIVE' }
 export function MaterialsPage() {
   const { notify } = useToast()
   const [addOpen, setAddOpen] = useState(false)
-  const [codeInput, setCodeInput] = useState('')
+  const [keywordInput, setKeywordInput] = useState('')
   const [categoryInput, setCategoryInput] = useState('')
   const [statusInput, setStatusInput] = useState('')
   const [filters, setFilters] = useState<MaterialFilters>({})
@@ -34,7 +33,7 @@ export function MaterialsPage() {
   const items = query.data?.items ?? []
   const total = query.data?.totalElements ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const pristine = codeInput === '' && categoryInput === '' && statusInput === ''
+  const pristine = keywordInput === '' && categoryInput === '' && statusInput === ''
 
   function apply(next: MaterialFilters) {
     setFilters(next)
@@ -43,13 +42,13 @@ export function MaterialsPage() {
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    const code = normalizeMaterialCode(codeInput)
-    setCodeInput(code)
-    apply({ ...(code !== '' && { code }), ...(categoryInput && { category: categoryInput }), ...(statusInput && { status: statusInput }) })
+    const keyword = keywordInput.trim()
+    setKeywordInput(keyword)
+    apply({ ...(keyword !== '' && { keyword }), ...(categoryInput && { category: categoryInput }), ...(statusInput && { status: statusInput }) })
   }
 
   function reset() {
-    setCodeInput('')
+    setKeywordInput('')
     setCategoryInput('')
     setStatusInput('')
     apply({})
@@ -88,15 +87,15 @@ export function MaterialsPage() {
         onDone={(created) => {
           setAddOpen(false)
           notify(`원자재를 등록했습니다. (${created.productCode})`)
-          setCodeInput(created.productCode); setCategoryInput(''); setStatusInput('')
-          apply({ code: created.productCode })
+          setKeywordInput(created.productCode); setCategoryInput(''); setStatusInput('')
+          apply({ keyword: created.productCode })
         }}
       />
     </Modal>
-    <p className="employee-hint role-intro">재고 서비스의 상품 마스터입니다. 사용 중지한 원자재는 새 예약에 쓸 수 없고, 입고는 그대로 받을 수 있습니다. 원자재 코드로 찾을 때는 정확한 코드를 입력하세요.</p>
+    <p className="employee-hint role-intro">재고 서비스의 상품 마스터입니다. 사용 중지한 원자재는 새 예약에 쓸 수 없고, 입고는 그대로 받을 수 있습니다. 코드나 이름의 일부로 찾을 수 있습니다.</p>
     <form className="panel stock-filters" onSubmit={submit} role="search" aria-label="원자재 검색">
       <div className="stock-filter-grid">
-        <label>원자재 코드<input value={codeInput} onChange={(event) => setCodeInput(event.target.value)} placeholder="전체" autoComplete="off" /></label>
+        <label>코드·이름<input value={keywordInput} onChange={(event) => setKeywordInput(event.target.value)} placeholder="코드나 이름의 일부" autoComplete="off" /></label>
         <label>카테고리
           <select value={categoryInput} onChange={(event) => setCategoryInput(event.target.value)}>
             <option value="">전체</option>

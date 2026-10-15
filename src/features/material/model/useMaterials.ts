@@ -3,9 +3,9 @@ import { inventoryHttpClient } from '../../../shared/api/httpClient'
 import { materialPageSchema, materialSchema, type Material, type MaterialParams, type RegisterMaterialRequest } from './materialSchemas'
 
 /** 비어 있는 조건은 쿼리에서 뺀다. */
-export function toMaterialQueryParams({ code, category, status, page, size }: MaterialParams) {
+export function toMaterialQueryParams({ keyword, category, status, page, size }: MaterialParams) {
   return {
-    ...(code && { code }),
+    ...(keyword && { keyword }),
     ...(category && { category }),
     ...(status && { status }),
     page,
@@ -18,6 +18,22 @@ export function useMaterials(params: MaterialParams) {
   return useQuery({
     queryKey: ['materials', 'list', params],
     queryFn: async () => materialPageSchema.parse((await inventoryHttpClient.get('/api/v1/products', { params: toMaterialQueryParams(params) })).data),
+    placeholderData: (previous) => previous,
+  })
+}
+
+const SEARCH_PAGE_SIZE = 20
+
+/**
+ * 원자재를 이름·코드의 일부로 찾는다(상품 선택용). 서버가 거르고 처음 20건만 읽으며, 더 있으면 응답의 `totalElements`로 알 수 있다.
+ * 비워 두면 처음 20건을 보여준다. 입력이 멈춘 뒤의 값을 넘겨 입력할 때마다 요청하지 않게 한다.
+ */
+export function useMaterialSearch(keyword: string) {
+  const trimmed = keyword.trim()
+  return useQuery({
+    queryKey: ['materials', 'search', trimmed],
+    staleTime: 30_000,
+    queryFn: async () => materialPageSchema.parse((await inventoryHttpClient.get('/api/v1/products', { params: toMaterialQueryParams({ keyword: trimmed, page: 0, size: SEARCH_PAGE_SIZE }) })).data),
     placeholderData: (previous) => previous,
   })
 }
