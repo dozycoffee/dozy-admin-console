@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAllMaterials } from '../../features/material/model/useMaterials'
 import { filtersFromSearch } from '../../features/stock/model/stockFilterParams'
 import type { StockFilters, StockItem } from '../../features/stock/model/stockSchemas'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
@@ -27,8 +26,6 @@ export function StockPage() {
   const [view, setView] = useState<View>(() => (searchParams.get('view') === 'rows' ? 'rows' : 'products'))
   const [selected, setSelected] = useState<StockItem | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-  // 상품 필터의 선택지만 원자재 목록을 쓴다. 재고 행의 상품 이름·코드는 재고 응답에 들어 있다.
-  const products = useAllMaterials()
   const warehouses = useWarehouseList()
   const warehouseById = useMemo(() => new Map((warehouses.data ?? []).map((warehouse) => [warehouse.warehouseId, warehouse])), [warehouses.data])
 
@@ -44,7 +41,7 @@ export function StockPage() {
       </div>
     </header>
     <p className="employee-hint role-intro">재고 서비스의 재고입니다. 상품별 보기는 같은 조건의 재고 행을 상품 단위로 합쳐, 행 보기는 재고 행(창고 × Lot × 품질 상태)을 그대로 보여줍니다. 가용 수량은 총 수량에서 예약 수량을 뺀 값이며 품질 상태와 할당 보류는 반영하지 않습니다.</p>
-    <StockFilterForm initial={initialFilters} products={products.data ?? []} warehouses={warehouses.data ?? []} onApply={(applied) => { setFilters(applied); setAppliedCount((count) => count + 1) }} />
+    <StockFilterForm initial={initialFilters} warehouses={warehouses.data ?? []} onApply={(applied) => { setFilters(applied); setAppliedCount((count) => count + 1) }} />
     {view === 'rows'
       ? <StockRowsPanel key={appliedCount} filters={filters} warehouseName={warehouseName} onOpen={open} />
       : <StockSummaryPanel key={appliedCount} filters={filters} warehouseName={warehouseName} onOpen={open} />}
