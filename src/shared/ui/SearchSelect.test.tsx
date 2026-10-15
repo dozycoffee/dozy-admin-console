@@ -143,4 +143,65 @@ describe('SearchSelect', () => {
     expect(screen.getAllByRole('option')).toHaveLength(2)
     expect(screen.getByText('1개가 더 있습니다. 더 입력해 좁혀 주세요.')).toBeInTheDocument()
   })
+
+  describe('서버 검색(onQueryChange)', () => {
+    function Remote({ results = options, loading = false, hiddenCount = 0, onQueryChange = vi.fn(), initial = '', selectedLabel }: { results?: SearchSelectOption[]; loading?: boolean; hiddenCount?: number; onQueryChange?: (query: string) => void; initial?: string; selectedLabel?: string }) {
+      const [value, setValue] = useState(initial)
+      return <SearchSelect label="상품" options={results} value={value} onChange={setValue} onQueryChange={onQueryChange} loading={loading} hiddenCount={hiddenCount} selectedLabel={selectedLabel} />
+    }
+
+    it('입력할 때마다 글자를 넘기고 받은 항목은 다시 거르지 않고 그대로 보여준다', async () => {
+      const user = userEvent.setup()
+      const onQueryChange = vi.fn()
+      render(<Remote onQueryChange={onQueryChange} />)
+
+      await user.type(screen.getByRole('combobox', { name: '상품' }), 'zz')
+
+      expect(onQueryChange).toHaveBeenLastCalledWith('zz')
+      // 서버가 이미 걸러 준 결과라고 보고 글자와 맞지 않아도 전부 보인다.
+      expect(screen.getAllByRole('option')).toHaveLength(3)
+    })
+
+    it('항목을 고르거나 닫으면 검색어를 비워 다음에 처음 항목을 보여준다', async () => {
+      const user = userEvent.setup()
+      const onQueryChange = vi.fn()
+      render(<Remote onQueryChange={onQueryChange} />)
+
+      await user.type(screen.getByRole('combobox', { name: '상품' }), '원')
+      await user.keyboard('{Escape}')
+      expect(onQueryChange).toHaveBeenLastCalledWith('')
+
+      await user.type(screen.getByRole('combobox', { name: '상품' }), '시')
+      await user.click(screen.getByRole('option', { name: '바닐라 시럽 (SYR-1)' }))
+      expect(onQueryChange).toHaveBeenLastCalledWith('')
+    })
+
+    it('고른 항목이 결과에 없어도 selectedLabel을 입력칸에 보여준다', () => {
+      render(<Remote results={[]} initial="999" selectedLabel="다른 상품 (X-1)" />)
+
+      expect(screen.getByRole('combobox', { name: '상품' })).toHaveValue('다른 상품 (X-1)')
+    })
+
+    it('검색 중이고 결과가 없으면 검색 중이라고, 끝났는데 없으면 일치하는 항목이 없다고 안내한다', async () => {
+      const user = userEvent.setup()
+      const { unmount } = render(<Remote results={[]} loading />)
+      await user.click(screen.getByRole('combobox', { name: '상품' }))
+      expect(screen.getByText('검색 중...')).toBeInTheDocument()
+      unmount()
+
+      render(<Remote results={[]} />)
+      await user.click(screen.getByRole('combobox', { name: '상품' }))
+      expect(screen.getByText('일치하는 항목이 없습니다.')).toBeInTheDocument()
+    })
+
+    it('서버에 더 있는 항목 수를 알린다', async () => {
+      const user = userEvent.setup()
+      render(<Remote hiddenCount={37} />)
+
+      await user.click(screen.getByRole('combobox', { name: '상품' }))
+
+      expect(screen.getByText('37개가 더 있습니다. 더 입력해 좁혀 주세요.')).toBeInTheDocument()
+    })
+  })
 })
+

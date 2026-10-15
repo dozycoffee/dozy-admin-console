@@ -11,13 +11,25 @@ type Props = {
   placeholder?: string
   /** 한 번에 보여줄 항목 수. 넘으면 더 입력해 좁히라고 안내한다. */
   maxVisible?: number
+  /**
+   * 서버 검색처럼 항목을 바깥에서 거를 때 넘긴다. 입력할 때마다(닫을 때는 빈 문자열로) 호출하고, `options`는 이미 걸러진 결과라 다시 거르지 않고 그대로 보여준다.
+   * 입력이 멈춘 뒤에 요청하도록 디바운스는 호출한 쪽이 한다.
+   */
+  onQueryChange?: (query: string) => void
+  /** 바깥에서 검색하는 중. 결과가 아직 없으면 "검색 중..."을 보여준다. */
+  loading?: boolean
+  /** 고른 항목이 검색 결과(`options`)에 없을 때 입력칸에 보여줄 이름. */
+  selectedLabel?: string
+  /** 바깥 검색 결과에 담기지 않은 나머지 항목 수. 있으면 더 입력해 좁히라고 안내한다. */
+  hiddenCount?: number
 }
 
 /**
  * 입력한 글자가 들어 있는 항목만 보여주고 고르게 하는 검색형 선택. 항목이 많아 `<select>`로는 찾기 어려울 때 쓴다.
  * 고른 항목은 입력칸에 이름으로 보이고 ×로 지우면 선택이 비워진다. 키보드(↑ ↓ Enter Esc)와 combobox/listbox 속성을 지원한다.
+ * 항목이 서버에 있어 다 받을 수 없을 때는 `onQueryChange`로 입력을 넘겨 서버가 거른 결과를 `options`로 받는다.
  */
-export function SearchSelect({ label, options, value, onChange, placeholder = '전체', maxVisible = 50 }: Props) {
+export function SearchSelect({ label, options, value, onChange, placeholder = '전체', maxVisible = 50, onQueryChange, loading = false, selectedLabel, hiddenCount = 0 }: Props) {
   const id = useId()
   const listId = `${id}-list`
   const inputRef = useRef<HTMLInputElement>(null)
@@ -27,13 +39,16 @@ export function SearchSelect({ label, options, value, onChange, placeholder = '�
   const [active, setActive] = useState(0)
   const selected = options.find((option) => option.value === value)
   const query = (typing ?? '').trim().toLowerCase()
-  const matches = query === '' ? options : options.filter((option) => option.label.toLowerCase().includes(query))
+  const remote = onQueryChange !== undefined
+  const matches = remote || query === '' ? options : options.filter((option) => option.label.toLowerCase().includes(query))
   const visible = matches.slice(0, maxVisible)
+  const moreCount = remote ? hiddenCount : matches.length - visible.length
   const activeIndex = Math.min(active, Math.max(visible.length - 1, 0))
 
   function close() {
     setOpen(false)
     setTyping(null)
+    onQueryChange?.('')
   }
 
   function choose(option: SearchSelectOption) {
@@ -70,12 +85,12 @@ export function SearchSelect({ label, options, value, onChange, placeholder = '�
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={open && visible[activeIndex] ? `${id}-option-${activeIndex}` : undefined}
-        value={typing ?? selected?.label ?? ''}
+        value={typing ?? selected?.label ?? selectedLabel ?? ''}
         placeholder={placeholder}
         autoComplete="off"
         onFocus={() => setOpen(true)}
         onBlur={close}
-        onChange={(event) => { setTyping(event.target.value); setOpen(true); setActive(0) }}
+        onChange={(event) => { setTyping(event.target.value); onQueryChange?.(event.target.value); setOpen(true); setActive(0) }}
         onKeyDown={onKeyDown}
       />
       {value !== '' && <button type="button" className="search-select-clear" aria-label={`${label} 선택 지우기`} onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(''); close(); inputRef.current?.focus() }}>×</button>}
@@ -92,8 +107,8 @@ export function SearchSelect({ label, options, value, onChange, placeholder = '�
         onMouseEnter={() => setActive(index)}
         onClick={() => choose(option)}
       >{option.label}</li>)}
-      {visible.length === 0 && <li role="presentation" className="search-select-empty">일치하는 항목이 없습니다.</li>}
-      {matches.length > visible.length && <li role="presentation" className="search-select-more">{matches.length - visible.length}개가 더 있습니다. 더 입력해 좁혀 주세요.</li>}
+      {visible.length === 0 && <li role="presentation" className="search-select-empty">{loading ? '검색 중...' : '일치하는 항목이 없습니다.'}</li>}
+      {moreCount > 0 && <li role="presentation" className="search-select-more">{moreCount}개가 더 있습니다. 더 입력해 좁혀 주세요.</li>}
     </ul>}
   </div>
 }
