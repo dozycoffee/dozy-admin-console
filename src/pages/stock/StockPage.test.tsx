@@ -5,16 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
 import type { StockItem } from '../../features/stock/model/stockSchemas'
 import { useAllMaterials } from '../../features/material/model/useMaterials'
-import { useStockHistories, useStocks } from '../../features/stock/model/useStocks'
+import { useStockHistories, useStockSummaries, useStocks } from '../../features/stock/model/useStocks'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
 import { StockPage } from './StockPage'
 
-vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn(), useStockHistories: vi.fn() }))
+vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn(), useStockHistories: vi.fn(), useStockSummaries: vi.fn() }))
 vi.mock('../../features/material/model/useMaterials', () => ({ useAllMaterials: vi.fn() }))
 vi.mock('../../features/warehouse/model/useWarehouses', () => ({ useWarehouseList: vi.fn() }))
 
 const item = (overrides: Partial<StockItem> = {}): StockItem => ({
-  inventoryId: 500, warehouseId: 10, productId: 100, lotId: 7, lotNumber: 'LOT-A', manufactureDate: '2026-09-01', expirationDate: '2027-01-01', lotStatus: 'NORMAL', qualityStatus: 'NORMAL',
+  inventoryId: 500, warehouseId: 10, productId: 100, productCode: 'BEAN-1', productName: '에티오피아 원두', unit: 'KG', lotId: 7, lotNumber: 'LOT-A', manufactureDate: '2026-09-01', expirationDate: '2027-01-01', lotStatus: 'NORMAL', qualityStatus: 'NORMAL',
   quantity: 10, reservedQuantity: 4, availableQuantity: 6, allocationHold: false, holdReason: null, heldAt: null, createdAt: '2026-10-14T00:00:00Z', updatedAt: '2026-10-14T00:00:00Z', ...overrides,
 })
 const warehouses = [{ warehouseId: 10, warehouseName: '서울 본사 창고', address: '서울', latitude: 37.5, longitude: 127, warehouseStatus: 'AVAILABLE' }]
@@ -63,11 +63,11 @@ describe('StockPage', () => {
     expect(useStocks).toHaveBeenLastCalledWith({ warehouseId: 10, page: 0, size: 20 })
   })
 
-  it('상품 이름을 모르면 id로 보여주고, 유통기한이 없는 Lot은 그렇게 적는다', () => {
-    setup([item({ productId: 999, expirationDate: null })])
+  it('상품 이름과 코드는 재고 응답 값을 쓰고 유통기한이 없는 Lot은 그렇게 적는다', () => {
+    setup([item({ productId: 999, productCode: 'SYR-9', productName: '바닐라 시럽', expirationDate: null })])
 
-    expect(screen.getByText('상품 999')).toBeInTheDocument()
-    expect(screen.getByText('id 999')).toBeInTheDocument()
+    expect(screen.getByText('바닐라 시럽')).toBeInTheDocument()
+    expect(screen.getByText('SYR-9')).toBeInTheDocument()
     expect(screen.getByText('유통기한 없음')).toBeInTheDocument()
   })
 
@@ -142,6 +142,8 @@ describe('StockPage', () => {
     expect(within(dialog).getByText(/보류 중/)).toHaveTextContent('피킹 불가')
     expect(within(dialog).getByText('서울 본사 창고')).toBeInTheDocument()
     expect(within(dialog).getByText('총 10 · 예약 4 · 가용 6')).toBeInTheDocument()
+    expect(within(dialog).getByText('KG')).toBeInTheDocument()
+    expect(within(dialog).getByText(/BEAN-1/)).toBeInTheDocument()
     expect(useStockHistories).toHaveBeenCalledWith(500, 0, 10)
     const history = within(dialog).getByRole('region', { name: '수량 변동 이력' })
     expect(within(history).getByText('출고')).toBeInTheDocument()
@@ -154,5 +156,47 @@ describe('StockPage', () => {
     setup([item()])
     await user.click(screen.getByRole('button', { name: /상세 보기/ }))
     expect(screen.getByText('변동 이력이 없습니다.')).toBeInTheDocument()
+  })
+
+  describe('보기 전환', () => {
+    const summary = { productId: 100, productCode: 'BEAN-1', productName: '에티오피아 원두', unit: 'KG', warehouseCount: 2, rowCount: 3, quantity: 30, reservedQuantity: 8, availableQuantity: 22, defectiveQuantity: 0, heldQuantity: 0, expiredQuantity: 0, expiringSoonQuantity: 0 }
+
+    function setupSummaries() {
+      setup([item()])
+      vi.mocked(useStockSummaries).mockReturnValue({ isLoading: false, isError: false, data: { items: [summary], page: 0, size: 20, totalElements: 1, totalPages: 1 } } as never)
+    }
+
+    it('처음에는 행 보기이고 상품별 보기를 누르면 요약을 보여준다', async () => {
+      const user = userEvent.setup()
+      setupSummaries()
+
+      expect(screen.getByRole('button', { name: '행 보기' })).toHaveAttribute('aria-pressed', 'true')
+      expect(useStockSummaries).not.toHaveBeenCalled()
+      await user.click(screen.getByRole('button', { name: '상품별 보기' }))
+
+      expect(screen.getByRole('button', { name: '상품별 보기' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByText('상품별 재고')).toBeInTheDocument()
+      expect(useStockSummaries).toHaveBeenCalledWith({ page: 0, size: 20 })
+    })
+
+    it('조건을 적용하면 상품별 보기에도 같은 조건으로 조회한다', async () => {
+      const user = userEvent.setup()
+      setupSummaries()
+      await user.click(screen.getByRole('button', { name: '상품별 보기' }))
+
+      await user.selectOptions(screen.getByLabelText('품질 상태'), 'DEFECTIVE')
+      await user.click(screen.getByRole('button', { name: '조회' }))
+
+      expect(useStockSummaries).toHaveBeenLastCalledWith({ qualityStatus: 'DEFECTIVE', page: 0, size: 20 })
+    })
+
+    it('행 보기로 돌아오면 행 표를 다시 보여준다', async () => {
+      const user = userEvent.setup()
+      setupSummaries()
+      await user.click(screen.getByRole('button', { name: '상품별 보기' }))
+      await user.click(screen.getByRole('button', { name: '행 보기' }))
+
+      expect(screen.getByText('LOT-A')).toBeInTheDocument()
+    })
   })
 })

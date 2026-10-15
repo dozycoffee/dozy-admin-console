@@ -59,13 +59,13 @@ export function StockDetailModal({ item, productLabel, warehouseLabel, open, onC
   return (
     <Modal open={open} title="재고 상세" className="stock-modal" onClose={onClose} closeOnBackdrop>
       <dl className="audit-rows">
-        <div><dt>상품</dt><dd><strong>{productLabel}</strong> <small>상품 id {item.productId}</small></dd></div>
+        <div><dt>상품</dt><dd><strong>{productLabel}</strong> <small>{item.productCode} · 상품 id {item.productId}</small></dd></div>
         <div><dt>창고</dt><dd>{warehouseLabel ? <><strong>{warehouseLabel}</strong> <small>id {item.warehouseId}</small></> : item.warehouseId}</dd></div>
         <div><dt>Lot</dt><dd>{item.lotNumber} <small>Lot id {item.lotId}</small></dd></div>
         <div><dt>제조일자</dt><dd>{item.manufactureDate ?? '-'}</dd></div>
         <div><dt>유통기한</dt><dd>{item.expirationDate ?? '없음'} <small>{labelOf(lotStatusLabels, item.lotStatus)}</small></dd></div>
         <div><dt>품질 상태</dt><dd>{labelOf(qualityStatusLabels, item.qualityStatus)}</dd></div>
-        <div><dt>수량</dt><dd>총 {item.quantity} · 예약 {item.reservedQuantity} · 가용 {item.availableQuantity}</dd></div>
+        <div><dt>수량</dt><dd>총 {item.quantity} · 예약 {item.reservedQuantity} · 가용 {item.availableQuantity} <small>{item.unit}</small></dd></div>
         <div><dt>할당 보류</dt><dd>{item.allocationHold ? <>보류 중{item.holdReason && <> — {item.holdReason}</>}{item.heldAt && <small> {formatDateTime(item.heldAt)}부터</small>}</> : '아님'}</dd></div>
         <div><dt>등록</dt><dd>{formatDateTime(item.createdAt)}</dd></div>
         <div><dt>마지막 변경</dt><dd>{formatDateTime(item.updatedAt)}</dd></div>
