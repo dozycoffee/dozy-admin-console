@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 원자재·재고 관리 | 대시보드(대사 보정 대기·발행 실패 이벤트·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절), 발행 실패 이벤트 `/outbox-events`(목록·상세·재발행) | dozy-inventory-api 실 API (`inventory:admin`) |
+| 원자재·재고 관리 | 대시보드(처리 카드: 대사 보정 대기·발행 실패 이벤트, 주의가 필요한 재고 패널: 만료·임박·불량·보류), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절), 발행 실패 이벤트 `/outbox-events`(목록·상세·재발행) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -53,6 +53,14 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-15 (원자재·재고 관리 대시보드 배치)
+
+- 이슈 #97, `feat/inventory-dashboard-layout` 브랜치(`feat/inventory-product-search-outbox-events`(#96) 위에서 분기. #96이 머지되면 이 브랜치의 diff는 이 작업만 남는다). 홈 카드를 같은 크기로 한 줄씩 나열하던 것을 계정 관리자 대시보드와 같은 "처리 카드 + 현황 패널" 구성으로 바꿨다.
+- **1행 처리 카드 2개**: "대사 보정 대기"와 "발행 실패 이벤트"를 같은 너비(2열, 좁은 화면에서는 1열)로 두고 건수를 40px로 키웠다. 0보다 크면 진하게(`has-work`) 강조하는 기존 `CountCard`를 그대로 쓴다.
+- **2행 "주의가 필요한 재고" 패널**: 유통기한 만료 → 임박 → 불량 → 할당 보류 순서로 한 패널의 네 칸(`StockAttentionCell`). 칸 아래의 `보기 ›` 텍스트 링크가 `/stock?...&view=rows`로 연결하고(칸 전체를 링크로 두면 호버 때 칸만 반응하는 것이 어색해 링크 하나로 분명히 했다. 상단 카드의 "전체 보기 ›"와 같은 모양) 칸에는 짧은 문구만, 전체 설명은 툴팁이다. 건수가 있으면 만료·불량은 붉은 계열, 임박·보류는 노란 계열로 강조하고 0이면 회색이다.
+  패널 머리글에 "재고 행 기준 · 재고 현황 ›"(행 보기 링크)를 두어 카드 숫자가 재고 행 수임을 알린다. 900px 이하에서는 2×2로 배치한다. 칸마다 건수 조회(`size=1`)는 그대로이고 한 칸이 실패하면 그 칸에만 오류를 보여준다.
+- 검증: build/lint/test 통과. 🔶 브라우저 확인은 하지 못했다.
 
 ### 2026-10-15 (상품 필터 검색형·발행 실패 이벤트 화면)
 
