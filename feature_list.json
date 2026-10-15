@@ -369,5 +369,12 @@
     "description": "원자재·재고 관리 모드 대시보드를 처리 카드 + 현황 패널 구성으로 바꾼다. 1행에 '대사 보정 대기'와 '발행 실패 이벤트'를 같은 너비의 카드 둘로 크게(건수 강조) 두고, 2행에 '주의가 필요한 재고' 패널 하나에 유통기한 만료·임박·불량·할당 보류 4칸을 한 줄로 둔다. 칸 아래의 '보기 ›' 텍스트 링크가 /stock?...&view=rows로 연결하고 설명은 짧게 줄여 툴팁으로 두며 건수가 있는 칸은 색(만료·불량 위험, 임박·보류 주의)으로 강조한다. 좁은 화면에서는 처리 카드가 세로로, 재고 4칸이 2×2로 배치된다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #97.",
     "status": "in_progress",
     "dependencies": ["inventory-outbox-events-screen"]
+  },
+  {
+    "id": "inventory-review-polish",
+    "name": "대사 보정안 확인창·오류 안내·발행 실패 이벤트 오류 표시 개선",
+    "description": "대사 보정안 승인·거절 확인창을 대상(상품·코드·Lot·품질·창고)과 inventory → WMS 수량 비교·변동량·결과 안내로 나눠 배치한다(ConfirmModal에 본문 영역 children 추가). 응답 없음·5xx 같은 일시적 실패(isTransientApiError)는 대사 보정안 승인·거절, 발행 실패 이벤트 재발행, 원자재 사용 중지·재개의 확인 뒤 오류 토스트로 알리고, 409·404 같은 업무 오류는 화면에 남긴다. 발행 실패 이벤트의 마지막 오류는 칸 너비의 한 줄만 보이고 넘치면 말줄임으로 줄인다(전체는 툴팁·상세 모달). 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #99.",
+    "status": "in_progress",
+    "dependencies": ["inventory-reconciliation-screen", "inventory-outbox-events-screen"]
   }
 ]
