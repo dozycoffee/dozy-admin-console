@@ -935,3 +935,19 @@ a { color: inherit; text-decoration: none; }
 .material-table th, .material-table td { white-space: normal; }
 .material-table th { white-space: nowrap; }
 .material-table .audit-view { white-space: nowrap; }
+
+/* 원자재·재고 관리 모드: 대사 보정안 */
+.reconciliation-table { table-layout: fixed; min-width: 880px; }
+.reconciliation-table th, .reconciliation-table td { white-space: normal; }
+.reconciliation-table th { white-space: nowrap; }
+.reconciliation-table th:nth-child(1), .reconciliation-table td:nth-child(1) { width: 22%; padding-left: 0; }
+.reconciliation-table th:nth-child(2), .reconciliation-table td:nth-child(2) { width: 14%; }
+.reconciliation-table th:nth-child(3), .reconciliation-table td:nth-child(3) { width: 16%; }
+.reconciliation-table th:nth-child(4), .reconciliation-table td:nth-child(4), .reconciliation-table th:nth-child(5), .reconciliation-table td:nth-child(5) { width: 9%; }
+.reconciliation-table th:nth-child(6), .reconciliation-table td:nth-child(6) { width: 11%; }
+.reconciliation-table th:nth-child(7), .reconciliation-table td:nth-child(7) { width: 12%; }
+.reconciliation-table th:nth-child(8), .reconciliation-table td:nth-child(8) { width: 11%; }
+.reconciliation-table th.stock-num, .reconciliation-table td.stock-num { text-align: right; }
+.reconciliation-actions { display: flex; gap: 6px; }
+.reconciliation-actions .audit-view { white-space: nowrap; }
+.reconciliation-reject { color: #9c3b3b; }

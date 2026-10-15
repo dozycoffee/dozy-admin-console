@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 원자재·재고 관리 | 대시보드(주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용) | dozy-inventory-api 실 API (`inventory:admin`) |
+| 원자재·재고 관리 | 대시보드(대사 보정 대기·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -53,6 +53,17 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-15 (대사 보정안 화면)
+
+- 이슈 #90, `feat/inventory-reconciliation` 브랜치. 원자재·재고 관리 모드(#88, PR #89 머지)에 대사 보정안 화면을 더했다. 원자재 화면 항목은 `completed`로 바꿨다.
+- **대사 보정안 `/reconciliations`**: `GET /api/v1/reconciliations/proposals`로 보정안(불일치한 창고 × 상품 × Lot × 품질 상태 행 하나)을 창고·상태 필터와 20건 페이지로 보여준다. 처음에는 승인 대기(PENDING)만 보이고 주소의 `?status=`로 바꿀 수 있다.
+  창고 이름은 WMS 창고 목록(`wms:viewer`), 상품은 원자재 마스터(`useAllMaterials`)로 채우고 못 읽으면 id로 보여준다. inventory 수량·WMS 수량·변동량(WMS − inventory)과 임계치 초과 표시를 한 줄에 둔다.
+- **승인·거절**: `POST .../{id}/approval`·`rejection`. 확인창에서 수량 비교를 보여준 뒤 요청하고, 버튼은 `inventory.write`로 잠근다. 승인할 때 수량이 달라지면 서버가 보정안만 새 값으로 갱신하고 `409 INV_RECONCILIATION_CHANGED`를 주므로(inventory ADR-0033 결정 6)
+  "바뀐 수량을 확인하고 다시 승인"하라고 안내하고, 실패해도 목록을 다시 받아 갱신된 값을 보여준다. 승인에 성공하면 재고 현황 캐시도 갱신한다. 오류는 code로만 분기한다(`reconciliationErrors.ts`).
+- **모드 홈·메뉴**: "대사 보정 대기" 카드(PENDING 건수, `size=1`)를 맨 앞에 더하고 `/reconciliations?status=PENDING`으로 연결했다. 사이드바에 "대사 보정" 메뉴를 추가했다. 카드 표시를 `CountCard` 하나로 합쳤다.
+- 검증: build/lint/test(1118) 통과. 🔶 브라우저에서 golden path와 권한 분기, 실제 보정안(대사 배치가 만든 데이터 필요)으로 승인·거절·409 흐름은 아직 확인하지 못했다.
+- 후속: Outbox 격리 이벤트(`/outbox-events`) 화면.
 
 ### 2026-10-15 (원자재·재고 관리 모드)
 
