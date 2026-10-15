@@ -2,12 +2,12 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { inventoryHttpClient } from '../../../shared/api/httpClient'
 import { createQueryClientWrapper } from '../../../shared/testing/queryClientWrapper'
-import { toStockQueryParams, useStockHistories, useStocks } from './useStocks'
+import { toStockQueryParams, useStockHistories, useStockSummaries, useStocks } from './useStocks'
 
 afterEach(() => vi.restoreAllMocks())
 
 const stockItem = {
-  inventoryId: 500, warehouseId: 10, productId: 100, lotId: 7, lotNumber: 'LOT-A', manufactureDate: '2026-09-01', expirationDate: '2027-01-01', lotStatus: 'NORMAL', qualityStatus: 'NORMAL',
+  inventoryId: 500, warehouseId: 10, productId: 100, productCode: 'BEAN-1', productName: '에티오피아 원두', unit: 'KG', lotId: 7, lotNumber: 'LOT-A', manufactureDate: '2026-09-01', expirationDate: '2027-01-01', lotStatus: 'NORMAL', qualityStatus: 'NORMAL',
   quantity: 10, reservedQuantity: 4, availableQuantity: 6, allocationHold: true, holdReason: '피킹 불가', heldAt: '2026-10-14T09:00:00', createdAt: '2026-10-14T09:00:00', updatedAt: '2026-10-14T09:00:00',
 }
 
@@ -59,3 +59,29 @@ describe('useStockHistories', () => {
     expect(getSpy).not.toHaveBeenCalled()
   })
 })
+
+describe('useStockSummaries', () => {
+  const summary = {
+    productId: 100, productCode: 'BEAN-1', productName: '에티오피아 원두', unit: 'KG', warehouseCount: 2, rowCount: 3, quantity: 30, reservedQuantity: 8, availableQuantity: 22,
+    defectiveQuantity: 4, heldQuantity: 5, expiredQuantity: 6, expiringSoonQuantity: 7,
+  }
+
+  it('상품별 요약 API를 재고 현황과 같은 조건 형식으로 호출하고 응답을 zod로 검증한다', async () => {
+    const getSpy = vi.spyOn(inventoryHttpClient, 'get').mockResolvedValue({ data: { items: [summary], page: 0, size: 20, totalElements: 1, totalPages: 1 } })
+
+    const { result } = renderHook(() => useStockSummaries({ warehouseId: 10, lotStatus: 'EXPIRED', page: 0, size: 20 }), { wrapper: createQueryClientWrapper() })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(getSpy).toHaveBeenCalledWith('/api/v1/inventories/summary', { params: { warehouseId: 10, lotStatus: 'EXPIRED', page: 0, size: 20 } })
+    expect(result.current.data?.items[0].availableQuantity).toBe(22)
+  })
+
+  it('필수 필드가 빠진 응답은 오류로 처리한다', async () => {
+    vi.spyOn(inventoryHttpClient, 'get').mockResolvedValue({ data: { items: [{ productId: 1 }], page: 0, size: 20, totalElements: 1, totalPages: 1 } })
+
+    const { result } = renderHook(() => useStockSummaries({ page: 0, size: 20 }), { wrapper: createQueryClientWrapper() })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+  })
+})
+

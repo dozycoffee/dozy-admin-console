@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 원자재·재고 관리 | 대시보드(대사 보정 대기·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절) | dozy-inventory-api 실 API (`inventory:admin`) |
+| 원자재·재고 관리 | 대시보드(대사 보정 대기·주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -53,6 +53,18 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-15 (재고 현황 상품별 보기)
+
+- 이슈 #92, `feat/inventory-stock-summary` 브랜치. 재고 현황에서 같은 상품끼리 모아 보고(상품별 보기) 재고 응답의 상품 정보를 쓰도록 했다. dozy-inventory-api #133·PR #134(ADR-0043)가 먼저 머지되어 재고 응답에 `productCode`·`productName`·`unit`이 들어가고 `GET /api/v1/inventories/summary`가 생겼다.
+- **보기 전환**: 재고 현황 머리글에 "상품별 보기"(기본)와 "행 보기"(지금의 창고 × Lot × 품질 상태 표)를 둔다. 주소의 `?view=rows`로 행 보기를 지정할 수 있고, 모드 홈 카드(재고 행 수를 센다)는 이 값을 붙여 행 보기로 연결한다. 필터는 두 보기에 같이 적용되고 조건을 다시 적용하면 페이지와 펼침이 처음으로 돌아간다(`key`로 패널을 다시 만든다).
+- **상품별 보기**: 요약 API를 20개 상품씩 서버 페이지로 읽어 상품 한 줄에 창고 수, 총·예약·가용(단위 포함), 불량·보류·만료·임박 수량 칩을 보여준다. 줄을 펼칠 때만 그 상품의 재고 행을 같은 필터와 `productId`로 10건씩 읽고(`ProductRows`) 기존 상세 모달을 연다. 전체를 한꺼번에 받지 않아 창고·재고가 늘어도 같은 방식이다.
+  요약의 가용 수량은 총 − 예약이라 품질 상태·보류를 반영하지 않고, 불량·보류·만료·임박 수량은 서로 겹칠 수 있어 합쳐 세지 않는다.
+- **상품 정보**: 재고 표·상세 모달이 상품 이름·코드를 응답 값으로 쓴다. 원자재 마스터 전체 조회(`useAllMaterials`)는 상품 필터의 선택지에만 남는다(상품이 많아지면 이 선택지는 검색형으로 바꿔야 한다).
+  행 표를 `StockRowsTable`로 빼서 행 보기와 펼친 행이 함께 쓰고, 화면을 `StockRowsPanel`·`StockSummaryPanel`로 나눴다.
+- 로컬 inventory 서버(8082)를 새 코드(`main`, #134 포함)로 다시 띄웠다(DB·Kafka·auth 주소는 기존 실행 환경 그대로).
+- 검증: build/lint/test 통과. 🔶 브라우저 확인은 하지 못했다.
+- 후속: Outbox 격리 이벤트(`/outbox-events`) 화면, 상품 필터를 검색형으로 교체.
 
 ### 2026-10-15 (대사 보정안 화면)
 
