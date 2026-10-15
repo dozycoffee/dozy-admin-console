@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useAllMaterials } from '../../features/material/model/useMaterials'
 import { filtersFromSearch } from '../../features/stock/model/stockFilterParams'
 import { toStockErrorMessage } from '../../features/stock/model/stockErrors'
 import { labelOf, lotStatusLabels, qualityStatusLabels, type StockFilters, type StockItem } from '../../features/stock/model/stockSchemas'
-import { useProducts, useStocks } from '../../features/stock/model/useStocks'
+import { useStocks } from '../../features/stock/model/useStocks'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
 import { StockDetailModal } from './StockDetailModal'
 import { StockFilterForm } from './StockFilterForm'
@@ -19,7 +20,7 @@ export function StockPage() {
   const [selected, setSelected] = useState<StockItem | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const query = useStocks({ ...filters, page: page - 1, size: PAGE_SIZE })
-  const products = useProducts()
+  const products = useAllMaterials()
   const warehouses = useWarehouseList()
   const warehouseById = useMemo(() => new Map((warehouses.data ?? []).map((warehouse) => [warehouse.warehouseId, warehouse])), [warehouses.data])
   const productById = useMemo(() => new Map((products.data ?? []).map((product) => [product.productId, product])), [products.data])

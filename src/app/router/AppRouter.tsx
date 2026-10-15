@@ -10,6 +10,7 @@ import { LoginPage } from '../../pages/login/LoginPage'
 import { InvitationPage } from '../../pages/invitation/InvitationPage'
 import { ForgotPasswordPage } from '../../pages/password-forgot/ForgotPasswordPage'
 import { ResetPasswordPage } from '../../pages/password-reset/ResetPasswordPage'
+import { MaterialsPage } from '../../pages/materials/MaterialsPage'
 import { StockPage } from '../../pages/stock/StockPage'
 import { WarehouseMapPage } from '../../pages/warehouse-map/WarehouseMapPage'
 import { ModeHomePage } from '../../pages/mode-home/ModeHomePage'
@@ -34,7 +35,7 @@ import { TaxonomyPage } from '../../pages/taxonomy/TaxonomyPage'
 import { OptionGroupsPage } from '../../pages/option-groups/OptionGroupsPage'
 
 const inventoryModes = [actorModeIds.warehouseManager] as const
-const stockModes = [actorModeIds.inventoryManager] as const
+const inventoryManagementModes = [actorModeIds.inventoryManager] as const
 const warehouseOperationsModes = [actorModeIds.warehouseManager] as const
 const accountAdministrationModes = [actorModeIds.accountAdministrator] as const
 const merchandisingModes = [actorModeIds.merchandiser] as const
@@ -53,7 +54,8 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route index element={<RequirePermission permission={permissions.dashboardRead}><ModeHomePage /></RequirePermission>} />
           <Route path="inventory" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><InventoryPage /></RequirePermission></RequireActorMode>} />
-          <Route path="stock" element={<RequireActorMode allowedModes={stockModes}><RequirePermission permission={permissions.inventoryRead}><StockPage /></RequirePermission></RequireActorMode>} />
+          <Route path="materials" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><MaterialsPage /></RequirePermission></RequireActorMode>} />
+          <Route path="stock" element={<RequireActorMode allowedModes={inventoryManagementModes}><RequirePermission permission={permissions.inventoryRead}><StockPage /></RequirePermission></RequireActorMode>} />
           <Route path="warehouse-map" element={<RequireActorMode allowedModes={inventoryModes}><RequirePermission permission={permissions.inventoryRead}><WarehouseMapPage /></RequirePermission></RequireActorMode>} />
           <Route path="inbounds" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="inbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.inboundRead}><InboundHistoryPage /></RequirePermission></RequireActorMode>} />

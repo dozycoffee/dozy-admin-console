@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { inventoryHttpClient } from '../../../shared/api/httpClient'
 import { createQueryClientWrapper } from '../../../shared/testing/queryClientWrapper'
-import { toStockQueryParams, useProducts, useStockHistories, useStocks } from './useStocks'
+import { toStockQueryParams, useStockHistories, useStocks } from './useStocks'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -10,7 +10,6 @@ const stockItem = {
   inventoryId: 500, warehouseId: 10, productId: 100, lotId: 7, lotNumber: 'LOT-A', manufactureDate: '2026-09-01', expirationDate: '2027-01-01', lotStatus: 'NORMAL', qualityStatus: 'NORMAL',
   quantity: 10, reservedQuantity: 4, availableQuantity: 6, allocationHold: true, holdReason: '피킹 불가', heldAt: '2026-10-14T09:00:00', createdAt: '2026-10-14T09:00:00', updatedAt: '2026-10-14T09:00:00',
 }
-const product = (id: number) => ({ productId: id, productCode: `P-${id}`, productName: `상품 ${id}`, category: 'BEAN', unit: 'KG', productStatus: 'ACTIVE' })
 
 describe('toStockQueryParams', () => {
   it('비어 있는 조건은 빼고 false인 할당 보류는 남긴다', () => {
@@ -58,20 +57,5 @@ describe('useStockHistories', () => {
     renderHook(() => useStockHistories(null, 0, 10), { wrapper: createQueryClientWrapper() })
 
     expect(getSpy).not.toHaveBeenCalled()
-  })
-})
-
-describe('useProducts', () => {
-  it('상품이 한 페이지를 넘으면 전체 건수만큼 이어서 읽는다', async () => {
-    const getSpy = vi.spyOn(inventoryHttpClient, 'get').mockImplementation(async (_url, config) => {
-      const page = ((config?.params ?? { page: 0 }) as { page: number }).page
-      return { data: { items: page === 0 ? Array.from({ length: 100 }, (_, i) => product(i + 1)) : [product(101)], page, size: 100, totalElements: 101 } }
-    })
-
-    const { result } = renderHook(() => useProducts(), { wrapper: createQueryClientWrapper() })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data).toHaveLength(101)
-    expect(getSpy).toHaveBeenCalledTimes(2)
   })
 })

@@ -80,20 +80,6 @@ export type StockHistory = z.infer<typeof stockHistorySchema>
 
 export const stockHistoryPageSchema = z.object({ items: z.array(stockHistorySchema), ...pageFields })
 
-export const productSchema = z.object({
-  productId: z.number(),
-  productCode: z.string(),
-  productName: z.string(),
-  category: z.string(),
-  unit: z.string(),
-  productStatus: z.string(),
-  shelfLifeDays: z.number().nullish(),
-})
-export type Product = z.infer<typeof productSchema>
-
-// 상품 목록 응답에는 totalPages가 없다.
-export const productPageSchema = z.object({ items: z.array(productSchema), page: z.number(), size: z.number(), totalElements: z.number() })
-
 /** 재고 현황 조회 조건. 비어 있는 값은 쿼리에서 뺀다. `allocationHold`는 '' = 전체. */
 export type StockFilters = {
   warehouseId?: number

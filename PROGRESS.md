@@ -12,7 +12,7 @@
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
 | 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
-| 재고 관리 | 대시보드(주의가 필요한 재고 4종), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용) | dozy-inventory-api 실 API (`inventory:admin`) |
+| 원자재·재고 관리 | 대시보드(주의가 필요한 재고 4종), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(필터·페이지·상세·수량 변동 이력, 읽기 전용) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
 - **인증·권한 구조**: access token은 메모리에만 두고 앱 시작 시 refresh 쿠키(`dozy_refresh`)로 복원한다(dozy-auth ADR-0014). 업무 API가 401 `UNAUTHENTICATED`를 주면
@@ -53,6 +53,17 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-15 (원자재·재고 관리 모드)
+
+- 이슈 #88, `feat/inventory-materials` 브랜치. inventory 서비스의 원자재(상품 마스터)와 재고를 한 모드에서 다루도록 '재고 관리' 모드를 **'원자재·재고 관리' 모드**(id `inventory-manager` 유지, 사이드바 표기 '원자재·재고')로 넓혔다.
+  dozy-inventory-api에서 `material_manager` role이 폐지되어(dozy-inventory-api #131·ADR-0042) 마스터 쓰기도 `inventory:admin`이 맡는다.
+- **원자재 `/materials`**: `GET/POST /api/v1/products`, `PATCH /api/v1/products/{id}/status`로 목록(코드·카테고리·상태 필터, 20건 페이지)·등록 모달·사용 중지/재개(확인창)를 만들었다. 코드 필터는 서버가 정확히 일치만 찾아서 입력을 공백 제거·대문자로 맞춰 보낸다.
+  `features/product`(WMS)와 이름이 겹쳐 데이터 계층은 `features/material`에 두었다(inventory 용어는 product, 화면 용어는 원자재).
+- **권한**: `inventory.write`를 `inventory:admin`에 매핑하고 등록·상태 변경 버튼을 `PermissionGate`로 잠갔다. 라우트는 `inventory.read`로 보호한다. role이 하나뿐이라 permission은 read/write 둘로만 둔다.
+- **재고 현황**: 상품 이름·코드·상품 필터는 이미 있었고, 상품 전체 목록 훅을 `useAllMaterials`(`features/material`)로 옮겨 원자재 화면과 같은 캐시(`['materials']`)를 쓴다. 원자재 등록·상태 변경 후 재고 현황의 이름도 함께 갱신된다.
+- 검증: build/lint/test(1088) 통과. 🔶 브라우저에서 golden path와 권한 분기(`inventory:admin` 허용, 쓰기 권한 없음, 다른 모드의 `/materials` 접근)는 아직 확인하지 못했다(테스트 계정 비밀번호 필요).
+- 후속: 대사 보정안(`/reconciliations`), Outbox 격리 이벤트(`/outbox-events`) 화면, 모드 홈에 원자재·대사 대기 카드.
 
 ### 2026-10-14 (재고 관리 모드)
 

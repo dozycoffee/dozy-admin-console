@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { Product } from '../../features/stock/model/stockSchemas'
+import type { Material } from '../../features/material/model/materialSchemas'
 import type { Warehouse } from '../../features/warehouse/model/warehouseSchemas'
 import { StockFilterForm } from './StockFilterForm'
 
-const products: Product[] = [
+const products: Material[] = [
   { productId: 100, productCode: 'BEAN-1', productName: '에티오피아 원두', category: 'BEAN', unit: 'KG', productStatus: 'ACTIVE' },
   { productId: 200, productCode: 'SYR-1', productName: '바닐라 시럽', category: 'SYRUP', unit: 'L', productStatus: 'ACTIVE' },
 ]
