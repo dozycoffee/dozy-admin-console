@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { Material } from '../../features/material/model/materialSchemas'
@@ -22,7 +22,8 @@ describe('StockFilterForm', () => {
     render(<StockFilterForm initial={{}} products={products} onApply={onApply} />)
 
     await user.type(screen.getByLabelText('창고 id'), '10')
-    await user.selectOptions(screen.getByLabelText('상품'), '100')
+    await user.type(screen.getByRole('combobox', { name: '상품' }), '원두')
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: '에티오피아 원두 (BEAN-1)' }))
     await user.selectOptions(screen.getByLabelText('Lot 상태'), 'EXPIRED')
     await user.selectOptions(screen.getByLabelText('할당 보류'), 'false')
     await user.click(screen.getByRole('button', { name: '조회' }))
@@ -84,5 +85,28 @@ describe('StockFilterForm', () => {
 
     expect(screen.getByLabelText('창고 id')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: '창고' })).not.toBeInTheDocument()
+  })
+
+  it('상품은 이름이나 코드의 일부로 찾아 고르고 초기화하면 비운다', async () => {
+    const user = userEvent.setup()
+    const onApply = vi.fn()
+    render(<StockFilterForm initial={{}} products={products} onApply={onApply} />)
+
+    await user.type(screen.getByRole('combobox', { name: '상품' }), 'syr')
+    const list = within(screen.getByRole('listbox'))
+    expect(list.getAllByRole('option').map((option) => option.textContent)).toEqual(['바닐라 시럽 (SYR-1)'])
+    await user.click(list.getByRole('option'))
+    await user.click(screen.getByRole('button', { name: '조회' }))
+    expect(onApply).toHaveBeenLastCalledWith({ productId: 200 })
+
+    await user.click(screen.getByRole('button', { name: '초기화' }))
+    expect(onApply).toHaveBeenLastCalledWith({})
+    expect(screen.getByRole('combobox', { name: '상품' })).toHaveValue('')
+  })
+
+  it('처음 조건에 상품이 있으면 그 이름을 보여준다', () => {
+    render(<StockFilterForm initial={{ productId: 100 }} products={products} onApply={vi.fn()} />)
+
+    expect(screen.getByRole('combobox', { name: '상품' })).toHaveValue('에티오피아 원두 (BEAN-1)')
   })
 })

@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import type { Warehouse } from '../../features/warehouse/model/warehouseSchemas'
 import type { Material } from '../../features/material/model/materialSchemas'
+import { SearchSelect } from '../../shared/ui/SearchSelect'
 import { lotStatuses, lotStatusLabels, qualityStatuses, qualityStatusLabels, type StockFilters } from '../../features/stock/model/stockSchemas'
 
 type Props = {
@@ -49,6 +50,8 @@ export function StockFilterForm({ initial, products, warehouses = [], onApply }:
     onApply({})
   }
 
+  // 원자재가 많아도 찾기 쉽도록 이름·코드 일부를 입력해 고르는 검색형으로 보여준다.
+  const productOptions = useMemo(() => products.map((product) => ({ value: String(product.productId), label: `${product.productName} (${product.productCode})` })), [products])
   const pristine = warehouse === '' && productId === '' && qualityStatus === '' && lotStatus === '' && hold === ''
 
   return (
@@ -62,12 +65,7 @@ export function StockFilterForm({ initial, products, warehouses = [], onApply }:
             </select>
           </label>
           : <label>창고 id<input value={warehouse} onChange={(event) => setWarehouse(event.target.value)} inputMode="numeric" placeholder="전체" autoComplete="off" /></label>}
-        <label>상품
-          <select value={productId} onChange={(event) => setProductId(event.target.value)}>
-            <option value="">전체</option>
-            {products.map((product) => <option key={product.productId} value={product.productId}>{product.productName} ({product.productCode})</option>)}
-          </select>
-        </label>
+        <SearchSelect label="상품" options={productOptions} value={productId} onChange={setProductId} />
         <label>품질 상태
           <select value={qualityStatus} onChange={(event) => setQualityStatus(event.target.value)}>
             <option value="">전체</option>
