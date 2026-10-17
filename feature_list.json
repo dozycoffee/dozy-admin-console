@@ -388,7 +388,7 @@
     "id": "inventory-product-server-search",
     "name": "상품 검색을 서버 검색으로 변경(재고 현황 상품 필터·원자재 화면)",
     "description": "dozy-inventory-api의 상품 목록 keyword 검색(ADR-0044)으로 재고 현황의 상품 필터를 서버 검색으로 바꾼다. 입력이 250ms 멈춘 뒤 GET /api/v1/products?keyword=를 20건씩 읽어 선택지로 보여주고 더 있으면 개수를 안내하며, 고른 상품 이름은 결과가 바뀌어도 유지한다. 공용 SearchSelect에 서버 검색 모드(onQueryChange·loading·selectedLabel·hiddenCount)를 더하고 useDebouncedValue를 추가한다. 원자재 화면의 코드(정확 일치) 입력은 코드·이름(부분 일치) 검색으로 바꾼다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #107.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-product-search"]
   }
 ]

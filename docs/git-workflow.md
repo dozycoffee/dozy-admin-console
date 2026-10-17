@@ -90,3 +90,12 @@
 - PR을 열기 전, 연결된 이슈의 "작업 상세 내용" 체크박스 중 이번 PR에서 완료한 항목을
   `gh issue edit`로 `- [x]`로 체크해둔다. 이슈를 닫는다고 체크박스가 자동으로 갱신되지 않으므로
   직접 반영해야 한다.
+
+## 추적 문서(feature_list.json·PROGRESS.md) 반영
+
+- 추적 문서 갱신은 작업 PR 안에서 `docs(tracking)` 커밋으로 함께 올린다. 머지 후 문서만 고치는 후속 PR을
+  만들지 않는다.
+- `feature_list.json`의 `status`는 PR을 열기 전에 완료 기준(build·lint·test 통과, 필요한 브라우저 확인)을
+  모두 채웠다면 PR 안에서 `completed`로 바꾼다. 머지가 끝나야 완료로 보는 것이 아니다.
+- 브라우저 확인처럼 PR을 연 뒤에야 끝나는 항목이 남아 있으면 `in_progress`로 두고 PR 본문에 미확인으로 적는다.
+  확인이 끝나면 머지 전에 같은 PR에 커밋을 추가해 `completed`와 PROGRESS.md 검증 문구를 갱신한다.
