@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../../features/auth/model/authContext'
 import { useLocationStocks } from '../../features/inventory/model/useLocationStocks'
@@ -34,11 +35,11 @@ const stock = (locationStockId: number, locationId: number, productId: number, l
   ({ locationStockId, warehouseId: 1, zoneId: 1, zoneCode: 'A', locationId, locationCode: 'A-01', productId, lotNumber, qualityStatus, quantity, heldQuantity: 0, availableQuantity: quantity, updatedAt: '2026-10-16T10:24:00' })
 const stocks = [stock(1, 11, 100, 'LOT-1', 'NORMAL', 60), stock(2, 11, 101, 'LOT-2', 'DEFECTIVE', 30), stock(3, 21, 100, 'LOT-3', 'NORMAL', 96)]
 
-function renderWithUser(warehouseIds: number[]) {
+function renderWithUser(warehouseIds: number[], path = '/inventory') {
   const user: AuthContextValue['user'] = { id: 'user-test', name: '테스트 사용자', actorModes: [], permissions: [], scope: { warehouseIds } }
   return render(
     <AuthContext.Provider value={{ user, isLoading: false, activeActorMode: null, can: () => true, selectActorMode: vi.fn(), clearActorMode: vi.fn(), login: vi.fn(), logout: vi.fn() }}>
-      <InventoryPage />
+      <MemoryRouter initialEntries={[path]}><InventoryPage /></MemoryRouter>
     </AuthContext.Provider>,
   )
 }
@@ -165,6 +166,24 @@ describe('InventoryPage', () => {
     await userEvent.selectOptions(screen.getByLabelText('적재 상태 필터'), 'ok')
     expect(screen.getByText('1개 Location')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'A-02 상품 상세 펼치기' })).toBeInTheDocument()
+  })
+
+  it('주소의 zone 값으로 Zone 필터를 미리 선택한다', () => {
+    mockLoaded()
+
+    renderWithUser([1], '/inventory?zone=B')
+
+    expect(screen.getByLabelText('Zone 필터')).toHaveValue('B')
+    expect(screen.getByText('1개 Location')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'B-01 상품 상세 펼치기' })).toBeInTheDocument()
+  })
+
+  it('알 수 없는 zone 값은 무시한다', () => {
+    mockLoaded()
+
+    renderWithUser([1], '/inventory?zone=Z')
+
+    expect(screen.getByLabelText('Zone 필터')).toHaveValue('ALL')
   })
 
   it('조건에 맞는 Location이 없으면 안내 문구를 보여준다', async () => {

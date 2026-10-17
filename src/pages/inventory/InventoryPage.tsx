@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCurrentUser } from '../../features/auth/model/useCurrentUser'
 import { qualityStatusLabels, zoneCodeLabels, type LocationStock, type ZoneCode } from '../../features/inventory/model/inventorySchemas'
 import { useLocationStocks } from '../../features/inventory/model/useLocationStocks'
@@ -40,7 +41,8 @@ export function InventoryPage() {
   const stocksQuery = useLocationStocks(warehouseIds)
   const productsQuery = useProducts()
   const [query, setQuery] = useState('')
-  const [zoneFilter, setZoneFilter] = useState('ALL')
+  const [searchParams] = useSearchParams()
+  const [zoneFilter, setZoneFilter] = useState(() => { const zone = searchParams.get('zone'); return zone && zone in zoneCodeLabels ? zone : 'ALL' })
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [expandedLocations, setExpandedLocations] = useState<Set<number>>(new Set())
   const warehouse = warehousesQuery?.data?.[0]
