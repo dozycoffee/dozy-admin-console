@@ -33,7 +33,7 @@ export const actorModes: readonly ActorMode[] = [
   },
   {
     id: actorModeIds.warehouseManager,
-    label: '창고 관리자',
+    label: '창고 관리',
     shortLabel: '창고 관리',
     description: '입출고 작업과 창고 재고 및 공간을 관리합니다.',
   },

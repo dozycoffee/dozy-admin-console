@@ -29,13 +29,13 @@ describe('ActorModeModal', () => {
     renderModal()
     expect(screen.getAllByText('권한 없음')).toHaveLength(2)
     expect(screen.getByRole('button', { name: /계정 관리자/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /창고 관리자/ })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /창고 관리/ })).toBeEnabled()
   })
 
   it('허용된 모드를 선택한다', async () => {
     const user = userEvent.setup()
     const { selectActorMode, onSelected } = renderModal()
-    await user.click(screen.getByRole('button', { name: /창고 관리자/ }))
+    await user.click(screen.getByRole('button', { name: /창고 관리/ }))
     expect(selectActorMode).toHaveBeenCalledWith(actorModeIds.warehouseManager)
     expect(onSelected).toHaveBeenCalled()
   })

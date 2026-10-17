@@ -27,7 +27,7 @@ describe('ModeHomePage', () => {
     expect(screen.queryByText(/세부 기능은 해당 업무 서비스 연동과 함께 제공됩니다/)).not.toBeInTheDocument()
   })
 
-  it('창고 관리자 모드는 창고 대시보드를 그대로 보여준다', () => {
+  it('창고 관리 모드는 창고 대시보드를 그대로 보여준다', () => {
     renderHome(actorModeIds.warehouseManager)
 
     expect(screen.getByText('창고 대시보드')).toBeInTheDocument()

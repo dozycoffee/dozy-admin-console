@@ -21,7 +21,7 @@ export function useWarehouseList() {
   })
 }
 
-/** AccessScope.warehouseIds 각각을 단건 조회(GET /api/warehouses/{id})해 병렬로 가져온다. 창고 관리자 모드의 담당 창고용이다. */
+/** AccessScope.warehouseIds 각각을 단건 조회(GET /api/warehouses/{id})해 병렬로 가져온다. 창고 관리 모드의 담당 창고용이다. */
 export function useWarehouses(warehouseIds: number[]): UseWarehousesResult {
   const queries = useQueries({
     queries: warehouseIds.map((warehouseId) => ({
