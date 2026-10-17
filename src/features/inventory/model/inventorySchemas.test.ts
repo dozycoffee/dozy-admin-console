@@ -52,10 +52,11 @@ describe('quantityOf', () => {
   })
 })
 
-describe('inventoryItemListSchema', () => {
-  it('재고 목록 응답을 파싱한다', async () => {
-    const { inventoryItemListSchema } = await import('./inventorySchemas')
-    const parsed = inventoryItemListSchema.parse([{ inventoryId: 1, productId: 2, lotId: 3, locationId: 4, quantity: 5, allocatedQuantity: 1, availableQuantity: 4, qualityStatus: 'DEFECTIVE' }])
-    expect(parsed[0].qualityStatus).toBe('DEFECTIVE')
+describe('locationStockListSchema', () => {
+  it('Location 재고 응답을 파싱한다', async () => {
+    const { locationStockListSchema } = await import('./inventorySchemas')
+    const parsed = locationStockListSchema.parse({ items: [{ locationStockId: 1, warehouseId: 2, zoneId: 3, zoneCode: 'A', locationId: 4, locationCode: 'A-01', productId: 5, lotNumber: 'LOT-1', qualityStatus: 'DEFECTIVE', quantity: 5, heldQuantity: 1, availableQuantity: 4, updatedAt: null }] })
+    expect(parsed.items[0].locationCode).toBe('A-01')
+    expect(parsed.items[0].qualityStatus).toBe('DEFECTIVE')
   })
 })

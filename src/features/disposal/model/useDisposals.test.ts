@@ -35,17 +35,18 @@ describe('useDisposals', () => {
 })
 
 describe('useDisposalItems', () => {
-  const inventory = (qualityStatus: string) => ({ inventoryId: 9, productId: 2, lotId: 1, locationId: 1, quantity: 3, allocatedQuantity: 0, availableQuantity: 3, qualityStatus })
+  const stock = { locationStockId: 9, warehouseId: 543, zoneId: 1, zoneCode: 'A', locationId: 1, locationCode: 'A-01', productId: 2, lotNumber: 'LOT-1', qualityStatus: 'DEFECTIVE', quantity: 0, heldQuantity: 0, availableQuantity: 0, updatedAt: null }
 
-  it('폐기 가능 재고에 남아 있는 품목은 상품명을 붙이고, 없으면 null로 둔다', async () => {
-    vi.spyOn(httpClient, 'get').mockImplementation(async (url: string, config?: { params?: unknown }) => {
-      if (url === '/api/disposal-items') return { data: [{ disposalItemId: 1, disposalId: 1, inventoryId: 9, quantity: 3, reason: 'INSPECTION_DEFECT' }, { disposalItemId: 2, disposalId: 1, inventoryId: 10, quantity: 1, reason: 'OTHER' }] }
+  it('Location 재고 행(수량 0 포함)에서 상품명을 찾아 붙이고, 없으면 null로 둔다', async () => {
+    const getSpy = vi.spyOn(httpClient, 'get').mockImplementation(async (url: string) => {
+      if (url === '/api/disposal-items') return { data: [{ disposalItemId: 1, disposalId: 1, locationStockId: 9, quantity: 3, reason: 'INSPECTION_DEFECT' }, { disposalItemId: 2, disposalId: 1, locationStockId: 10, quantity: 1, reason: 'OTHER' }] }
       if (url === '/api/products') return { data: [{ productId: 2, productCode: 'BEAN-1', productName: '에티오피아', category: 'BEAN', unit: 'ea', shelfLifeDays: null, productStatus: 'ACTIVE' }] }
-      return { data: (config?.params as { qualityStatus?: string } | undefined)?.qualityStatus === 'DEFECTIVE' ? [inventory('DEFECTIVE')] : [] }
+      return { data: { items: [stock] } }
     })
     const { result } = renderHook(() => useDisposalItems(1, [543]), { wrapper: createQueryClientWrapper() })
     await waitFor(() => expect(result.current.data?.[0]?.productName).toBe('에티오피아'))
     expect(result.current.data?.[1]?.productName).toBeNull()
+    expect(getSpy).toHaveBeenCalledWith('/api/location-stocks', { params: { warehouseIds: [543], includeEmpty: true } })
   })
 })
 
@@ -53,7 +54,7 @@ describe('폐기 상태 전이 mutation', () => {
   it('등록은 POST /api/disposals를 호출한다', async () => {
     const postSpy = vi.spyOn(httpClient, 'post').mockResolvedValue({ data: disposal(1, 'REQUESTED') })
     const { result } = renderHook(() => useRegisterDisposal(), { wrapper: createQueryClientWrapper() })
-    const body = { warehouseId: 543, items: [{ inventoryId: 9, quantity: 3, reason: 'OTHER' as const }] }
+    const body = { warehouseId: 543, items: [{ locationStockId: 9, quantity: 3, reason: 'OTHER' as const }] }
     result.current.mutate(body)
     await waitFor(() => expect(postSpy).toHaveBeenCalledWith('/api/disposals', body))
   })

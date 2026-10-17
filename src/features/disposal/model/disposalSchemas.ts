@@ -22,17 +22,17 @@ export const disposalListSchema = z.array(disposalSchema)
 export const disposalItemSchema = z.object({
   disposalItemId: z.number(),
   disposalId: z.number(),
-  inventoryId: z.number(),
+  locationStockId: z.number(),
   quantity: z.number(),
   reason: disposalReasonSchema,
 })
 export type DisposalItem = z.infer<typeof disposalItemSchema>
 export const disposalItemListSchema = z.array(disposalItemSchema)
 
-// 서버는 폐기 수량이 대상 재고 수량과 정확히 같아야 등록을 허용한다.
+// 폐기 수량은 대상 Location 재고(locationStockId)의 수량을 넘을 수 없다. 이 화면은 대상 행의 수량 전체를 폐기한다.
 export const registerDisposalRequestSchema = z.object({
   warehouseId: z.number(),
-  items: z.array(z.object({ inventoryId: z.number(), quantity: z.number().int().positive(), reason: disposalReasonSchema })).min(1),
+  items: z.array(z.object({ locationStockId: z.number(), quantity: z.number().int().positive(), reason: disposalReasonSchema })).min(1),
 })
 export type RegisterDisposalRequest = z.infer<typeof registerDisposalRequestSchema>
 

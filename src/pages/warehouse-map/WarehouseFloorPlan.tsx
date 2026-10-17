@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ZoneCode, ZoneInventorySummary } from '../../features/inventory/model/inventorySchemas'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ZoneCode } from '../../features/inventory/model/inventorySchemas'
 
-type Hotspot = { id: string; label: string; zoneCode?: ZoneCode; x: number; y: number; capacity: number; used: number; cold?: boolean }
+// 위치(x, y)와 모양은 화면에 고정이고, capacity는 칸 크기를 정하는 기준값(창고 구성 고정값)이다. 실제 용량·적재량은 occupancy로 받는다.
+type Hotspot = { id: string; label: string; zoneCode?: ZoneCode; x: number; y: number; capacity: number; cold?: boolean }
+type Item = Hotspot & { used: number }
+export type Occupancy = Record<string, { capacity: number; used: number }>
 
 const hotspots: Hotspot[] = [
-  { id: '입고처리장', label: '입고 처리장', x: 26.6, y: 15.2, capacity: 230, used: 101 }, { id: '반품처리장', label: '반품 처리장', x: 21.5, y: 23.6, capacity: 130, used: 22 },
-  { id: 'D-01', label: 'D-01', zoneCode: 'D', x: 37.1, y: 20.8, capacity: 180, used: 68, cold: true }, { id: 'D-02', label: 'D-02', zoneCode: 'D', x: 39.3, y: 24.1, capacity: 180, used: 67, cold: true },
-  { id: 'A-01', label: 'A-01', zoneCode: 'A', x: 53.9, y: 24.9, capacity: 320, used: 290 }, { id: 'A-02', label: 'A-02', zoneCode: 'A', x: 44.7, y: 32.1, capacity: 270, used: 130 }, { id: 'A-03', label: 'A-03', zoneCode: 'A', x: 53.2, y: 29.7, capacity: 230, used: 163 },
-  { id: 'B-01', label: 'B-01', zoneCode: 'B', x: 73.1, y: 39.5, capacity: 270, used: 80 }, { id: 'B-02', label: 'B-02', zoneCode: 'B', x: 70.9, y: 41.4, capacity: 280, used: 250 },
-  { id: 'C-01', label: 'C-01', zoneCode: 'C', x: 89.4, y: 50.3, capacity: 230, used: 207 }, { id: 'C-02', label: 'C-02', zoneCode: 'C', x: 88.3, y: 58, capacity: 230, used: 212 },
-  { id: 'E-04', label: 'E-04', zoneCode: 'E', x: 33.5, y: 46.7, capacity: 360, used: 89 }, { id: 'E-02', label: 'E-02', zoneCode: 'E', x: 24.7, y: 50.3, capacity: 450, used: 200 }, { id: 'E-03', label: 'E-03', zoneCode: 'E', x: 39, y: 59.6, capacity: 420, used: 420 }, { id: 'E-01', label: 'E-01', zoneCode: 'E', x: 28.3, y: 61.9, capacity: 480, used: 420 },
-  { id: 'F-01', label: 'F-01', zoneCode: 'F', x: 69.1, y: 79.5, capacity: 230, used: 80 }, { id: 'F-02', label: 'F-02', zoneCode: 'F', x: 66.9, y: 83.7, capacity: 190, used: 67 },
-  { id: '출고장', label: '출고장', x: 46.4, y: 63.6, capacity: 240, used: 38 }, { id: '폐기처리장', label: '폐기 처리장', x: 55.7, y: 70.3, capacity: 80, used: 72 },
+  { id: '입고처리장', label: '입고 처리장', x: 26.6, y: 15.2, capacity: 230 }, { id: '반품처리장', label: '반품 처리장', x: 21.5, y: 23.6, capacity: 130 },
+  { id: 'D-01', label: 'D-01', zoneCode: 'D', x: 37.1, y: 20.8, capacity: 180, cold: true }, { id: 'D-02', label: 'D-02', zoneCode: 'D', x: 39.3, y: 24.1, capacity: 180, cold: true },
+  { id: 'A-01', label: 'A-01', zoneCode: 'A', x: 53.9, y: 24.9, capacity: 320 }, { id: 'A-02', label: 'A-02', zoneCode: 'A', x: 44.7, y: 32.1, capacity: 270 }, { id: 'A-03', label: 'A-03', zoneCode: 'A', x: 53.2, y: 29.7, capacity: 230 },
+  { id: 'B-01', label: 'B-01', zoneCode: 'B', x: 73.1, y: 39.5, capacity: 270 }, { id: 'B-02', label: 'B-02', zoneCode: 'B', x: 70.9, y: 41.4, capacity: 280 },
+  { id: 'C-01', label: 'C-01', zoneCode: 'C', x: 89.4, y: 50.3, capacity: 230 }, { id: 'C-02', label: 'C-02', zoneCode: 'C', x: 88.3, y: 58, capacity: 230 },
+  { id: 'E-04', label: 'E-04', zoneCode: 'E', x: 33.5, y: 46.7, capacity: 360 }, { id: 'E-02', label: 'E-02', zoneCode: 'E', x: 24.7, y: 50.3, capacity: 450 }, { id: 'E-03', label: 'E-03', zoneCode: 'E', x: 39, y: 59.6, capacity: 420 }, { id: 'E-01', label: 'E-01', zoneCode: 'E', x: 28.3, y: 61.9, capacity: 480 },
+  { id: 'F-01', label: 'F-01', zoneCode: 'F', x: 69.1, y: 79.5, capacity: 230 }, { id: 'F-02', label: 'F-02', zoneCode: 'F', x: 66.9, y: 83.7, capacity: 190 },
+  { id: '출고장', label: '출고장', x: 46.4, y: 63.6, capacity: 240 }, { id: '폐기처리장', label: '폐기 처리장', x: 55.7, y: 70.3, capacity: 80 },
 ]
 
-function statusOf(item: Hotspot) { const ratio = item.used / item.capacity; return ratio >= .95 ? 'critical' : ratio >= .8 ? 'warning' : 'ok' }
+function statusOf(item: Item) { const ratio = item.used / item.capacity; return ratio >= .95 ? 'critical' : ratio >= .8 ? 'warning' : 'ok' }
 function statusLabel(status: ReturnType<typeof statusOf>) { return status === 'critical' ? '포화 임박' : status === 'warning' ? '주의' : '정상' }
 const zoneNames: Record<ZoneCode, string> = { A: '원두', B: '시럽', C: '분말/파우더', D: '유제품', E: '컵/소모품/포장재', F: 'MD 상품' }
 
@@ -30,10 +33,10 @@ function scaleCapacity(capacity: number, [inMin, inMax]: [number, number], [outM
   if (inMax === inMin) return (outMin + outMax) / 2
   return outMin + (outMax - outMin) * (capacity - inMin) / (inMax - inMin)
 }
-function containerHeightFor(item: Hotspot) {
+function containerHeightFor(item: Item) {
   return item.zoneCode ? scaleCapacity(item.capacity, zoneCapacityRange, [13, 52]) : scaleCapacity(item.capacity, workCapacityRange, [9, 30])
 }
-function fillHeightFor(item: Hotspot) {
+function fillHeightFor(item: Item) {
   return containerHeightFor(item) * Math.min(item.used / item.capacity, 1)
 }
 
@@ -69,7 +72,7 @@ function pillarsFor(layout: { col: number; row: number; w: number; d: number }, 
   const corners = [[layout.col - hw, layout.row - hd], [layout.col + hw, layout.row - hd], [layout.col + hw, layout.row + hd], [layout.col - hw, layout.row + hd]]
   return corners.map((pt) => ({ base: iso(pt[0], pt[1], 0), top: iso(pt[0], pt[1], height) }))
 }
-function DynamicWarehouseSvg({ items, activeId }: { items: Hotspot[]; activeId: string | null }) {
+function DynamicWarehouseSvg({ items, activeId }: { items: Item[]; activeId: string | null }) {
   const boxes = items.map((item) => { const layout = layoutById[item.id]; const containerHeight = containerHeightFor(item); const cup = boxFaces(layout, containerHeight); const water = boxFaces(layout, fillHeightFor(item)); const pillars = pillarsFor(layout, containerHeight); const colors = boxColors[layout.zone]; return { item, cup, water, pillars, colors, depth: iso(layout.col, layout.row).y } }).sort((a, b) => a.depth - b.depth)
   const zonePatches = (['A', 'B', 'C', 'D', 'E', 'F'] as const).map((zone) => { const zoneItems = items.filter((item) => item.zoneCode === zone); const layouts = zoneItems.map((item) => layoutById[item.id]); const minCol = Math.min(...layouts.map((layout) => layout.col - layout.w / 2)) - .42; const maxCol = Math.max(...layouts.map((layout) => layout.col + layout.w / 2)) + .42; const minRow = Math.min(...layouts.map((layout) => layout.row - layout.d / 2)) - .42; const maxRow = Math.max(...layouts.map((layout) => layout.row + layout.d / 2)) + .42; const corners = [iso(minCol, minRow), iso(maxCol, minRow), iso(maxCol, maxRow), iso(minCol, maxRow)]; const label = iso((minCol + maxCol) / 2, minRow - .2); return { zone, corners, label } })
   const mainAisle = [iso(.3, 7.23), iso(22.8, 7.23), iso(22.8, 8.27), iso(.3, 8.27)]
@@ -83,7 +86,7 @@ function DynamicWarehouseSvg({ items, activeId }: { items: Hotspot[]; activeId: 
   return <svg className="dynamic-warehouse-svg" viewBox="-882.4 75.7 2222.1 1135.2" role="img" aria-label="재고 비율에 따라 높이가 변하는 창고 아이소뷰"><rect x="-882.4" y="75.7" width="2222.1" height="1135.2" fill="#050B1A" /><polygon points="-342.7,121.7 1305.7,671.2 800,1176.9 -848.4,627.4" fill="#0F1F3E" stroke="#3E6CA8" strokeWidth="1.5" /><g className="aisle-band"><polygon points={points(mainAisle)} /><polyline points={points(mainAisleCenter)} /><polygon points={points(crossAisle)} /><polyline points={points(crossAisleCenter)} /><text x={mainLabel.x} y={mainLabel.y - 8} textAnchor="middle" transform={`rotate(${mainAngle} ${mainLabel.x} ${mainLabel.y - 8})`}>MAIN AISLE · 주통로</text><text x={crossLabel.x} y={crossLabel.y} textAnchor="middle" transform={`rotate(${crossAngle} ${crossLabel.x} ${crossLabel.y})`}>CROSS AISLE · 교차통로</text></g>{zonePatches.map(({ zone, corners, label }) => <g key={zone} className={`zone-patch zone-patch-${zone.toLowerCase()}`}><polygon points={points(corners)} /><text x={label.x} y={label.y} textAnchor="middle">{zone} ZONE</text></g>)}<text x="-455" y="445" fill="#5E86B8" fontSize="10.5">입구 · ENTRY HALL</text>{boxes.map(({ item, cup, water, pillars, colors }) => { const filled = item.used > 0; const waterColor = statusWaterColor[statusOf(item)]; return <g key={item.id} className={`dynamic-box ${activeId === item.id ? 'active' : ''}`}>{pillars.map((pillar, index) => <line key={index} x1={pillar.base.x} y1={pillar.base.y} x2={pillar.top.x} y2={pillar.top.y} stroke={colors.edge} strokeWidth="1.6" strokeLinecap="round" />)}<polygon points={points(cup.rightFace)} fill={colors.side} fillOpacity=".14" stroke={colors.edge} strokeOpacity=".55" strokeWidth="1" /><polygon points={points(cup.leftFace)} fill={colors.side} fillOpacity=".2" stroke={colors.edge} strokeOpacity=".65" strokeWidth="1" />{filled && <><polygon points={points(water.rightFace)} fill={waterColor} fillOpacity=".55" stroke={waterColor} strokeOpacity=".7" strokeWidth="1" /><polygon points={points(water.leftFace)} fill={waterColor} fillOpacity=".7" stroke={waterColor} strokeOpacity=".85" strokeWidth="1" /><polygon points={points(water.top)} fill={waterColor} fillOpacity=".85" stroke={waterColor} strokeWidth="1" /></>}<polygon points={points(cup.top)} fill={colors.top} fillOpacity=".1" stroke={colors.edge} strokeWidth="1.4" /><text x={cup.top.reduce((sum, p) => sum + p.x, 0) / 4} y={cup.top.reduce((sum, p) => sum + p.y, 0) / 4 + 4} fill="#DCEBFF" fontSize="12.5" fontWeight="600" textAnchor="middle">{item.label}</text></g> })}</svg>
 }
 
-export function WarehouseFloorPlan({ summaries }: { summaries: ZoneInventorySummary[] }) {
+export function WarehouseFloorPlan({ occupancy }: { occupancy: Occupancy }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [pinned, setPinned] = useState(false)
   const [scale, setScale] = useState(1)
@@ -93,14 +96,14 @@ export function WarehouseFloorPlan({ summaries }: { summaries: ZoneInventorySumm
   const viewportRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLElement>(null)
   const [viewportMetrics, setViewportMetrics] = useState<{ width: number; height: number; left: number; top: number; sceneWidth: number; sceneHeight: number } | null>(null)
-  const items = hotspots
-  void summaries
+  const items = useMemo<Item[]>(() => hotspots.flatMap((hotspot) => { const found = occupancy[hotspot.id]; return found ? [{ ...hotspot, capacity: found.capacity, used: found.used }] : [] }), [occupancy])
   const totalCapacity = items.reduce((sum, item) => sum + item.capacity, 0)
   const totalUsed = items.reduce((sum, item) => sum + item.used, 0)
   const coldItems = items.filter((item) => item.cold)
-  const coldRate = Math.round(coldItems.reduce((sum, item) => sum + item.used, 0) / coldItems.reduce((sum, item) => sum + item.capacity, 0) * 100)
+  const coldCapacity = coldItems.reduce((sum, item) => sum + item.capacity, 0)
+  const coldRate = coldCapacity ? Math.round(coldItems.reduce((sum, item) => sum + item.used, 0) / coldCapacity * 100) : 0
   const active = activeId ? items.find((item) => item.id === activeId) : undefined
-  const percentage = active ? Math.round(active.used / active.capacity * 100) : 0
+  const percentage = active && active.capacity ? Math.round(active.used / active.capacity * 100) : 0
   const tooltipPlacement = active ? (() => {
     const metrics = viewportMetrics
     if (!metrics) return { left: `${Math.min(Math.max(active.x, 14), 86)}%`, top: `${Math.min(active.y + 10, 76)}%`, above: active.y > 28 }
@@ -155,7 +158,7 @@ export function WarehouseFloorPlan({ summaries }: { summaries: ZoneInventorySumm
   }, [pinned])
 
   return <div className="reference-floor-plan">
-    <div className="reference-stats"><div><span>총 Capacity</span><strong>{totalCapacity.toLocaleString()} <small>ea</small></strong></div><div><span>현재 재고</span><strong>{totalUsed.toLocaleString()} <small>ea</small></strong></div><div><span>전체 가동률</span><strong>{Math.round(totalUsed / totalCapacity * 100)}<small>%</small></strong></div><div><span>냉장(D Zone)</span><strong>{coldRate}<small>%</small></strong></div><div className="warn"><span>주의·포화 Location</span><strong>{items.filter((item) => statusOf(item) !== 'ok').length}<small>/{items.length}</small></strong></div></div>
+    <div className="reference-stats"><div><span>총 Capacity</span><strong>{totalCapacity.toLocaleString()} <small>ea</small></strong></div><div><span>현재 재고</span><strong>{totalUsed.toLocaleString()} <small>ea</small></strong></div><div><span>전체 가동률</span><strong>{totalCapacity ? Math.round(totalUsed / totalCapacity * 100) : 0}<small>%</small></strong></div><div><span>냉장(D Zone)</span><strong>{coldRate}<small>%</small></strong></div><div className="warn"><span>주의·포화 Location</span><strong>{items.filter((item) => statusOf(item) !== 'ok').length}<small>/{items.length}</small></strong></div></div>
     <div className="reference-status-legend"><span>재고 상태</span><i className="status-dot status-ok" /> 정상 <i className="status-dot status-warning" /> 주의 <i className="status-dot status-critical" /> 포화 임박</div>
     <div ref={sceneRef} className={`reference-scene ${dragStart ? 'is-dragging' : ''}`} onMouseLeave={() => { if (!pinned) setActiveId(null) }} onWheel={(event) => { event.preventDefault(); setScale((value) => { const next = Math.min(1.8, Math.max(1, value + (event.deltaY < 0 ? .08 : -.08))); setPan((current) => clampPan(current.x, current.y, next)); return next }) }} onPointerDown={(event) => { if ((event.target as HTMLElement).closest('button')) return; event.currentTarget.setPointerCapture(event.pointerId); setDragStart({ x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y }) }} onPointerMove={(event) => { if (!dragStart) return; const sensitivity = 1.15; setPan(clampPan(dragStart.panX + (event.clientX - dragStart.x) * sensitivity, dragStart.panY + (event.clientY - dragStart.y) * sensitivity)) }} onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); setDragStart(null) }} onPointerCancel={() => setDragStart(null)}>
       <div ref={viewportRef} className="reference-viewport"><div className="reference-stage" style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${scale})` }}><DynamicWarehouseSvg items={items} activeId={activeId} />{items.map((item) => <button key={item.id} type="button" aria-label={`${item.label}, 사용률 ${Math.round(item.used / item.capacity * 100)}%`} className={`reference-hotspot ${item.zoneCode ? `zone-${item.zoneCode.toLowerCase()}` : 'zone-work'} ${statusOf(item)} ${activeId === item.id ? 'active' : ''}`} style={{ left: `${item.x}%`, top: `${item.y}%` }} onPointerDown={(event) => event.stopPropagation()} onMouseEnter={() => { if (!pinned) setActiveId(item.id) }} onMouseLeave={() => { if (!pinned && activeId === item.id) setActiveId(null) }} onFocus={() => { if (!pinned) setActiveId(item.id) }} onBlur={() => { if (!pinned && activeId === item.id) setActiveId(null) }} onClick={() => { setActiveId(item.id); setPinned((value) => activeId === item.id ? !value : true) }} />)}</div></div>

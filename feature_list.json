@@ -395,7 +395,14 @@
     "id": "warehouse-mode-rename",
     "name": "창고 관리자 모드 이름을 '창고 관리'로 변경",
     "description": "업무 모드 이름 '창고 관리자'를 '창고 관리'로 바꾼다(다른 모드 이름과 형식 통일). 모드 id(warehouse-manager)와 WMS role 이름은 유지한다. 재고 서비스 분리 후 겹치는 기능 정리는 별도 작업으로 한다. 완료 기준: build·lint·test 통과, 브라우저에서 모드 선택 모달·사이드바 확인. 이슈 #112.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": []
+  },
+  {
+    "id": "warehouse-card-top-border",
+    "name": "창고 관리 모드 정비(Location 재고 중심)",
+    "description": "창고 관리 모드를 개별 창고의 위치별 재고 확인 중심으로 정비한다(수량·품질 총괄은 재고 관리 모드의 /stock). 대시보드·재고 현황 카드의 상단 색 테두리를 제거하고, 삭제된 WMS /api/inventories 대신 GET /api/location-stocks로 폐기 대상을 읽으며(inventoryId → locationStockId), 재고 현황을 Location 재고(Zone 적재율·Location 용량·Location 재고 실데이터)로 바꾸고, 대시보드 업무 카드·Zone 카드와 창고 평면도를 실데이터로 연결한다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #114.",
+    "status": "in_progress",
+    "dependencies": ["warehouse-mode-rename"]
   }
 ]

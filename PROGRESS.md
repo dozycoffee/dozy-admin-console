@@ -11,7 +11,7 @@
 |---|---|---|
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
-| 창고 관리자 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 현황, 창고 평면도, 대시보드 | dozy-wms-api 실 API (재고 요약 일부·평면도·대시보드 카드는 mock) |
+| 창고 관리 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), Location 재고 `/inventory`, 창고 평면도, 대시보드 | dozy-wms-api 실 API (`GET /api/location-stocks` 포함) |
 | 원자재·재고 관리 | 대시보드(처리 카드: 대사 보정 대기·발행 실패 이벤트, 주의가 필요한 재고 패널: 만료·임박·불량·보류), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절), 발행 실패 이벤트 `/outbox-events`(목록·상세·재발행) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
@@ -27,8 +27,7 @@
   `auth:owner`/`auth:admin`뿐이라 나머지는 `/roles`에서 등록해야 한다.
 - **창고 범위(`AccessScope.warehouseIds`)는 환경 변수로 대체한다.** auth에는 창고 개념이 없고 담당 창고·창고 목록 API도 없어 창고 관리자 모드 사용자에게 `VITE_WAREHOUSE_IDS`를 준다. 재고 관리 모드는 inventory API가 전체 창고를 주므로 범위를 두지 않는다.
 - **dozy-wms-api는 아직 토큰을 검증하지 않는다**(dozy-wms-api ADR-0010의 `CurrentAccessScopeProvider`·`warehouseIds` 교차검증은 인증 연동 때 처리 예정). WMS는 inventory 분리 작업 중이라 WMS 쪽 연동은 건드리지 않는다.
-- **일부 창고 데이터는 프런트 mock이다.** 창고 평면도(`WarehouseFloorPlan.tsx`)·대시보드 Zone 카드(`warehouseMockData.ts`)와 `InventoryPage`의 Location별 재고는 mock이다. 새 F Zone(MD 상품)도 이 mock 레이어에만 있고
-  실제 `zone-summary`는 A~E만 돌려준다 — 운영하려면 dozy-wms-api에 Zone(F)을 먼저 만들어야 한다.
+- **창고 관리 모드의 Location 재고·평면도·대시보드는 dozy-wms-api의 `GET /api/location-stocks`(WMS PR #158)에 의존한다.** 이 API가 배포되기 전의 서버에서는 Location 재고 화면이 오류를 보여준다. 평면도의 칸 위치·모양은 화면에 고정이고 칸 이름은 Location 코드(`A-01`)·작업 처리장 코드와 맞춰야 한다.
 - **직원의 본인 정보(이름·전화번호·주소) 수정은 의도적으로 제외했다.** 관리자가 직원 관리 화면에서 고친다.
 - **role이 없는 직원**은 로그인하면 `/access-denied`로 이동한다(모드가 하나도 없음). owner 양도 수락 화면(`/owner-transfer`)은 콘솔 셸 밖이라 role이 없어도 열 수 있다.
 - **owner 양도**: dozy-auth에 진행 중인 양도 조회 API가 없어 요청 후 상태는 볼 수 없다(취소 버튼은 항상 보인다).
@@ -57,8 +56,19 @@
 ### 2026-10-17 (창고 관리자 모드 이름 변경)
 
 - 이슈 #112, `feat/warehouse-mode-rename` 브랜치. 모드 `label`을 '창고 관리자'에서 '창고 관리'로 바꿨다(다른 모드 이름과 형식 통일). 모드 id `warehouse-manager`와 WMS role 이름(`wms:warehouse_manager`의 '창고 관리자')은 바꾸지 않는다. AGENT.md·권한 정책 체크리스트·관련 테스트의 모드 이름도 갱신했다.
-- 후속: 재고 서비스 분리 이후 창고 관리 모드와 원자재·재고 관리 모드에 겹치는 화면(`/inventory`·`/warehouse-map` 대 `/stock` 등)과 데이터 출처를 정리한다(별도 이슈).
-- 검증: build/lint/test 통과. 🔶 브라우저 확인은 아직 하지 못했다.
+- 검증: build/lint/test 통과. PR #113 머지 전에 브라우저에서 확인했다.
+
+### 2026-10-17 (창고 관리 모드 정비 — Location 재고 중심)
+
+- 이슈 #114, `feat/warehouse-card-top-border` 브랜치(PR #115). 재고 관리 모드는 창고 안 위치를 알 수 없으므로, 창고 관리 모드는 "개별 창고의 어느 위치에 재고가 있는지 확인"하는 화면으로 정비한다. 수량·품질 총괄은 `/stock`(재고 관리 모드)의 몫이다.
+- **전제(WMS)**: 재고 컷오버로 WMS의 `GET /api/inventories`(재고 목록)가 삭제됐고 Location별 재고를 읽을 API가 없어서, dozy-wms-api에 `GET /api/location-stocks`를 추가했다(WMS 이슈 #157, PR #158, ADR-0027). `zone-summary`는 그대로 있다.
+- **카드 상단 색 테두리 제거**: 대시보드 업무 카드(`work-card` 색 변형과 `tone` 데이터)와 재고 현황 요약 카드(`summary-*`)의 3px 상단 테두리를 없앴다. 입고·출고·폐기·반품 화면의 요약 버튼은 건드리지 않았다.
+- **폐기 연동 수정**: 삭제된 `/api/inventories` 대신 `/api/location-stocks`로 폐기 대상을 읽고, 폐기 품목·등록 요청의 `inventoryId`를 `locationStockId`로 바꿨다. 폐기 품목 상품명은 수량 0 행까지 조회해 완료 건도 보인다. `useDisposableInventories`는 `useDisposableLocationStocks`로 대체했다.
+- **재고 현황 → Location 재고(`/inventory`)**: 화면·메뉴 이름을 "Location 재고"로 바꿨다. 재고 요약 카드 5개·작업 처리장·Location mock을 지우고 Zone 적재율(zone-summary), Location 용량(`GET /api/zones/{id}/locations`), Location 재고(`/api/location-stocks`)를 실데이터로 연결했다. 행을 펼치면 상품·Lot·수량·품질·변경 시각이 나오고 검색(Location·상품·Lot)과 Zone·적재 상태 필터가 있다. `?zone=A`로 Zone 필터를 미리 고른다.
+- **대시보드**: 업무 카드를 입고 대기·출고 요청·폐기 승인 대기·반품 접수의 실제 건수로 바꿨다(임박 재고 카드는 inventory 소유라 뺐다). Zone 카드는 zone-summary의 적재율만 보여준다. 하드코딩된 알림·최근 처리 이력과 존재하지 않는 경로(`/quality`, `/inventory/history`) 링크를 지웠다. 새로고침 버튼은 조회를 다시 받는다.
+- **창고 평면도**: 칸별 용량·적재량을 Location 조회와 작업 처리장 조회(`GET /api/warehouses/{id}/work-areas/{areaCode}`, 코드별 단건)로 채운다. 칸 위치·모양은 그대로다. `warehouseMockData.ts`는 삭제했다.
+- 검증: build/lint/test 통과(1228개). 🔶 브라우저 확인은 아직 하지 못했다(로그인 백엔드 없음, WMS 새 API 배포 필요).
+- 후속: 입고 품목의 Zone 표시는 zone-summary에 의존하는 그대로 둔다. `inventory-calls`(WMS 아웃박스) 화면은 이번 범위가 아니다.
 
 ### 2026-10-17 (사이드바 접기 버튼 위치·select 화살표 여백)
 
