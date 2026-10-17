@@ -34,7 +34,7 @@ describe('AppLayout', () => {
 
     expect(screen.getByText('테스트 사용자')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /대시보드/ })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /재고 현황/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Location 재고/ })).toHaveAttribute('href', '/inventory')
   })
 
   it('MD 모드에는 상품 관리 메뉴가 있다', () => {

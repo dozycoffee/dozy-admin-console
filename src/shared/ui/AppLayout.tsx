@@ -10,7 +10,7 @@ import { actorModeIds, getActorMode, type ActorModeId } from '../../features/aut
 
 const operationsNavigation: Array<{ label: string; to: string; permission: Permission }> = [
   { label: '대시보드', to: '/', permission: permissions.dashboardRead },
-  { label: '재고 현황', to: '/inventory', permission: permissions.inventoryRead },
+  { label: 'Location 재고', to: '/inventory', permission: permissions.inventoryRead },
   { label: '창고 평면도', to: '/warehouse-map', permission: permissions.inventoryRead },
 ]
 const warehouseManagerNavigation = [...operationsNavigation, { label: '입고 관리', to: '/inbounds', permission: permissions.inboundRead }, { label: '출고 관리', to: '/outbounds', permission: permissions.outboundRead }, { label: '폐기 관리', to: '/disposals', permission: permissions.disposalRead }, { label: '반품 관리', to: '/returns', permission: permissions.returnRead }]
