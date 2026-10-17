@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { httpClient } from '../../../shared/api/httpClient'
 import { useProducts } from '../../product/model/useProducts'
-import { useDisposableInventories } from '../../inventory/model/useDisposableInventories'
+import { useLocationStocks } from '../../inventory/model/useLocationStocks'
 import {
   disposalItemListSchema, disposalListSchema, disposalSchema, registerDisposalRequestSchema,
   type Disposal, type DisposalItem, type DisposalStatus, type DisposalStatusCounts, type PaginatedDisposal, type RegisterDisposalRequest,
@@ -29,8 +29,8 @@ export function useDisposals(warehouseIds: number[], statuses: DisposalStatus[],
 export type DisposalItemView = DisposalItem & { productName: string | null }
 
 /**
- * 폐기 품목에 상품명을 붙인다. 폐기 대상은 재고(inventoryId)만 가리키고 폐기가 완료되면 재고가 제외되므로,
- * 아직 폐기 가능 재고 목록에 남아 있는 건만 상품명을 알 수 있다 — 완료 건은 null이고 화면은 재고 번호로 대체한다.
+ * 폐기 품목에 상품명을 붙인다. 폐기 대상은 Location 재고 행(locationStockId)만 가리키므로 수량 0 행까지 조회해 상품을 찾는다.
+ * 행이 사라졌거나 상품 마스터에 없으면 null이고 화면은 재고 번호로 대체한다.
  */
 export function useDisposalItems(disposalId: number | undefined, warehouseIds: number[]) {
   const items = useQuery({
@@ -39,16 +39,16 @@ export function useDisposalItems(disposalId: number | undefined, warehouseIds: n
     enabled: disposalId !== undefined,
   })
   const products = useProducts()
-  const inventories = useDisposableInventories(warehouseIds)
+  const stocks = useLocationStocks(warehouseIds, { includeEmpty: true })
   const data: DisposalItemView[] | undefined = items.data?.map((item) => {
-    const inventory = inventories.data?.find((candidate) => candidate.inventoryId === item.inventoryId)
-    const product = inventory && products.data?.find((candidate) => candidate.productId === inventory.productId)
+    const stock = stocks.data?.find((candidate) => candidate.locationStockId === item.locationStockId)
+    const product = stock && products.data?.find((candidate) => candidate.productId === stock.productId)
     return { ...item, productName: product?.productName ?? null }
   })
   return { data, isLoading: items.isLoading, isError: items.isError, error: items.error }
 }
 
-// 승인은 재고를 폐기 처리장으로 옮기고, 완료는 재고를 제외하므로 inventory 쿼리도 무효화한다.
+// 승인은 재고를 폐기 처리장으로 옮기고, 완료는 재고 수량을 줄이므로 inventory 쿼리도 무효화한다.
 function useInvalidatingMutation<TVariables>(mutationFn: (variables: TVariables) => Promise<unknown>) {
   const queryClient = useQueryClient()
   return useMutation({

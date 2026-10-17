@@ -41,16 +41,21 @@ export function quantityOf(summary: ZoneInventorySummary, status: QualityStatus)
 
 export const zoneInventorySummaryListSchema = z.array(zoneInventorySummarySchema)
 
-// GET /api/inventories 응답 한 건 (재고 목록 조회).
-export const inventoryItemSchema = z.object({
-  inventoryId: z.number(),
-  productId: z.number(),
-  lotId: z.number(),
+// GET /api/location-stocks 응답 한 건(Location 장부 행). 상품명은 주지 않는다.
+export const locationStockSchema = z.object({
+  locationStockId: z.number(),
+  warehouseId: z.number(),
+  zoneId: z.number(),
+  zoneCode: zoneCodeSchema,
   locationId: z.number(),
-  quantity: z.number(),
-  allocatedQuantity: z.number(),
-  availableQuantity: z.number(),
+  locationCode: z.string(),
+  productId: z.number(),
+  lotNumber: z.string(),
   qualityStatus: qualityStatusSchema,
+  quantity: z.number(),
+  heldQuantity: z.number(),
+  availableQuantity: z.number(),
+  updatedAt: z.string().nullable(),
 })
-export type InventoryItem = z.infer<typeof inventoryItemSchema>
-export const inventoryItemListSchema = z.array(inventoryItemSchema)
+export type LocationStock = z.infer<typeof locationStockSchema>
+export const locationStockListSchema = z.object({ items: z.array(locationStockSchema) })
