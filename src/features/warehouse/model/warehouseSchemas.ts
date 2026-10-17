@@ -27,3 +27,18 @@ export const locationSchema = z.object({
 })
 export type Location = z.infer<typeof locationSchema>
 export const locationListSchema = z.array(locationSchema)
+
+export const areaCodeSchema = z.enum(['INBOUND', 'OUTBOUND', 'RETURN', 'DISPOSAL'])
+export type AreaCode = z.infer<typeof areaCodeSchema>
+
+/** `GET /api/warehouses/{warehouseId}/work-areas/{areaCode}`. 입고·출고·반품·폐기 처리장의 용량이다. */
+export const workAreaSchema = z.object({
+  workAreaId: z.number(),
+  warehouseId: z.number(),
+  areaCode: areaCodeSchema,
+  areaName: z.string(),
+  maxCapacity: z.number(),
+  usedCapacity: z.number(),
+  workAreaStatus: warehouseStatusSchema,
+})
+export type WorkArea = z.infer<typeof workAreaSchema>
