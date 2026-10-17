@@ -4,13 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/ApiError'
 import type { StockItem } from '../../features/stock/model/stockSchemas'
-import { useAllMaterials } from '../../features/material/model/useMaterials'
+import { useMaterialSearch } from '../../features/material/model/useMaterials'
 import { useStockHistories, useStockSummaries, useStocks } from '../../features/stock/model/useStocks'
 import { useWarehouseList } from '../../features/warehouse/model/useWarehouses'
 import { StockPage } from './StockPage'
 
 vi.mock('../../features/stock/model/useStocks', () => ({ useStocks: vi.fn(), useStockHistories: vi.fn(), useStockSummaries: vi.fn() }))
-vi.mock('../../features/material/model/useMaterials', () => ({ useAllMaterials: vi.fn() }))
+vi.mock('../../features/material/model/useMaterials', () => ({ useMaterialSearch: vi.fn() }))
 vi.mock('../../features/warehouse/model/useWarehouses', () => ({ useWarehouseList: vi.fn() }))
 
 const item = (overrides: Partial<StockItem> = {}): StockItem => ({
@@ -23,7 +23,7 @@ const products = [{ productId: 100, productCode: 'BEAN-1', productName: '에티�
 
 function setup(items: StockItem[], { warehouseData = warehouses, page = { page: 0, size: 20, totalElements: items.length, totalPages: 1 }, state = {}, path = '/stock?view=rows' }: { warehouseData?: unknown; page?: object; state?: object; path?: string } = {}) {
   vi.mocked(useStocks).mockReturnValue({ isLoading: false, isError: false, data: { items, ...page }, ...state } as never)
-  vi.mocked(useAllMaterials).mockReturnValue({ data: products } as never)
+  vi.mocked(useMaterialSearch).mockReturnValue({ data: { items: products, page: 0, size: 20, totalElements: products.length }, isFetching: false } as never)
   vi.mocked(useWarehouseList).mockReturnValue({ data: warehouseData } as never)
   vi.mocked(useStockSummaries).mockReturnValue({ isLoading: false, isError: false, data: { items: [summary], page: 0, size: 20, totalElements: 1, totalPages: 1 } } as never)
   vi.mocked(useStockHistories).mockReturnValue({ isLoading: false, isError: false, data: { items: [], page: 0, size: 10, totalElements: 0, totalPages: 1 } } as never)

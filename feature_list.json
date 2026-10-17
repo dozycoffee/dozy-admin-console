@@ -383,5 +383,12 @@
     "description": "사이드바 접기/펴기 버튼을 사용자 카드 아래로 옮기고(테두리 없는 메뉴 항목 스타일, 로그아웃과 글자 크기 정렬) 접힌 상태에서 로고와 첫 메뉴 사이 간격을 둔다. 네이티브 select의 화살표가 테두리에 붙어 보이는 것을 직접 그린 chevron으로 바꿔 오른쪽 여백을 둔다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #108.",
     "status": "completed",
     "dependencies": []
+  },
+  {
+    "id": "inventory-product-server-search",
+    "name": "상품 검색을 서버 검색으로 변경(재고 현황 상품 필터·원자재 화면)",
+    "description": "dozy-inventory-api의 상품 목록 keyword 검색(ADR-0044)으로 재고 현황의 상품 필터를 서버 검색으로 바꾼다. 입력이 250ms 멈춘 뒤 GET /api/v1/products?keyword=를 20건씩 읽어 선택지로 보여주고 더 있으면 개수를 안내하며, 고른 상품 이름은 결과가 바뀌어도 유지한다. 공용 SearchSelect에 서버 검색 모드(onQueryChange·loading·selectedLabel·hiddenCount)를 더하고 useDebouncedValue를 추가한다. 원자재 화면의 코드(정확 일치) 입력은 코드·이름(부분 일치) 검색으로 바꾼다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #107.",
+    "status": "in_progress",
+    "dependencies": ["inventory-product-search"]
   }
 ]

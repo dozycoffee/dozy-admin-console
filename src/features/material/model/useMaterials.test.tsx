@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { inventoryHttpClient } from '../../../shared/api/httpClient'
-import { toMaterialQueryParams, useAllMaterials, useChangeMaterialStatus, useMaterials, useRegisterMaterial } from './useMaterials'
+import { toMaterialQueryParams, useAllMaterials, useChangeMaterialStatus, useMaterialSearch, useMaterials, useRegisterMaterial } from './useMaterials'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -18,12 +18,12 @@ function setup() {
 
 describe('toMaterialQueryParams', () => {
   it('비어 있는 조건은 빼고 페이지만 담는다', () => {
-    expect(toMaterialQueryParams({ code: '', category: '', status: '', page: 0, size: 20 })).toEqual({ page: 0, size: 20 })
+    expect(toMaterialQueryParams({ keyword: '', category: '', status: '', page: 0, size: 20 })).toEqual({ page: 0, size: 20 })
   })
 
   it('입력한 조건을 담는다', () => {
-    expect(toMaterialQueryParams({ code: 'BEAN-1', category: 'BEAN', status: 'ACTIVE', page: 2, size: 20 }))
-      .toEqual({ code: 'BEAN-1', category: 'BEAN', status: 'ACTIVE', page: 2, size: 20 })
+    expect(toMaterialQueryParams({ keyword: '원두', category: 'BEAN', status: 'ACTIVE', page: 2, size: 20 }))
+      .toEqual({ keyword: '원두', category: 'BEAN', status: 'ACTIVE', page: 2, size: 20 })
   })
 })
 
@@ -37,6 +37,29 @@ describe('useMaterials', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(get).toHaveBeenCalledWith('/api/v1/products', { params: { category: 'BEAN', page: 0, size: 20 } })
     expect(result.current.data?.items[0].productName).toBe('원자재 1')
+  })
+})
+
+describe('useMaterialSearch', () => {
+  it('검색어를 앞뒤 공백을 없애 서버에 보내고 처음 20건만 읽는다', async () => {
+    const get = vi.spyOn(inventoryHttpClient, 'get').mockResolvedValue({ data: { items: [material(1)], page: 0, size: 20, totalElements: 57 } })
+    const { wrapper } = setup()
+
+    const { result } = renderHook(() => useMaterialSearch('  원두 '), { wrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(get).toHaveBeenCalledWith('/api/v1/products', { params: { keyword: '원두', page: 0, size: 20 } })
+    expect(result.current.data?.totalElements).toBe(57)
+  })
+
+  it('검색어가 비어 있으면 keyword 없이 처음 20건을 읽는다', async () => {
+    const get = vi.spyOn(inventoryHttpClient, 'get').mockResolvedValue({ data: { items: [], page: 0, size: 20, totalElements: 0 } })
+    const { wrapper } = setup()
+
+    const { result } = renderHook(() => useMaterialSearch('   '), { wrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(get).toHaveBeenCalledWith('/api/v1/products', { params: { page: 0, size: 20 } })
   })
 })
 

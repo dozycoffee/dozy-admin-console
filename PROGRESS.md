@@ -61,6 +61,16 @@
 - **select 화살표**: 네이티브 화살표가 테두리에 붙어 보여서 `select` 전체에 화살표를 직접 그리고(`appearance: none` + chevron 배경, 오른쪽 12px) 안쪽 오른쪽 여백을 32px 둔다. `index.css` 맨 아래 전역 규칙이며 `multiple`·`size` select는 제외했다.
 - 검증: build/lint/test 통과. 🔶 브라우저 확인은 하지 못했다(로그인 백엔드 없음).
 
+### 2026-10-15 (상품 검색 서버 검색)
+
+- 이슈 #107, `feat/inventory-product-server-search` 브랜치. inventory 상품 목록의 `keyword` 검색(dozy-inventory-api F-029·ADR-0044, 앞뒤 공백을 뺀 글자가 코드나 이름에 들어 있는 상품을 부분 일치·대소문자 무시로 찾음)이 머지되어야 동작한다.
+- **재고 현황 상품 필터**: 원자재 목록을 처음 500건까지 받아 콘솔에서 거르던 것을 서버 검색으로 바꿨다. 입력이 250ms 멈춘 뒤(`useDebouncedValue`) `GET /api/v1/products?keyword=`를 20건씩 읽고(`useMaterialSearch`) 더 있으면 "N개가 더 있습니다"로 안내한다. 고른 상품의 이름은 검색 결과가 바뀌어도 폼이 기억해 입력칸에 유지한다.
+  재고 현황이 더 이상 원자재 전체를 받지 않는다(`StockFilterForm`의 `products` prop과 `StockPage`의 `useAllMaterials` 제거).
+- **`SearchSelect` 서버 검색 모드**: `onQueryChange`(입력할 때마다·닫을 때 빈 문자열), `loading`("검색 중..."), `selectedLabel`(고른 항목이 결과에 없을 때의 이름), `hiddenCount`(서버에 더 있는 수)를 추가했다. 이 모드에서는 받은 항목을 다시 거르지 않는다.
+- **원자재 화면**: "원자재 코드"(정확 일치)를 "코드·이름"(부분 일치, 서버가 거름)으로 바꿨다. 등록 직후에는 방금 등록한 코드로 검색한다.
+- 남는 한계: 대사 보정안 화면은 상품 이름을 `useAllMaterials`(최대 500건)로 채운다 — 보정안 응답에 상품 정보를 담는 변경이 필요하다.
+- 검증: build/lint/test 통과. 🔶 브라우저 확인은 하지 못했다(inventory 서버를 새 코드로 다시 띄워야 한다).
+
 ### 2026-10-15 (대사 보정안 확인창·오류 안내 개선)
 
 - 이슈 #99, `feat/inventory-review-polish` 브랜치. 로컬 시드(보정안 6건, 격리 이벤트 3건)로 화면을 확인하던 중 나온 개선이다.

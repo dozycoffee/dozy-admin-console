@@ -60,29 +60,29 @@ describe('MaterialsPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('이 작업을 할 권한이 없습니다.')
   })
 
-  it('코드를 대문자로 맞춰 카테고리·상태와 함께 조회한다', async () => {
+  it('코드·이름 검색어의 앞뒤 공백을 없애 카테고리·상태와 함께 서버에 조회한다', async () => {
     const user = userEvent.setup()
     setup([material()])
 
-    await user.type(screen.getByLabelText('원자재 코드'), ' bean-1 ')
+    await user.type(screen.getByLabelText('코드·이름'), ' 원두 ')
     await user.selectOptions(screen.getByLabelText('카테고리'), 'BEAN')
     await user.selectOptions(screen.getByLabelText('상태'), 'ACTIVE')
     await user.click(screen.getByRole('button', { name: '조회' }))
 
-    expect(vi.mocked(useMaterials)).toHaveBeenLastCalledWith({ code: 'BEAN-1', category: 'BEAN', status: 'ACTIVE', page: 0, size: 20 })
-    expect(screen.getByLabelText('원자재 코드')).toHaveValue('BEAN-1')
+    expect(vi.mocked(useMaterials)).toHaveBeenLastCalledWith({ keyword: '원두', category: 'BEAN', status: 'ACTIVE', page: 0, size: 20 })
+    expect(screen.getByLabelText('코드·이름')).toHaveValue('원두')
   })
 
   it('초기화하면 조건을 모두 비우고 다시 조회한다', async () => {
     const user = userEvent.setup()
     setup([material()])
 
-    await user.type(screen.getByLabelText('원자재 코드'), 'bean-1')
+    await user.type(screen.getByLabelText('코드·이름'), 'bean-1')
     await user.click(screen.getByRole('button', { name: '조회' }))
     await user.click(screen.getByRole('button', { name: '초기화' }))
 
     expect(vi.mocked(useMaterials)).toHaveBeenLastCalledWith({ page: 0, size: 20 })
-    expect(screen.getByLabelText('원자재 코드')).toHaveValue('')
+    expect(screen.getByLabelText('코드·이름')).toHaveValue('')
   })
 
   it('20건을 넘으면 페이지를 넘길 수 있다', async () => {

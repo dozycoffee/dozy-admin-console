@@ -44,8 +44,8 @@ export const materialPageSchema = z.object({ items: z.array(materialSchema), pag
 
 /** 원자재 목록 조회 조건. 비어 있는 값은 쿼리에서 뺀다. */
 export type MaterialFilters = {
-  /** 서버는 상품 코드를 대문자로 저장하고 정확히 일치하는 것만 찾는다. */
-  code?: string
+  /** 코드나 이름에 들어 있는 글자(부분 일치, 대소문자 무시). 서버가 거른다. */
+  keyword?: string
   category?: string
   status?: string
 }
