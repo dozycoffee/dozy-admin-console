@@ -159,7 +159,6 @@ a { color: inherit; text-decoration: none; }
 .work-card strong { color: #33241e; font-size: 32px; letter-spacing: -.05em; }
 .work-card small { color: #9b918c; font-size: 12px; }
 .work-card em { margin-top: 7px; color: #8a7165; font-size: 12px; font-style: normal; font-weight: 700; }
-.work-card.blue { border-top: 3px solid #65829a; }.work-card.orange { border-top: 3px solid #c68a42; }.work-card.red { border-top: 3px solid #b45b4d; }.work-card.brown { border-top: 3px solid #765041; }
 .dashboard-panel { min-height: auto; padding: 22px; }
 .panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .panel-links { display: flex; gap: 14px; }
@@ -173,7 +172,6 @@ a { color: inherit; text-decoration: none; }
 .inventory-summary-grid strong { display: block; margin: 9px 0 5px; color: #33241e; font-size: 26px; letter-spacing: -.05em; }
 .inventory-summary-grid strong small { color: #9b918c; font-size: 11px; letter-spacing: 0; }
 .inventory-summary-grid em { color: #a19590; font-size: 11px; font-style: normal; }
-.inventory-summary-grid .summary-ok { border-top: 3px solid #5eb88a; }.inventory-summary-grid .summary-warning { border-top: 3px solid #d7a13b; }.inventory-summary-grid .summary-danger { border-top: 3px solid #c56a5a; }
 .inventory-zone-panel, .inventory-location-panel { min-height: auto; }
 .inventory-zone-panel .panel-heading, .inventory-location-panel .panel-heading { align-items: center; }
 .inventory-count { color: #9b918c; font-size: 12px; }

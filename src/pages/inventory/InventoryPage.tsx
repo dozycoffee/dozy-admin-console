@@ -113,9 +113,9 @@ export function InventoryPage() {
               <section className="inventory-summary-grid" aria-label="재고 요약">
                 <article><span>전체 재고</span><strong>{totals.stock.toLocaleString()}<small> ea</small></strong><em>전체 용량 {totals.capacity.toLocaleString()} ea</em></article>
                 <article><span>전체 가동률</span><strong>{totals.capacity ? Math.round(totals.stock / totals.capacity * 100) : 0}<small>%</small></strong><em>담당 창고 기준</em></article>
-                <article className="summary-ok"><span>정상 재고</span><strong>{totals.normal.toLocaleString()}<small> ea</small></strong><em>정상 품질 상태</em></article>
-                <article className="summary-warning"><span>불량 재고</span><strong>{totals.defective.toLocaleString()}<small> ea</small></strong><em>확인 및 분리 필요</em></article>
-                <article className="summary-danger"><span>폐기 예정</span><strong>{totals.disposal.toLocaleString()}<small> ea</small></strong><em>폐기 처리 대기</em></article>
+                <article><span>정상 재고</span><strong>{totals.normal.toLocaleString()}<small> ea</small></strong><em>정상 품질 상태</em></article>
+                <article><span>불량 재고</span><strong>{totals.defective.toLocaleString()}<small> ea</small></strong><em>확인 및 분리 필요</em></article>
+                <article><span>폐기 예정</span><strong>{totals.disposal.toLocaleString()}<small> ea</small></strong><em>폐기 처리 대기</em></article>
               </section>
 
               <section className="panel inventory-zone-panel"><div className="panel-heading"><div><p className="eyebrow">ZONE SUMMARY</p><h2>Zone별 요약</h2></div><span className="inventory-count">{summaries.length} Zones</span></div><div className="inventory-zone-grid">{summaries.map((zone) => <article className="inventory-zone-card" key={zone.zoneId}><header><strong>{zoneCodeLabels[zone.zoneCode]}</strong><b>사용률 {Math.round(zone.usageRate * 100)}%</b></header><div className="usage-bar"><div className={`usage-bar-fill ${statusOf(zone.usedCapacity, zone.maxCapacity)}`} style={{ width: `${Math.min(zone.usageRate * 100, 100)}%` }} /></div><p><strong>{zone.usedCapacity}</strong> / {zone.maxCapacity} <span>잔여 {zone.maxCapacity - zone.usedCapacity}</span></p><small><b>정상 {zone.quantityByQualityStatus.NORMAL ?? 0}</b><b>불량 {zone.quantityByQualityStatus.DEFECTIVE ?? 0}</b><b>폐기 예정 {zone.quantityByQualityStatus.DISPOSAL_SCHEDULED ?? 0}</b></small></article>)}</div></section>

@@ -4,10 +4,10 @@ import { mockWarehouseName, mockZoneSummaries } from './warehouseMockData'
 
 // BFF 계약이 정해지면 이 값들은 dashboard summary API 응답으로 교체한다.
 const pendingWork = [
-  { label: '입고 대기', count: 12, description: '검수 전 입고 건', to: '/inbounds?status=WAITING', tone: 'brown' },
-  { label: '출고 피킹', count: 8, description: '피킹이 필요한 요청', to: '/outbounds?status=PICKING', tone: 'blue' },
-  { label: '임박 재고', count: 5, description: '7일 이내 유통기한', to: '/quality?status=EXPIRING', tone: 'orange' },
-  { label: '폐기 처리 대기', count: 3, description: '확정 전 폐기 대상', to: '/disposals?status=PENDING', tone: 'red' },
+  { label: '입고 대기', count: 12, description: '검수 전 입고 건', to: '/inbounds?status=WAITING' },
+  { label: '출고 피킹', count: 8, description: '피킹이 필요한 요청', to: '/outbounds?status=PICKING' },
+  { label: '임박 재고', count: 5, description: '7일 이내 유통기한', to: '/quality?status=EXPIRING' },
+  { label: '폐기 처리 대기', count: 3, description: '확정 전 폐기 대상', to: '/disposals?status=PENDING' },
 ]
 
 const alerts = [
@@ -41,7 +41,7 @@ export function DashboardPage() {
       </header>
 
       <section className="work-grid" aria-label="업무 대기 현황">
-        {pendingWork.map((item) => <Link className={`work-card ${item.tone}`} to={item.to} key={item.label}><span>{item.label}</span><strong>{item.count}</strong><small>{item.description}</small><em>바로가기 ›</em></Link>)}
+        {pendingWork.map((item) => <Link className="work-card" to={item.to} key={item.label}><span>{item.label}</span><strong>{item.count}</strong><small>{item.description}</small><em>바로가기 ›</em></Link>)}
       </section>
 
       <section className="panel dashboard-panel">
