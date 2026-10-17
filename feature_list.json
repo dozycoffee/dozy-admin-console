@@ -390,5 +390,12 @@
     "description": "dozy-inventory-api의 상품 목록 keyword 검색(ADR-0044)으로 재고 현황의 상품 필터를 서버 검색으로 바꾼다. 입력이 250ms 멈춘 뒤 GET /api/v1/products?keyword=를 20건씩 읽어 선택지로 보여주고 더 있으면 개수를 안내하며, 고른 상품 이름은 결과가 바뀌어도 유지한다. 공용 SearchSelect에 서버 검색 모드(onQueryChange·loading·selectedLabel·hiddenCount)를 더하고 useDebouncedValue를 추가한다. 원자재 화면의 코드(정확 일치) 입력은 코드·이름(부분 일치) 검색으로 바꾼다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #107.",
     "status": "completed",
     "dependencies": ["inventory-product-search"]
+  },
+  {
+    "id": "warehouse-mode-rename",
+    "name": "창고 관리자 모드 이름을 '창고 관리'로 변경",
+    "description": "업무 모드 이름 '창고 관리자'를 '창고 관리'로 바꾼다(다른 모드 이름과 형식 통일). 모드 id(warehouse-manager)와 WMS role 이름은 유지한다. 재고 서비스 분리 후 겹치는 기능 정리는 별도 작업으로 한다. 완료 기준: build·lint·test 통과, 브라우저에서 모드 선택 모달·사이드바 확인. 이슈 #112.",
+    "status": "in_progress",
+    "dependencies": []
   }
 ]
