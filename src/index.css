@@ -41,14 +41,16 @@ a { color: inherit; text-decoration: none; }
 .brand img { width: 28px; height: 28px; flex: 0 0 28px; margin-right: 9px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); }
 .brand .brand-name { color: #fff; font-weight: 800; }
 .brand .brand-name b { color: #bea9a0; font-weight: 400; }
-.sidebar-toggle { display: grid; place-items: center; width: 24px; height: 24px; margin-left: auto; padding: 0; border: 0; border-radius: 7px; background: #f4efec; color: #4b342b; font-size: 17px; line-height: 1; cursor: pointer; pointer-events: auto; transition: background .15s ease, transform .15s ease; }
-.sidebar-toggle:hover { background: #fff; transform: scale(1.05); }
+.sidebar-toggle { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; min-height: 36px; margin-top: 8px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #cfbbb1; font: inherit; font-size: 12px; cursor: pointer; transition: color .15s ease, background .15s ease; }
+.sidebar-toggle > span[aria-hidden] { flex: 0 0 16px; text-align: center; font-size: 18px; line-height: 1; }
+.sidebar-toggle:hover { color: #fff; background: #34251f; }
 .nav-link { justify-content: flex-start; gap: 10px; transition: color .15s ease, background .15s ease, padding .28s ease; }
 .nav-link-label { white-space: nowrap; overflow: hidden; transition: opacity .16s ease; }
 .nav-icon { width: 16px; height: 16px; flex: 0 0 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .logout-button { display: flex; align-items: center; gap: 9px; }
 .sidebar.collapsed { padding-left: 12px; padding-right: 12px; overflow: visible; }
 .sidebar.collapsed .brand { width: 100%; justify-content: center; padding: 0; font-size: 0; }
+.sidebar.collapsed .sidebar-nav:not(.account-nav) { margin-top: 28px; }
 .sidebar.collapsed .brand img { width: 34px; height: 34px; margin-right: 0; }
 .sidebar.collapsed .brand span,
 .sidebar.collapsed .active-mode-summary,
@@ -56,14 +58,15 @@ a { color: inherit; text-decoration: none; }
 .sidebar.collapsed .nav-link-label,
 .sidebar.collapsed .user-card strong,
 .sidebar.collapsed .logout-button span { display: none; }
-.sidebar.collapsed .sidebar-toggle { position: absolute; z-index: 3; top: 50%; right: -24px; width: 24px; height: 24px; border: 1px solid #b9aaa2; border-radius: 7px; background: #fffdfb; color: #4b342b; font-size: 17px; box-shadow: 0 2px 5px rgb(36 25 20 / 20%); transform: translateY(-50%); }
-.sidebar.collapsed .sidebar-toggle:hover { border-color: #92776a; background: #fff; transform: translateY(-50%) scale(1.05); }
+.sidebar.collapsed .sidebar-toggle { justify-content: center; padding: 0; }
+.sidebar.collapsed .sidebar-toggle-label { display: none; }
 .sidebar.collapsed .nav-link { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
 .sidebar.collapsed .nav-link small { display: none; }
 .sidebar.collapsed .user-card { padding-left: 0; padding-right: 0; }
 .sidebar.collapsed .logout-button { justify-content: center; width: 100%; }
 .sidebar.collapsed .nav-active-slider { left: 0; right: 0; }
 .sidebar.collapsed .nav-link[title] { position: relative; }
+.sidebar.collapsed .sidebar-toggle[title]:hover::after,
 .sidebar.collapsed .nav-link[title]:hover::after { content: attr(title); position: absolute; z-index: 1000; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); padding: 7px 9px; border-radius: 7px; background: #fff; color: #4b342b; box-shadow: 0 8px 20px rgb(36 25 20 / 18%); font-size: 12px; white-space: nowrap; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .app-shell, .sidebar, .nav-link, .nav-link-label, .sidebar-toggle { transition: none; } }
 .auth-loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #786d68; }
@@ -248,8 +251,9 @@ a { color: inherit; text-decoration: none; }
   .sidebar.collapsed { padding: 30px 18px; }
   .sidebar.collapsed .brand { justify-content: initial; padding: 0 10px; font-size: 18px; }
   .sidebar.collapsed .brand img { width: 28px; height: 28px; margin-right: 9px; }
-  .sidebar.collapsed .sidebar-toggle { right: 0; border-color: #b9aaa2; background: #fffdfb; color: #4b342b; box-shadow: 0 2px 5px rgb(36 25 20 / 20%); transform: translateY(-50%); }
-  .sidebar.collapsed .sidebar-toggle:hover { border-color: #92776a; background: #fff; transform: translateY(-50%) scale(1.05); }
+  .sidebar.collapsed .sidebar-toggle { justify-content: flex-start; padding: 0 12px; }
+  .sidebar.collapsed .sidebar-toggle-label { display: initial; }
+  .sidebar.collapsed .sidebar-nav:not(.account-nav) { margin-top: 0; }
   .sidebar.collapsed .brand span,
   .sidebar.collapsed .nav-label,
   .sidebar.collapsed .nav-link-label,
@@ -1038,3 +1042,7 @@ a { color: inherit; text-decoration: none; }
 .review-compare i { color: #9b918c; font-size: 11px; font-style: normal; }
 .review-compare .review-arrow { color: #b7aca6; font-size: 16px; }
 .review-compare .review-change { padding-left: 10px; border-left: 1px solid #e4ddd9; }
+
+/* 네이티브 select는 화살표가 테두리에 붙어 보여서 직접 그리고 오른쪽 여백을 둔다 */
+select:not([multiple]):not([size]) { appearance: none; padding-right: 32px; background-color: #fff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23786d68' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; }
+select:not([multiple]):not([size]):disabled { background-color: #f6f3f1; }

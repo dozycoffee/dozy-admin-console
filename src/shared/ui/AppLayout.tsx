@@ -65,7 +65,7 @@ export function AppLayout() {
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="brand"><img src={dozyCoffeeLogo} alt="DOZY COFFEE 로고" /><span className="brand-name">DOZY <b>COFFEE</b></span><button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed((value) => !value)}>{sidebarCollapsed ? '›' : '‹'}</button></div>
+        <div className="brand"><img src={dozyCoffeeLogo} alt="DOZY COFFEE 로고" /><span className="brand-name">DOZY <b>COFFEE</b></span></div>
         <button type="button" className="active-mode-summary" onClick={() => setModeModalOpen(true)} aria-label="업무 모드 변경">
           <small>CURRENT MODE</small>
           <strong>{currentMode?.shortLabel ?? '모드를 선택하세요'}</strong>
@@ -103,6 +103,7 @@ export function AppLayout() {
           <Link className="user-card-link" to="/account" title="내 계정"><strong>{user.name}</strong></Link>
           <button type="button" className="logout-button" onClick={() => setLogoutModalOpen(true)}><NavIcon name="logout" /><span>로그아웃</span></button>
         </div>
+        <button type="button" className="sidebar-toggle" title={sidebarCollapsed ? '사이드바 펼치기' : undefined} aria-label={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed((value) => !value)}><span aria-hidden="true">{sidebarCollapsed ? '›' : '‹'}</span><span className="sidebar-toggle-label">{sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'}</span></button>
       </aside>
       <main key={`${location.pathname}${location.search}`} className="content route-transition"><Outlet /></main>
       <ActorModeModal open={modeModalOpen || activeActorMode === null} onClose={() => setModeModalOpen(false)} onSelected={finishModeSelection} />
