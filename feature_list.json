@@ -376,5 +376,12 @@
     "description": "대사 보정안 승인·거절 확인창을 대상(상품·코드·Lot·품질·창고)과 inventory → WMS 수량 비교·변동량·결과 안내로 나눠 배치한다(ConfirmModal에 본문 영역 children 추가). 응답 없음·5xx 같은 일시적 실패(isTransientApiError)는 대사 보정안 승인·거절, 발행 실패 이벤트 재발행, 원자재 사용 중지·재개의 확인 뒤 오류 토스트로 알리고, 409·404 같은 업무 오류는 화면에 남긴다. 발행 실패 이벤트의 마지막 오류는 칸 너비의 한 줄만 보이고 넘치면 말줄임으로 줄인다(전체는 툴팁·상세 모달). 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #99.",
     "status": "in_progress",
     "dependencies": ["inventory-reconciliation-screen", "inventory-outbox-events-screen"]
+  },
+  {
+    "id": "sidebar-toggle-inside",
+    "name": "사이드바 접기 버튼 위치·select 화살표 여백 정리",
+    "description": "사이드바 접기/펴기 버튼을 사용자 카드 아래로 옮기고(테두리 없는 메뉴 항목 스타일, 로그아웃과 글자 크기 정렬) 접힌 상태에서 로고와 첫 메뉴 사이 간격을 둔다. 네이티브 select의 화살표가 테두리에 붙어 보이는 것을 직접 그린 chevron으로 바꿔 오른쪽 여백을 둔다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #108.",
+    "status": "completed",
+    "dependencies": []
   }
 ]
