@@ -402,14 +402,14 @@
     "id": "warehouse-card-top-border",
     "name": "창고 관리 모드 정비(Location 재고 중심)",
     "description": "창고 관리 모드를 개별 창고의 위치별 재고 확인 중심으로 정비한다(수량·품질 총괄은 재고 관리 모드의 /stock). 대시보드·재고 현황 카드의 상단 색 테두리를 제거하고, 삭제된 WMS /api/inventories 대신 GET /api/location-stocks로 폐기 대상을 읽으며(inventoryId → locationStockId), 재고 현황을 Location 재고(Zone 적재율·Location 용량·Location 재고 실데이터)로 바꾸고, 대시보드 업무 카드·Zone 카드와 창고 평면도를 실데이터로 연결한다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #114.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["warehouse-mode-rename"]
   },
   {
     "id": "warehouse-ui-polish",
     "name": "Location 재고 품질 배지 위치와 창고 업무 등록 폼 스타일 정리",
     "description": "Location 재고 펼친 행의 품질 배지를 상태 열 아래로 옮기고(이슈 #116), 입고·출고·폐기·반품 등록 폼과 Lot 확정 입력에 입력칸·선택·버튼 스타일을 추가한다(이슈 #117). 완료 기준: build·lint·test 통과, 브라우저에서 확인.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["warehouse-card-top-border"]
   }
 ]

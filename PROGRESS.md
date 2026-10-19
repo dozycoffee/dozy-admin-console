@@ -64,7 +64,7 @@
 - **#116**: Location 재고에서 Location을 펼쳤을 때 상품 행의 품질 배지(정상·불량·폐기 예정)를 "품질" 열(7번째)이 아니라 "상태" 열(6번째) 아래에 놓았다. 배지가 줄바꿈되지 않도록 `white-space: nowrap`을 줬다.
 - **#117**: 입고·출고·폐기·반품 관리의 등록 폼(`inbound-register`)과 입고·반품의 Lot 확정 입력(`lot-row`)에는 처음부터 입력칸·선택·버튼 스타일이 없어 브라우저 기본 모양이었다. 검수 행(`inspection-row`)과 같은 입력칸 모양, 보조 버튼(품목 추가·삭제), 하단 버튼 줄 정렬, 도착 예정일 한 칸 배치를 `index.css` 맨 아래에 추가했다. 이력 화면의 페이지 버튼·요약·탭은 이미 전용 스타일이 있어 건드리지 않았다.
 - 로컬 확인용으로 WMS(`dozy_wms`)에 상품 30건·Location 재고 53행을 시드했다(레포 밖 `~/dev/projects/dozy/local-seed/`, 깃에 올리지 않음). 시드 수량은 inventory와 맞지 않아 대사에는 쓰지 않는다.
-- 검증: build/lint 통과(CSS 변경이라 새 테스트 없음). 🔶 브라우저 확인은 아직 하지 못했다.
+- 검증: build/lint 통과(CSS 변경이라 새 테스트 없음). 브라우저 확인은 PR #118 머지 전에 직접 진행했다.
 
 ### 2026-10-17 (창고 관리 모드 정비 — Location 재고 중심)
 
@@ -75,7 +75,7 @@
 - **재고 현황 → Location 재고(`/inventory`)**: 화면·메뉴 이름을 "Location 재고"로 바꿨다. 재고 요약 카드 5개·작업 처리장·Location mock을 지우고 Zone 적재율(zone-summary), Location 용량(`GET /api/zones/{id}/locations`), Location 재고(`/api/location-stocks`)를 실데이터로 연결했다. 행을 펼치면 상품·Lot·수량·품질·변경 시각이 나오고 검색(Location·상품·Lot)과 Zone·적재 상태 필터가 있다. `?zone=A`로 Zone 필터를 미리 고른다.
 - **대시보드**: 업무 카드를 입고 대기·출고 요청·폐기 승인 대기·반품 접수의 실제 건수로 바꿨다(임박 재고 카드는 inventory 소유라 뺐다). Zone 카드는 zone-summary의 적재율만 보여준다. 하드코딩된 알림·최근 처리 이력과 존재하지 않는 경로(`/quality`, `/inventory/history`) 링크를 지웠다. 새로고침 버튼은 조회를 다시 받는다.
 - **창고 평면도**: 칸별 용량·적재량을 Location 조회와 작업 처리장 조회(`GET /api/warehouses/{id}/work-areas/{areaCode}`, 코드별 단건)로 채운다. 칸 위치·모양은 그대로다. `warehouseMockData.ts`는 삭제했다.
-- 검증: build/lint/test 통과(1228개). 🔶 브라우저 확인은 아직 하지 못했다(로그인 백엔드 없음, WMS 새 API 배포 필요).
+- 검증: build/lint/test 통과(1228개). 브라우저 확인은 PR #115 머지 후 로컬(WMS 재기동·시드)에서 직접 진행했고, 나온 수정(품질 배지 위치·등록 폼 스타일)은 PR #118에서 처리했다.
 - 후속: 입고 품목의 Zone 표시는 zone-summary에 의존하는 그대로 둔다. `inventory-calls`(WMS 아웃박스) 화면은 이번 범위가 아니다.
 
 ### 2026-10-17 (사이드바 접기 버튼 위치·select 화살표 여백)
