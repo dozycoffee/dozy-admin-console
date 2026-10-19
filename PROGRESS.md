@@ -67,7 +67,7 @@
 - **화면**: 작업 큐에 "취소" 탭(승인 대기·취소됨)과 요약의 "취소 승인 대기" 카드를 더했고, 이력 페이지는 완료와 취소를 함께 보여준다. 쓰기 권한(`outbound.write`)이 없으면 취소 요청·부족 보고가 막힌다.
 - **제거**: WMS에 API가 없는 수동 출고 등록 폼(`RegisterOutboundForm`)과 유통기한 임박 우선 출고 권고(`OutboundRecommendations`, `/api/lots/outbound-recommendations`)를 삭제했다.
 - 검증: build/lint/test 통과(1246개). 🔶 브라우저 확인은 아직 하지 못했다(예약 확정으로 만들어진 출고 데이터가 필요하다).
-- 후속 후보: 입고·반품도 WMS 현행 계약과 대조하기, 재고 실사 화면, WMS 호출 큐(`inventory-calls`) 화면.
+- 후속: 취소 승인은 콘솔에서 처리하지 않는다(승인자 전용 "창고 운영 관리" 모드로 미룸, "다음 세션에서 할 일" 참고). 입고·반품의 WMS 계약 대조, 재고 실사 화면도 남아 있다.
 
 ### 2026-10-19 (Location 재고 품질 배지 위치·창고 업무 등록 폼 스타일)
 
@@ -601,5 +601,9 @@
 - 화면은 해당 모드의 `navigationByMode`·`AppRouter`에 함께 등록하고 `permissions.ts`·권한 정책 체크리스트에 Permission을 정의한다
 - `roleMapping.ts`의 role 이름을 운영 role 정의와 맞춘다(`catalog:admin`은 Catalog 명세 기준). 로컬 auth DB에는 `wms:warehouse_manager`·`wms:hq_inventory_manager`를 등록해 두었다
 - 담당 창고 API가 생기면 `VITE_WAREHOUSE_IDS`를 제거하고 `AccessScope`를 실제 값으로 채운다. dozy-wms-api가 토큰 검증을 붙이면 role·scope 연동을 함께 확인한다
-- 창고 평면도·대시보드 Zone 카드·Location별 재고를 실 `zone-summary`/재고 API로 옮기는 작업은 아직 없다(F Zone은 dozy-wms-api에 Zone이 생긴 뒤)
+- **보류: "창고 운영 관리" 모드(`wms:admin`)** — 출고 취소 승인(`POST /api/outbounds/{id}/cancel-approval`)은 `wms:admin` 전용인데 콘솔에 admin 모드가 없어 승인 대기 건을 콘솔에서 처리할 수 없다(PR #120은 대기 안내만 보여준다). 창고 관리자에게 승인까지 주면 한 사람이 요청과 승인을 모두 할 수 있어 통제가 사라지므로(ADR-0025: 승인은 admin), 승인자 전용 모드를 따로 두는 쪽으로 정리했다. 기존 작업을 마친 뒤 진행한다.
+  - 이름 후보: "창고 운영 관리"(id `warehouse-operations`, 짧은 이름 "창고 운영", 대안 "창고 승인·운영"). `roleMapping.ts`에서 `wms:admin`만 이 모드를 가진다. admin은 전 창고를 보므로 `VITE_WAREHOUSE_IDS`가 필요 없다. 두 role(`wms:warehouse_manager`·`wms:admin`)을 한 사람에게 주지 않는 것이 분리의 전제다.
+  - 1단계: 승인 대기 화면(출고 취소 승인)과 WMS 호출 큐 화면(`/api/inventory-calls` 목록·상세·재처리·폐기, `DEAD` 호출이 그 창고의 큐를 멈추므로 운영상 중요). 2단계: 직원–창고 배정(`/api/warehouses/{id}/members`)과 창고·Zone·Location·작업 처리장 마스터 관리, `VITE_WAREHOUSE_IDS` 제거. 실사 조정 승인(임계치 초과)은 실사 화면과 함께 정한다.
+  - 열린 결정: 모드 이름 확정, 1단계 범위, 요청자≠승인자를 서버(WMS가 요청자를 기록하고 검증)에서 강제할지(지금은 role 분리만).
+- 재고 실사 화면(`/api/stock-audits`)은 WMS API가 있는데 콘솔 화면이 없다. 입고·반품도 출고처럼 WMS 현행 계약과 대조해 보지 않았다.
 - 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다
