@@ -353,28 +353,28 @@
     "id": "inventory-product-search",
     "name": "재고 현황: 상품 필터를 검색형 선택으로 교체",
     "description": "재고 현황의 상품 필터를 원자재 전체 드롭다운에서 이름·코드 일부로 찾아 고르는 검색형 선택으로 바꾼다. 공용 SearchSelect(입력 필터, 선택 지우기, 키보드 ↑ ↓ Enter Esc, combobox/listbox 접근성, 보이는 항목 수 상한)를 만들어 쓴다. 선택지는 원자재 마스터 목록(최대 500건)을 콘솔에서 거르며, 그 이상은 서버 검색이 필요하다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #94.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-stock-summary"]
   },
   {
     "id": "inventory-outbox-events-screen",
     "name": "원자재·재고 관리 모드: 발행 실패 이벤트(Outbox) 화면",
     "description": "원자재·재고 관리 모드에 발행 실패 이벤트 화면 /outbox-events를 추가한다. dozy-inventory-api의 GET /api/v1/outbox-events(DEAD 이벤트, payload 포함)로 목록·페이지와 상세 모달(파티션 키, 오류 전문, 들여쓴 payload)을 보여주고, POST .../{id}/requeue로 재발행한다. 재발행 확인창에서 같은 키의 후속 이벤트보다 늦게 도착함을 안내하고 409 INV_INVALID_OUTBOX_STATE·404를 code로 분기한다. 버튼은 inventory.write, 라우트는 inventory.read로 잠그고 모드 홈에 '발행 실패 이벤트' 카드와 사이드바 메뉴를 추가한다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path 확인. 이슈 #95.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-management-mode"]
   },
   {
     "id": "inventory-dashboard-layout",
     "name": "원자재·재고 관리 대시보드 카드 배치 개선",
     "description": "원자재·재고 관리 모드 대시보드를 처리 카드 + 현황 패널 구성으로 바꾼다. 1행에 '대사 보정 대기'와 '발행 실패 이벤트'를 같은 너비의 카드 둘로 크게(건수 강조) 두고, 2행에 '주의가 필요한 재고' 패널 하나에 유통기한 만료·임박·불량·할당 보류 4칸을 한 줄로 둔다. 칸 아래의 '보기 ›' 텍스트 링크가 /stock?...&view=rows로 연결하고 설명은 짧게 줄여 툴팁으로 두며 건수가 있는 칸은 색(만료·불량 위험, 임박·보류 주의)으로 강조한다. 좁은 화면에서는 처리 카드가 세로로, 재고 4칸이 2×2로 배치된다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #97.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-outbox-events-screen"]
   },
   {
     "id": "inventory-review-polish",
     "name": "대사 보정안 확인창·오류 안내·발행 실패 이벤트 오류 표시 개선",
     "description": "대사 보정안 승인·거절 확인창을 대상(상품·코드·Lot·품질·창고)과 inventory → WMS 수량 비교·변동량·결과 안내로 나눠 배치한다(ConfirmModal에 본문 영역 children 추가). 응답 없음·5xx 같은 일시적 실패(isTransientApiError)는 대사 보정안 승인·거절, 발행 실패 이벤트 재발행, 원자재 사용 중지·재개의 확인 뒤 오류 토스트로 알리고, 409·404 같은 업무 오류는 화면에 남긴다. 발행 실패 이벤트의 마지막 오류는 칸 너비의 한 줄만 보이고 넘치면 말줄임으로 줄인다(전체는 툴팁·상세 모달). 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #99.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["inventory-reconciliation-screen", "inventory-outbox-events-screen"]
   },
   {
@@ -402,7 +402,14 @@
     "id": "warehouse-card-top-border",
     "name": "창고 관리 모드 정비(Location 재고 중심)",
     "description": "창고 관리 모드를 개별 창고의 위치별 재고 확인 중심으로 정비한다(수량·품질 총괄은 재고 관리 모드의 /stock). 대시보드·재고 현황 카드의 상단 색 테두리를 제거하고, 삭제된 WMS /api/inventories 대신 GET /api/location-stocks로 폐기 대상을 읽으며(inventoryId → locationStockId), 재고 현황을 Location 재고(Zone 적재율·Location 용량·Location 재고 실데이터)로 바꾸고, 대시보드 업무 카드·Zone 카드와 창고 평면도를 실데이터로 연결한다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #114.",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": ["warehouse-mode-rename"]
+  },
+  {
+    "id": "warehouse-ui-polish",
+    "name": "Location 재고 품질 배지 위치와 창고 업무 등록 폼 스타일 정리",
+    "description": "Location 재고 펼친 행의 품질 배지를 상태 열 아래로 옮기고(이슈 #116), 입고·출고·폐기·반품 등록 폼과 Lot 확정 입력에 입력칸·선택·버튼 스타일을 추가한다(이슈 #117). 완료 기준: build·lint·test 통과, 브라우저에서 확인.",
+    "status": "completed",
+    "dependencies": ["warehouse-card-top-border"]
   }
 ]
