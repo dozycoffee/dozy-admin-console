@@ -1040,3 +1040,23 @@ select:not([multiple]):not([size]):disabled { background-color: #f6f3f1; }
 .outbound-cancel-button { min-height: 34px; padding: 0 14px; border: 1px solid #e3c9c4; border-radius: 8px; background: #fff; color: #9c3b2e; font-size: 12px; font-weight: 700; cursor: pointer; }
 .outbound-cancel-button:hover:not(:disabled) { background: #fbecea; }
 .outbound-cancel-button:disabled { border-color: #e4ddd9; color: #b3aba6; cursor: not-allowed; }
+
+/* 입고 검수: 수령 라인 입력과 검수 결과 목록 */
+.receipt-form { display: grid; gap: 10px; margin: 12px 0; padding: 14px; border: 1px solid #ece7e3; border-radius: 9px; background: #fcfbfa; }
+.receipt-form-head { display: grid; gap: 3px; }
+.receipt-form-head small { color: var(--muted); font-size: 11px; }
+.receipt-line { display: grid; grid-template-columns: minmax(120px, 1.4fr) repeat(2, minmax(110px, 1fr)) minmax(70px, .6fr) minmax(80px, .7fr) minmax(110px, .9fr) auto; gap: 8px; align-items: end; }
+.receipt-line label { display: grid; gap: 4px; color: #746d68; font-size: 11px; font-weight: 700; }
+.receipt-line input, .receipt-line select { width: 100%; box-sizing: border-box; min-height: 34px; padding: 0 8px; border: 1px solid #dcd5d0; border-radius: 6px; background-color: #fff; font: inherit; font-size: 12px; }
+.receipt-line input:disabled, .receipt-line select:disabled { background-color: #f6f3f1; color: #9b918c; }
+.receipt-remove, .receipt-form-actions > button:not(.inbound-action-button) { min-height: 34px; padding: 0 12px; border: 1px solid #e4ddd9; border-radius: 8px; background: #fff; color: #5a4d47; font-size: 12px; font-weight: 700; cursor: pointer; }
+.receipt-remove:disabled, .receipt-form-actions > button:disabled { color: #b3aba6; cursor: not-allowed; }
+.receipt-errors { grid-column: 1 / -1; margin: 0; padding-left: 16px; color: #9c3b3b; font-size: 12px; }
+.receipt-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.receipt-form-actions .inbound-action-button { margin-top: 0; min-height: 34px; padding: 0 16px; }
+.receipt-total { margin-right: auto; color: #6f6862; font-size: 12px; font-weight: 700; }
+.receipt-list { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.receipt-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; background: #f8f5f3; font-size: 12px; }
+.receipt-lot { display: grid; margin-right: auto; font-weight: 700; }
+.receipt-lot small { color: var(--muted); font-weight: 400; }
+@media (max-width: 1100px) { .receipt-line { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

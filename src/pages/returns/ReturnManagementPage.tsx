@@ -9,6 +9,7 @@ import { ReturnStatusBadge } from '../../features/return-request/ui/ReturnStatus
 import { ReturnItemsSummary } from '../../features/return-request/ui/ReturnItemsSummary'
 import { RegisterReturnForm } from '../../features/return-request/ui/RegisterReturnForm'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 type WorkGroup = 'ALL' | 'RECEIVED' | 'INSPECTING' | 'COMPLETED'
 // COMPLETED 탭은 작업 큐가 아니라 "최근 완료 건 미리보기"다 — 전체는 /returns/history로 보낸다.
@@ -52,7 +53,7 @@ export function ReturnManagementPage() {
     if (moveToQueue) queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   if (returnsQuery.isLoading) return <section className="panel"><p>반품 관리 정보를 불러오는 중입니다...</p></section>
-  if (returnsQuery.isError) return <section className="panel"><h1>반품 정보를 불러오지 못했습니다</h1><p>{returnsQuery.error.message}</p></section>
+  if (returnsQuery.isError) return <section className="panel"><h1>반품 정보를 불러오지 못했습니다</h1><p>{toDisplayMessage(returnsQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>RETURN OPERATIONS</p><h1>반품 관리</h1></div><Link className="inbound-history-back" to="/returns/history">반품 히스토리</Link></header>
     <section className="inbound-summary-grid" aria-label="반품 작업 요약">
@@ -92,11 +93,11 @@ function ReturnDetail({ request, writable, confirm }: { request: ReturnRequest; 
   return <section className="panel inbound-detail-panel">
     <div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">RETURN #{request.returnRequestId}</p><h2>반품 #{request.returnRequestId}</h2><div className="inbound-detail-meta"><span><b>품목</b>{items ? `${items.length}개` : '-'}</span></div></div><ReturnStatusBadge status={request.status} /></div>
     {itemsQuery.isLoading && <p>품목을 불러오는 중입니다...</p>}
-    {itemsQuery.isError && <p className="inbound-error" role="alert">{itemsQuery.error instanceof Error ? itemsQuery.error.message : '품목을 불러오지 못했습니다.'}</p>}
+    {itemsQuery.isError && <p className="inbound-error" role="alert">{toDisplayMessage(itemsQuery.error, '품목을 불러오지 못했습니다.')}</p>}
     {items && request.status === 'RECEIVED' && <section className="inbound-stage"><h3>반품 접수</h3><p>반품 물품이 반품 처리장에 도착하면 검수를 시작하세요. 시작하면 신고 수량만큼 반품 처리장이 점유됩니다.</p><ReturnItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '반품 검수를 시작할까요?', description: '반품 처리장 공간이 점유되며 되돌릴 수 없습니다.', confirmLabel: '검수 시작', run: () => startInspecting.mutate(request.returnRequestId) })}>검수 시작</ActionButton></section>}
     {items && request.status === 'INSPECTING' && <InspectingStage items={items} writable={writable} busy={busy} confirm={confirm} onComplete={(body) => completeReturn.mutate({ returnRequestId: request.returnRequestId, body })} />}
     {items && request.status === 'COMPLETED' && <section className="inbound-stage completed"><h3>반품 완료</h3><p>정상 수량은 재고로 복귀했고, 불량 수량은 폐기 요청으로 연계되었습니다.</p><ReturnItemsSummary items={items} /></section>}
-    {actionError && <p className="inbound-error" role="alert">{actionError.message}</p>}
+    {actionError && <p className="inbound-error" role="alert">{toDisplayMessage(actionError)}</p>}
   </section>
 }
 
@@ -123,7 +124,7 @@ function InspectingStage({ items, writable, busy, confirm, onComplete }: { items
         {done ? <span className="quality-status quality-normal">검수 완료</span> : <button type="button" disabled={!writable || inspect.isPending || value.actualQuantity === '' || Number(value.actualQuantity) < 0} onClick={() => inspect.mutate({ returnItemId: item.returnItemId, body: { actualQuantity: Number(value.actualQuantity), inspectionResult: value.inspectionResult } })}>검수 저장</button>}
       </div>
     })}</div>
-    {inspect.isError && <p className="inbound-error" role="alert">{inspect.error.message}</p>}
+    {inspect.isError && <p className="inbound-error" role="alert">{toDisplayMessage(inspect.error)}</p>}
     {allInspected ? <>
       <h3>Lot 확정</h3><p>모든 품목의 검수가 끝났습니다. 품목별 Lot 번호(필수)와 제조·유통기한(선택)을 입력하면 재고로 등록됩니다.</p>
       {items.map((item) => <div className="lot-row" key={item.returnItemId}>

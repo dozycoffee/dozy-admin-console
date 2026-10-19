@@ -7,6 +7,8 @@ import type { Inbound, InboundStatus } from '../../features/inbound/model/inboun
 import { useCompleteInbound, useInboundItems, useInbounds, useInspectInboundItem, useStartInboundProcessing, type InboundItemView } from '../../features/inbound/model/useInbounds'
 import { InboundStatusBadge } from '../../features/inbound/ui/InboundStatusBadge'
 import { InboundItemsSummary } from '../../features/inbound/ui/InboundItemsSummary'
+import { InboundReceiptsForm } from '../../features/inbound/ui/InboundReceiptsForm'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 import { RegisterInboundForm } from '../../features/inbound/ui/RegisterInboundForm'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 
@@ -22,8 +24,6 @@ const workGroups: Array<{ id: WorkGroup; label: string; statuses: InboundStatus[
 const emptyInbounds: Inbound[] = []
 const emptyCounts = { EXPECTED: 0, WAITING: 0, PROCESSING: 0, COMPLETED: 0 }
 
-type InspectionDraft = Record<number, { actualQuantity: string; inspectionResult: 'NORMAL' | 'DEFECTIVE' }>
-type LotDraft = Record<number, { lotNumber: string; manufactureDate: string; expirationDate: string }>
 type PendingConfirm = { title: string; description: string; confirmLabel: string; run: () => void }
 
 export function InboundManagementPage() {
@@ -52,7 +52,7 @@ export function InboundManagementPage() {
     if (moveToQueue) queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   if (inboundsQuery.isLoading) return <section className="panel"><p>입고 관리 정보를 불러오는 중입니다...</p></section>
-  if (inboundsQuery.isError) return <section className="panel"><h1>입고 정보를 불러오지 못했습니다</h1><p>{inboundsQuery.error.message}</p></section>
+  if (inboundsQuery.isError) return <section className="panel"><h1>입고 정보를 불러오지 못했습니다</h1><p>{toDisplayMessage(inboundsQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>INBOUND OPERATIONS</p><h1>입고 관리</h1></div><Link className="inbound-history-back" to="/inbounds/history">입고 히스토리</Link></header>
     <section className="inbound-summary-grid" aria-label="입고 작업 요약">
@@ -92,47 +92,25 @@ function InboundDetail({ inbound, warehouseIds, writable, confirm }: { inbound: 
   return <section className="panel inbound-detail-panel">
     <div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">INBOUND #{inbound.inboundId}</p><h2>입고 #{inbound.inboundId}</h2><div className="inbound-detail-meta"><span><b>도착 예정일</b>{inbound.expectedArrivalDate}</span><span><b>품목</b>{items ? `${items.length}개` : '-'}</span></div></div><InboundStatusBadge status={inbound.status} /></div>
     {itemsQuery.isLoading && <p>품목을 불러오는 중입니다...</p>}
-    {itemsQuery.isError && <p className="inbound-error" role="alert">{itemsQuery.error instanceof Error ? itemsQuery.error.message : '품목을 불러오지 못했습니다.'}</p>}
+    {itemsQuery.isError && <p className="inbound-error" role="alert">{toDisplayMessage(itemsQuery.error, '품목을 불러오지 못했습니다.')}</p>}
     {items && (inbound.status === 'EXPECTED' || inbound.status === 'WAITING') && <section className="inbound-stage"><h3>입고 대기</h3><p>Zone 용량 점검을 통과한 입고 건입니다. 물품이 입고처리장에 도착하면 입고 처리를 시작하세요. 시작하면 입고 수량만큼 입고처리장이 점유됩니다.</p><InboundItemsSummary items={items} /><ActionButton disabled={!writable || busy || inbound.status === 'EXPECTED'} onClick={() => confirm({ title: '입고 처리를 시작할까요?', description: '입고처리장 공간이 점유되며 되돌릴 수 없습니다.', confirmLabel: '처리 시작', run: () => startProcessing.mutate(inbound.inboundId) })}>입고 처리 시작</ActionButton></section>}
-    {items && inbound.status === 'PROCESSING' && <ProcessingStage items={items} writable={writable} busy={busy} confirm={confirm} onComplete={(body) => completeInbound.mutate({ inboundId: inbound.inboundId, body })} />}
+    {items && inbound.status === 'PROCESSING' && <ProcessingStage items={items} writable={writable} busy={busy} confirm={confirm} onComplete={() => completeInbound.mutate(inbound.inboundId)} />}
     {items && inbound.status === 'COMPLETED' && <section className="inbound-stage completed"><h3>입고 완료</h3><p>검수 결과대로 Lot·재고가 등록되었습니다. 불량 수량은 폐기 요청으로 연계됩니다.</p><InboundItemsSummary items={items} /></section>}
-    {actionError && <p className="inbound-error" role="alert">{actionError.message}</p>}
+    {actionError && <p className="inbound-error" role="alert">{toDisplayMessage(actionError)}</p>}
   </section>
 }
 
-function ProcessingStage({ items, writable, busy, confirm, onComplete }: { items: InboundItemView[]; writable: boolean; busy: boolean; confirm: (pending: PendingConfirm) => void; onComplete: (body: { lotAssignments: Array<{ inboundItemId: number; lotNumber: string; manufactureDate?: string; expirationDate?: string }> }) => void }) {
+function ProcessingStage({ items, writable, busy, confirm, onComplete }: { items: InboundItemView[]; writable: boolean; busy: boolean; confirm: (pending: PendingConfirm) => void; onComplete: () => void }) {
   const inspect = useInspectInboundItem()
-  const [draft, setDraft] = useState<InspectionDraft>({})
-  const [lots, setLots] = useState<LotDraft>({})
-  const allInspected = items.every((item) => item.inspectionResult !== 'PENDING')
-  const lotsReady = items.every((item) => (lots[item.inboundItemId]?.lotNumber ?? '').trim() !== '')
-  function changeDraft(id: number, patch: Partial<InspectionDraft[number]>, item: InboundItemView) { setDraft((current) => ({ ...current, [id]: { ...{ actualQuantity: String(item.expectedQuantity), inspectionResult: 'NORMAL' as const }, ...current[id], ...patch } })) }
-  function changeLot(id: number, patch: Partial<LotDraft[number]>) { setLots((current) => ({ ...current, [id]: { ...{ lotNumber: '', manufactureDate: '', expirationDate: '' }, ...current[id], ...patch } })) }
-  function complete() {
-    onComplete({ lotAssignments: items.map((item) => { const lot = lots[item.inboundItemId]; return { inboundItemId: item.inboundItemId, lotNumber: lot.lotNumber.trim(), ...(lot.manufactureDate && { manufactureDate: lot.manufactureDate }), ...(lot.expirationDate && { expirationDate: lot.expirationDate }) } }) })
-  }
+  const pendingItems = items.filter((item) => item.inspectionStatus === 'PENDING')
+  const inspectedItems = items.filter((item) => item.inspectionStatus === 'INSPECTED')
+  const allInspected = pendingItems.length === 0
   return <section className="inbound-stage">
-    <h3>수량·품질 검수</h3><p>품목별로 실수량과 품질을 저장합니다. 검수는 품목당 한 번만 기록할 수 있고, 불량은 폐기 요청으로 연계됩니다.</p>
-    <div className="inspection-table">{items.map((item) => {
-      const value = draft[item.inboundItemId] ?? { actualQuantity: String(item.expectedQuantity), inspectionResult: 'NORMAL' as const }
-      const done = item.inspectionResult !== 'PENDING'
-      return <div className="inspection-row" key={item.inboundItemId}>
-        <div><strong>{item.productName}</strong><small>{item.productCode} · {item.zoneCode ?? `Zone #${item.zoneId}`} Zone · 예정 {item.expectedQuantity} ea</small></div>
-        <label>실수량<input type="number" min="0" disabled={done || !writable} value={done ? (item.actualQuantity ?? 0) : value.actualQuantity} onChange={(event) => changeDraft(item.inboundItemId, { actualQuantity: event.target.value }, item)} /></label>
-        <label>품질<select disabled={done || !writable} value={done ? item.inspectionResult : value.inspectionResult} onChange={(event) => changeDraft(item.inboundItemId, { inspectionResult: event.target.value as 'NORMAL' | 'DEFECTIVE' }, item)}>{done && <option value={item.inspectionResult}>{item.inspectionResult === 'NORMAL' ? '정상' : '불량'}</option>}<option value="NORMAL">정상</option><option value="DEFECTIVE">불량</option></select></label>
-        {done ? <span className="quality-status quality-normal">검수 완료</span> : <button type="button" disabled={!writable || inspect.isPending || value.actualQuantity === '' || Number(value.actualQuantity) < 0} onClick={() => inspect.mutate({ inboundItemId: item.inboundItemId, body: { actualQuantity: Number(value.actualQuantity), inspectionResult: value.inspectionResult } })}>검수 저장</button>}
-      </div>
-    })}</div>
-    {inspect.isError && <p className="inbound-error" role="alert">{inspect.error.message}</p>}
-    {allInspected ? <>
-      <h3>Lot 확정</h3><p>모든 품목의 검수가 끝났습니다. 품목별 Lot 번호(필수)와 제조·유통기한(선택)을 입력하면 재고로 등록됩니다.</p>
-      {items.map((item) => <div className="lot-row" key={item.inboundItemId}>
-        <strong>{item.productName}</strong>
-        <label>Lot 번호<input type="text" disabled={!writable} value={lots[item.inboundItemId]?.lotNumber ?? ''} onChange={(event) => changeLot(item.inboundItemId, { lotNumber: event.target.value })} /></label>
-        <label>제조일<input type="date" disabled={!writable} value={lots[item.inboundItemId]?.manufactureDate ?? ''} onChange={(event) => changeLot(item.inboundItemId, { manufactureDate: event.target.value })} /></label>
-        <label>유통기한<input type="date" disabled={!writable} value={lots[item.inboundItemId]?.expirationDate ?? ''} onChange={(event) => changeLot(item.inboundItemId, { expirationDate: event.target.value })} /></label>
-      </div>)}
-      <ActionButton disabled={!writable || busy || !lotsReady} onClick={() => confirm({ title: '입고를 완료할까요?', description: '재고·Lot이 등록되고 입고처리장이 해제됩니다. 되돌릴 수 없습니다.', confirmLabel: '입고 완료', run: complete })}>입고 완료 · 재고 등록</ActionButton>
-    </> : <p className="inbound-empty">모든 품목의 검수를 저장하면 Lot 확정 단계가 열립니다.</p>}
+    <h3>수량·품질 검수</h3><p>품목마다 실제로 도착한 수령 라인(Lot·수량·판정)을 입력해 저장합니다. 같은 품목이 Lot 여러 개로 오거나 일부만 파손된 경우 라인을 나눠 입력하세요. 검수는 품목당 한 번만 저장할 수 있고, 불량 라인은 폐기 요청으로 연계됩니다.</p>
+    {pendingItems.map((item) => <InboundReceiptsForm key={item.inboundItemId} item={item} writable={writable} pending={inspect.isPending} onSubmit={(body) => confirm({ title: `${item.productName} 검수를 저장할까요?`, description: '검수는 품목당 한 번만 저장할 수 있고 저장한 뒤에는 수정할 수 없습니다.', confirmLabel: '검수 저장', run: () => inspect.mutate({ inboundItemId: item.inboundItemId, body }) })} />)}
+    {inspectedItems.length > 0 && <><h3>검수 완료 품목</h3><InboundItemsSummary items={inspectedItems} /></>}
+    {inspect.isError && <p className="inbound-error" role="alert">{toDisplayMessage(inspect.error)}</p>}
+    {allInspected ? <ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '입고를 완료할까요?', description: '수령 라인 기준으로 Lot·재고가 등록되고 입고처리장이 해제됩니다. 불량 라인은 폐기 요청으로 연계됩니다. 되돌릴 수 없습니다.', confirmLabel: '입고 완료', run: onComplete })}>입고 완료 · 재고 등록</ActionButton>
+      : <p className="inbound-empty">모든 품목의 검수를 저장하면 입고를 완료할 수 있습니다.</p>}
   </section>
 }

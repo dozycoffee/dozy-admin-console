@@ -446,5 +446,12 @@
     "description": "창고 운영 관리 모드 2단계: 직원–창고 배정(/api/warehouses/{id}/members)과 창고·Zone·Location·작업 처리장 마스터 관리를 추가하고, 담당 창고를 WMS에서 받아 VITE_WAREHOUSE_IDS 환경 설정을 없앤다. 보류.",
     "status": "pending",
     "dependencies": ["warehouse-operations-mode"]
+  },
+  {
+    "id": "inbound-wms-receipts",
+    "name": "입고 검수·완료를 WMS 수령 라인 계약에 맞춤",
+    "description": "dozy-wms-api 입고는 검수를 수령 라인(Receipt) 단위로 바꿨다(ADR-0016). 콘솔의 입고 품목 스키마를 inspectionStatus·receipts·예정 Lot·예정 대비 차이 응답에 맞추고, 검수를 수령 라인 입력(Lot·제조일·유통기한·수량·판정·불량 사유)으로 바꾸며 서버 규칙을 저장 전에 검증하고, 입고 완료에서 Lot 확정 단계를 없앤다(본문 없는 complete). 서버 응답 검증 오류(ZodError)가 JSON 그대로 노출되던 문제를 안내 문구로 변환한다. 반품은 WMS 계약과 같아 이번에는 오류 문구 처리만 적용한다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #121.",
+    "status": "in_progress",
+    "dependencies": ["outbound-wms-contract"]
   }
 ]

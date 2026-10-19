@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useProducts } from '../../product/model/useProducts'
 import { useRegisterInbound } from '../model/useInbounds'
+import { toDisplayMessage } from '../../../shared/api/displayMessage'
 
 type Line = { productId: string; quantity: string }
 const emptyLine: Line = { productId: '', quantity: '' }
@@ -29,6 +30,6 @@ export function RegisterInboundForm({ warehouseId, writable, onRegistered }: { w
     </div>)}
     <div className="inbound-form-actions"><button type="button" disabled={!writable || register.isPending} onClick={() => setLines((current) => [...current, emptyLine])}>품목 추가</button><button type="button" className="inbound-action-button" disabled={!writable || !valid || register.isPending} onClick={submit}>입고 등록</button></div>
     {products.data?.length === 0 && <p className="inbound-empty">등록된 상품이 없습니다. 상품을 먼저 등록해야 입고를 등록할 수 있습니다.</p>}
-    {register.isError && <p className="inbound-error" role="alert">{register.error.message}</p>}
+    {register.isError && <p className="inbound-error" role="alert">{toDisplayMessage(register.error)}</p>}
   </section>
 }

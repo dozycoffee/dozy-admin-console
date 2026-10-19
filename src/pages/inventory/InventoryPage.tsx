@@ -7,6 +7,7 @@ import { useZoneInventorySummary } from '../../features/inventory/model/useZoneI
 import { useProducts } from '../../features/product/model/useProducts'
 import { useWarehouses } from '../../features/warehouse/model/useWarehouses'
 import { useZoneLocations } from '../../features/warehouse/model/useZoneLocations'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 type LocationRow = { locationId: number; zoneCode: ZoneCode; locationCode: string; capacity: number; used: number; stocks: LocationStock[] }
 type LoadStatus = 'ok' | 'warning' | 'critical'
@@ -82,7 +83,7 @@ export function InventoryPage() {
       <header className="page-header inventory-page-header"><div><p>INVENTORY</p><h1>Location 재고</h1><strong className="inventory-warehouse-name">{warehouse?.warehouseName ?? '담당 창고'}</strong><span>의 Location별 적재 재고를 조회합니다.</span></div></header>
       {warehouseIds.length === 0 ? <section className="panel"><h2>접근 가능한 창고가 없습니다</h2><p>계정에 연결된 창고가 없어 재고 현황을 표시할 수 없습니다.</p></section>
         : loading ? <section className="panel"><p>재고 현황을 불러오는 중입니다...</p></section>
-          : failed ? <section className="panel"><h2>재고 현황을 불러오지 못했습니다</h2><p>{error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}</p></section>
+          : failed ? <section className="panel"><h2>재고 현황을 불러오지 못했습니다</h2><p>{toDisplayMessage(error)}</p></section>
             : <>
               <section className="panel inventory-zone-panel"><div className="panel-heading"><div><p className="eyebrow">ZONE</p><h2>Zone별 적재율</h2></div><span className="inventory-count">{summaries?.length ?? 0} Zones</span></div><div className="inventory-zone-grid">{(summaries ?? []).map((zone) => <article className="inventory-zone-card" key={zone.zoneId}><header><strong>{zoneCodeLabels[zone.zoneCode]}</strong><b>사용률 {Math.round(zone.usageRate * 100)}%</b></header><div className="usage-bar"><div className={`usage-bar-fill ${statusOf(zone.usedCapacity, zone.maxCapacity)}`} style={{ width: `${Math.min(zone.usageRate * 100, 100)}%` }} /></div><p><strong>{zone.usedCapacity}</strong> / {zone.maxCapacity} <span>잔여 {zone.maxCapacity - zone.usedCapacity}</span></p></article>)}</div></section>
 

@@ -4,8 +4,7 @@ import { useProducts } from '../../product/model/useProducts'
 import { useZoneInventorySummary } from '../../inventory/model/useZoneInventorySummary'
 import type { ZoneCode } from '../../inventory/model/inventorySchemas'
 import {
-  completeInboundRequestSchema, inboundItemListSchema, inboundListSchema, inboundSchema, inspectInboundItemRequestSchema, registerInboundRequestSchema,
-  type CompleteInboundRequest, type Inbound, type InboundItem, type InboundStatus, type InboundStatusCounts, type InspectInboundItemRequest, type PaginatedInbound, type RegisterInboundRequest,
+  inboundItemListSchema, inboundItemSchema, inboundListSchema, inboundSchema, inspectInboundItemRequestSchema, registerInboundRequestSchema, type Inbound, type InboundItem, type InboundStatus, type InboundStatusCounts, type InspectInboundItemRequest, type PaginatedInbound, type RegisterInboundRequest,
 } from './inboundSchemas'
 
 const emptyCounts = (): InboundStatusCounts => ({ EXPECTED: 0, WAITING: 0, PROCESSING: 0, COMPLETED: 0 })
@@ -28,7 +27,8 @@ export function useInbounds(warehouseIds: number[], statuses: InboundStatus[], p
   })
 }
 
-export type InboundItemView = InboundItem & { productName: string; productCode: string; zoneCode: ZoneCode | null }
+/** shelfLifeDays: 상품에 유통기한 일수가 있는지(검수에서 유통기한 필수 여부). 상품 정보를 아직 모르면 undefined다. */
+export type InboundItemView = InboundItem & { productName: string; productCode: string; zoneCode: ZoneCode | null; shelfLifeDays: number | null | undefined }
 
 /** 입고 품목에 상품명(GET /api/products)과 Zone 코드(zone-summary의 zoneId)를 붙여 화면용으로 합친다. */
 export function useInboundItems(inboundId: number | undefined, warehouseIds: number[]) {
@@ -41,7 +41,7 @@ export function useInboundItems(inboundId: number | undefined, warehouseIds: num
   const zones = useZoneInventorySummary(warehouseIds)
   const data: InboundItemView[] | undefined = items.data?.map((item) => {
     const product = products.data?.find((candidate) => candidate.productId === item.productId)
-    return { ...item, productName: product?.productName ?? `상품 #${item.productId}`, productCode: product?.productCode ?? '', zoneCode: zones.data?.find((zone) => zone.zoneId === item.zoneId)?.zoneCode ?? null }
+    return { ...item, productName: product?.productName ?? `상품 #${item.productId}`, productCode: product?.productCode ?? '', zoneCode: zones.data?.find((zone) => zone.zoneId === item.zoneId)?.zoneCode ?? null, shelfLifeDays: product?.shelfLifeDays }
   })
   return { data, isLoading: items.isLoading, isError: items.isError, error: items.error }
 }
@@ -62,10 +62,11 @@ export function useRegisterInbound() {
 export function useStartInboundProcessing() {
   return useInvalidatingMutation(async (inboundId: number) => inboundSchema.parse((await httpClient.patch(`/api/inbounds/${inboundId}/processing`)).data))
 }
+// 검수는 수령 라인 전체를 한 번에 보내고 품목당 한 번만 저장할 수 있다. 완료 때 Lot과 재고가 수령 라인 기준으로 등록된다.
 export function useInspectInboundItem() {
-  return useInvalidatingMutation(async ({ inboundItemId, body }: { inboundItemId: number; body: InspectInboundItemRequest }) => (await httpClient.patch(`/api/inbound-items/${inboundItemId}/inspect`, inspectInboundItemRequestSchema.parse(body))).data)
+  return useInvalidatingMutation(async ({ inboundItemId, body }: { inboundItemId: number; body: InspectInboundItemRequest }) => inboundItemSchema.parse((await httpClient.patch(`/api/inbound-items/${inboundItemId}/inspect`, inspectInboundItemRequestSchema.parse(body))).data))
 }
-// 완료하면 재고·Zone 사용량이 바뀌므로 inventory 쿼리도 함께 무효화한다.
+// 완료는 본문이 없다. 완료하면 재고·Zone 사용량이 바뀌므로 inventory 쿼리도 함께 무효화한다.
 export function useCompleteInbound() {
-  return useInvalidatingMutation(async ({ inboundId, body }: { inboundId: number; body: CompleteInboundRequest }) => inboundSchema.parse((await httpClient.patch(`/api/inbounds/${inboundId}/complete`, completeInboundRequestSchema.parse(body))).data), ['inventory'])
+  return useInvalidatingMutation(async (inboundId: number) => inboundSchema.parse((await httpClient.patch(`/api/inbounds/${inboundId}/complete`)).data), ['inventory'])
 }

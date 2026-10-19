@@ -4,6 +4,7 @@ import { useDisposableLocationStocks } from '../../inventory/model/useLocationSt
 import { qualityStatusLabels } from '../../inventory/model/inventorySchemas'
 import { disposalReasonLabels, manualDisposalReasons, type DisposalReason } from '../model/disposalSchemas'
 import { useRegisterDisposal } from '../model/useDisposals'
+import { toDisplayMessage } from '../../../shared/api/displayMessage'
 
 type Line = { locationStockId: string; reason: DisposalReason }
 const emptyLine: Line = { locationStockId: '', reason: 'OTHER' }
@@ -31,6 +32,6 @@ export function RegisterDisposalForm({ warehouseId, warehouseIds, writable, onRe
     </div>)}
     {stocks.data?.length === 0 && <p className="inbound-empty">폐기할 수 있는 불량·폐기 예정 재고가 없습니다.</p>}
     <div className="inbound-form-actions"><button type="button" disabled={!writable || register.isPending} onClick={() => setLines((current) => [...current, emptyLine])}>품목 추가</button><button type="button" className="inbound-action-button" disabled={!writable || !valid || register.isPending} onClick={submit}>폐기 요청</button></div>
-    {register.isError && <p className="inbound-error" role="alert">{register.error.message}</p>}
+    {register.isError && <p className="inbound-error" role="alert">{toDisplayMessage(register.error)}</p>}
   </section>
 }

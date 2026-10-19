@@ -5,6 +5,7 @@ import { useInboundItems, useInbounds } from '../../features/inbound/model/useIn
 import { InboundStatusBadge } from '../../features/inbound/ui/InboundStatusBadge'
 import { InboundItemsSummary } from '../../features/inbound/ui/InboundItemsSummary'
 import type { Inbound } from '../../features/inbound/model/inboundSchemas'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 const HISTORY_PAGE_SIZE = 20
 const emptyInbounds: Inbound[] = []
@@ -22,7 +23,7 @@ export function InboundHistoryPage() {
   const itemsQuery = useInboundItems(selected?.inboundId, user.scope.warehouseIds)
   const totalPages = Math.max(1, Math.ceil((historyPage?.total ?? 0) / (historyPage?.size ?? HISTORY_PAGE_SIZE)))
   if (historyQuery.isLoading) return <section className="panel"><p>입고 이력을 불러오는 중입니다...</p></section>
-  if (historyQuery.isError) return <section className="panel"><h1>입고 이력을 불러오지 못했습니다</h1><p>{historyQuery.error.message}</p></section>
+  if (historyQuery.isError) return <section className="panel"><h1>입고 이력을 불러오지 못했습니다</h1><p>{toDisplayMessage(historyQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>INBOUND OPERATIONS</p><h1>입고 히스토리</h1></div><Link className="inbound-history-back" to="/inbounds">작업 목록으로</Link></header>
     <section className="inbound-workspace">

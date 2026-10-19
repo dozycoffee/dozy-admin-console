@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { httpClient } from '../../../shared/api/httpClient'
 import { createQueryClientWrapper } from '../../../shared/testing/queryClientWrapper'
 import type { Inbound } from './inboundSchemas'
-import { paginateInbounds, useCompleteInbound, useInboundItems, useInbounds, useStartInboundProcessing } from './useInbounds'
+import { paginateInbounds, useCompleteInbound, useInboundItems, useInbounds, useInspectInboundItem, useStartInboundProcessing } from './useInbounds'
 
 const inbound = (inboundId: number, status: Inbound['status'], warehouseId = 543): Inbound => ({ inboundId, warehouseId, expectedArrivalDate: '2026-10-02', status })
 
@@ -39,13 +39,13 @@ describe('useInbounds', () => {
 describe('useInboundItems', () => {
   it('품목에 상품명과 Zone 코드를 합쳐 돌려준다', async () => {
     vi.spyOn(httpClient, 'get').mockImplementation(async (url: string) => {
-      if (url === '/api/inbound-items') return { data: [{ inboundItemId: 7, inboundId: 1, productId: 2, zoneId: 410, expectedQuantity: 10, actualQuantity: null, inspectionResult: 'PENDING', quantityDiscrepancy: null }] }
-      if (url === '/api/products') return { data: [{ productId: 2, productCode: 'BEAN-1', productName: '에티오피아', category: 'BEAN', unit: 'ea', shelfLifeDays: null, productStatus: 'ACTIVE' }] }
+      if (url === '/api/inbound-items') return { data: [{ inboundItemId: 7, inboundId: 1, productId: 2, zoneId: 410, expectedQuantity: 10, expectedLotNumber: null, expectedExpirationDate: null, actualQuantity: null, inspectionStatus: 'PENDING', quantityDiscrepancy: null, receipts: [] }] }
+      if (url === '/api/products') return { data: [{ productId: 2, productCode: 'BEAN-1', productName: '에티오피아', category: 'BEAN', unit: 'ea', shelfLifeDays: 180, productStatus: 'ACTIVE' }] }
       return { data: [{ zoneId: 410, zoneCode: 'A', warehouseId: 543, maxCapacity: 100, usedCapacity: 0, usageRate: 0, quantityByQualityStatus: {} }] }
     })
     const { result } = renderHook(() => useInboundItems(1, [543]), { wrapper: createQueryClientWrapper() })
     await waitFor(() => expect(result.current.data?.[0]?.zoneCode).toBe('A'))
-    expect(result.current.data?.[0]).toMatchObject({ productName: '에티오피아', productCode: 'BEAN-1' })
+    expect(result.current.data?.[0]).toMatchObject({ productName: '에티오피아', productCode: 'BEAN-1', shelfLifeDays: 180 })
   })
 })
 
@@ -57,11 +57,27 @@ describe('입고 상태 전이 mutation', () => {
     await waitFor(() => expect(patchSpy).toHaveBeenCalledWith('/api/inbounds/1/processing'))
   })
 
-  it('완료는 Lot 배정을 담아 PATCH /complete를 호출한다', async () => {
+  it('검수는 수령 라인 목록을 PATCH /inspect로 보내고 갱신된 품목을 돌려준다', async () => {
+    const saved = { inboundItemId: 7, inboundId: 1, productId: 2, zoneId: 410, expectedQuantity: 10, expectedLotNumber: null, expectedExpirationDate: null, actualQuantity: 8, inspectionStatus: 'INSPECTED', quantityDiscrepancy: -2, receipts: [] }
+    const patchSpy = vi.spyOn(httpClient, 'patch').mockResolvedValue({ data: saved })
+    const { result } = renderHook(() => useInspectInboundItem(), { wrapper: createQueryClientWrapper() })
+    const body = { receipts: [{ lotNumber: 'LOT-1', quantity: 8, inspectionResult: 'NORMAL' as const, expirationDate: '2027-01-01' }] }
+    result.current.mutate({ inboundItemId: 7, body })
+    await waitFor(() => expect(patchSpy).toHaveBeenCalledWith('/api/inbound-items/7/inspect', body))
+    await waitFor(() => expect(result.current.data).toMatchObject({ inspectionStatus: 'INSPECTED', actualQuantity: 8 }))
+  })
+
+  it('검수 응답이 계약과 다르면 오류로 처리한다', async () => {
+    vi.spyOn(httpClient, 'patch').mockResolvedValue({ data: { inboundItemId: 7 } })
+    const { result } = renderHook(() => useInspectInboundItem(), { wrapper: createQueryClientWrapper() })
+    result.current.mutate({ inboundItemId: 7, body: { receipts: [] } })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+  })
+
+  it('완료는 본문 없이 PATCH /complete를 호출한다', async () => {
     const patchSpy = vi.spyOn(httpClient, 'patch').mockResolvedValue({ data: inbound(1, 'COMPLETED') })
     const { result } = renderHook(() => useCompleteInbound(), { wrapper: createQueryClientWrapper() })
-    const body = { lotAssignments: [{ inboundItemId: 7, lotNumber: 'LOT-1' }] }
-    result.current.mutate({ inboundId: 1, body })
-    await waitFor(() => expect(patchSpy).toHaveBeenCalledWith('/api/inbounds/1/complete', body))
+    result.current.mutate(1)
+    await waitFor(() => expect(patchSpy).toHaveBeenCalledWith('/api/inbounds/1/complete'))
   })
 })
