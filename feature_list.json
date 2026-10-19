@@ -411,5 +411,12 @@
     "description": "Location 재고 펼친 행의 품질 배지를 상태 열 아래로 옮기고(이슈 #116), 입고·출고·폐기·반품 등록 폼과 Lot 확정 입력에 입력칸·선택·버튼 스타일을 추가한다(이슈 #117). 완료 기준: build·lint·test 통과, 브라우저에서 확인.",
     "status": "completed",
     "dependencies": ["warehouse-card-top-border"]
+  },
+  {
+    "id": "outbound-wms-contract",
+    "name": "출고 관리를 WMS 현행 출고 계약에 맞춤",
+    "description": "dozy-wms-api 출고는 inventory 예약 확정 이벤트로만 만들어지고 취소(CANCEL_REQUESTED·CANCELED)와 피킹 부족 재할당이 추가됐다. 콘솔 출고 상태·스키마에 취소 상태와 예약·채널·주문 정보를 더하고, 출고 취소(피킹 전 즉시, 이후 관리자 승인 대기)·Lot별 피킹 계획 표시·피킹 부족 보고(재할당)를 추가하며, WMS에 없는 수동 출고 등록 폼과 유통기한 임박 권고를 제거한다. 취소 승인은 wms:admin 전용이라 콘솔에서는 대기 상태만 보여준다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #119.",
+    "status": "in_progress",
+    "dependencies": ["warehouse-ui-polish"]
   }
 ]
