@@ -411,5 +411,40 @@
     "description": "Location 재고 펼친 행의 품질 배지를 상태 열 아래로 옮기고(이슈 #116), 입고·출고·폐기·반품 등록 폼과 Lot 확정 입력에 입력칸·선택·버튼 스타일을 추가한다(이슈 #117). 완료 기준: build·lint·test 통과, 브라우저에서 확인.",
     "status": "completed",
     "dependencies": ["warehouse-card-top-border"]
+  },
+  {
+    "id": "outbound-wms-contract",
+    "name": "출고 관리를 WMS 현행 출고 계약에 맞춤",
+    "description": "dozy-wms-api 출고는 inventory 예약 확정 이벤트로만 만들어지고 취소(CANCEL_REQUESTED·CANCELED)와 피킹 부족 재할당이 추가됐다. 콘솔 출고 상태·스키마에 취소 상태와 예약·채널·주문 정보를 더하고, 출고 취소(피킹 전 즉시, 이후 관리자 승인 대기)·Lot별 피킹 계획 표시·피킹 부족 보고(재할당)를 추가하며, WMS에 없는 수동 출고 등록 폼과 유통기한 임박 권고를 제거한다. 취소 승인은 wms:admin 전용이라 콘솔에서는 대기 상태만 보여준다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #119.",
+    "status": "in_progress",
+    "dependencies": ["warehouse-ui-polish"]
+  },
+  {
+    "id": "warehouse-operations-mode",
+    "name": "창고 운영 관리 모드(wms:admin) 골격",
+    "description": "wms:admin role을 위한 액터 모드를 추가한다(이름 후보: 창고 운영 관리, id warehouse-operations). actorModes·roleMapping·라우트 가드·권한 정책 체크리스트를 갖추고 admin은 전 창고를 보므로 창고 범위 환경 설정이 필요 없다. 창고 관리자(wms:warehouse_manager)와 role을 분리해 요청과 승인을 다른 사람이 하게 하는 전제다. 열린 결정: 모드 이름, 요청자와 승인자를 서버에서 분리 강제할지. 보류(기존 작업 이후 진행).",
+    "status": "pending",
+    "dependencies": ["outbound-wms-contract"]
+  },
+  {
+    "id": "warehouse-outbound-cancel-approval",
+    "name": "출고 취소 승인 화면(창고 운영 관리)",
+    "description": "취소 승인 대기(CANCEL_REQUESTED) 출고를 모아 보고 원위치 확인 뒤 승인(POST /api/outbounds/{id}/cancel-approval, wms:admin 전용)하는 화면을 창고 운영 관리 모드에 추가한다. 보류.",
+    "status": "pending",
+    "dependencies": ["warehouse-operations-mode"]
+  },
+  {
+    "id": "warehouse-inventory-calls-screen",
+    "name": "WMS 호출 큐(inventory-calls) 화면(창고 운영 관리)",
+    "description": "inventory로 가는 호출의 목록·상세·재처리(requeue)·폐기(discard)를 창고 운영 관리 모드에 추가한다(wms:admin 전용). DEAD 호출은 그 창고의 큐를 멈춘다. 재고 관리 모드의 발행 실패 이벤트 화면과 같은 구조다. 보류.",
+    "status": "pending",
+    "dependencies": ["warehouse-operations-mode"]
+  },
+  {
+    "id": "warehouse-admin-master-members",
+    "name": "직원–창고 배정과 창고 마스터 관리(창고 운영 관리) · VITE_WAREHOUSE_IDS 제거",
+    "description": "창고 운영 관리 모드 2단계: 직원–창고 배정(/api/warehouses/{id}/members)과 창고·Zone·Location·작업 처리장 마스터 관리를 추가하고, 담당 창고를 WMS에서 받아 VITE_WAREHOUSE_IDS 환경 설정을 없앤다. 보류.",
+    "status": "pending",
+    "dependencies": ["warehouse-operations-mode"]
   }
 ]
