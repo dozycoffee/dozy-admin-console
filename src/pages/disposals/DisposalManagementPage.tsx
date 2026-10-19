@@ -9,6 +9,7 @@ import { DisposalStatusBadge } from '../../features/disposal/ui/DisposalStatusBa
 import { DisposalItemsSummary } from '../../features/disposal/ui/DisposalItemsSummary'
 import { RegisterDisposalForm } from '../../features/disposal/ui/RegisterDisposalForm'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 type WorkGroup = 'ALL' | 'REQUESTED' | 'APPROVED' | 'COMPLETED'
 // COMPLETED 탭은 작업 큐가 아니라 "최근 완료 건 미리보기"다 — 전체는 /disposals/history로 보낸다.
@@ -50,7 +51,7 @@ export function DisposalManagementPage() {
     if (moveToQueue) queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   if (disposalsQuery.isLoading) return <section className="panel"><p>폐기 관리 정보를 불러오는 중입니다...</p></section>
-  if (disposalsQuery.isError) return <section className="panel"><h1>폐기 정보를 불러오지 못했습니다</h1><p>{disposalsQuery.error.message}</p></section>
+  if (disposalsQuery.isError) return <section className="panel"><h1>폐기 정보를 불러오지 못했습니다</h1><p>{toDisplayMessage(disposalsQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>DISPOSAL OPERATIONS</p><h1>폐기 관리</h1></div><Link className="inbound-history-back" to="/disposals/history">폐기 히스토리</Link></header>
     <section className="inbound-summary-grid" aria-label="폐기 작업 요약">
@@ -90,10 +91,10 @@ function DisposalDetail({ disposal, warehouseIds, writable, confirm }: { disposa
   return <section className="panel inbound-detail-panel">
     <div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">DISPOSAL #{disposal.disposalId}</p><h2>폐기 #{disposal.disposalId}</h2><div className="inbound-detail-meta"><span><b>품목</b>{items ? `${items.length}개` : '-'}</span></div></div><DisposalStatusBadge status={disposal.status} /></div>
     {itemsQuery.isLoading && <p>품목을 불러오는 중입니다...</p>}
-    {itemsQuery.isError && <p className="inbound-error" role="alert">{itemsQuery.error instanceof Error ? itemsQuery.error.message : '품목을 불러오지 못했습니다.'}</p>}
+    {itemsQuery.isError && <p className="inbound-error" role="alert">{toDisplayMessage(itemsQuery.error, '품목을 불러오지 못했습니다.')}</p>}
     {items && disposal.status === 'REQUESTED' && <section className="inbound-stage"><h3>폐기 승인 대기</h3><p>승인하면 대상 재고가 폐기 처리장으로 이동하며 폐기 처리장 공간이 점유됩니다.</p><DisposalItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '폐기를 승인할까요?', description: '재고가 폐기 처리장으로 이동하며 되돌릴 수 없습니다.', confirmLabel: '폐기 승인', run: () => approve.mutate(disposal.disposalId) })}>폐기 승인</ActionButton></section>}
     {items && disposal.status === 'APPROVED' && <section className="inbound-stage"><h3>폐기 처리중</h3><p>폐기 처리장의 물품을 실제로 폐기한 뒤 완료 처리하세요. 완료하면 재고가 제외되고 폐기 처리장 공간이 해제됩니다.</p><DisposalItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '폐기를 완료할까요?', description: '재고가 영구 제외되며 되돌릴 수 없습니다.', confirmLabel: '폐기 완료', run: () => complete.mutate(disposal.disposalId) })}>폐기 완료</ActionButton></section>}
     {items && disposal.status === 'COMPLETED' && <section className="inbound-stage completed"><h3>폐기 완료</h3><p>대상 재고가 폐기되어 더 이상 재고로 조회되지 않습니다.</p><DisposalItemsSummary items={items} /></section>}
-    {actionError && <p className="inbound-error" role="alert">{actionError.message}</p>}
+    {actionError && <p className="inbound-error" role="alert">{toDisplayMessage(actionError)}</p>}
   </section>
 }

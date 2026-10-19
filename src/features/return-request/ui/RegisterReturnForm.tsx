@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useProducts } from '../../product/model/useProducts'
 import { useRegisterReturn } from '../model/useReturns'
+import { toDisplayMessage } from '../../../shared/api/displayMessage'
 
 type Line = { productId: string; quantity: string }
 const emptyLine: Line = { productId: '', quantity: '' }
@@ -25,6 +26,6 @@ export function RegisterReturnForm({ warehouseId, writable, onRegistered }: { wa
       <button type="button" disabled={lines.length === 1 || register.isPending} onClick={() => setLines((current) => current.filter((_, i) => i !== index))}>삭제</button>
     </div>)}
     <div className="inbound-form-actions"><button type="button" disabled={!writable || register.isPending} onClick={() => setLines((current) => [...current, emptyLine])}>품목 추가</button><button type="button" className="inbound-action-button" disabled={!writable || !valid || register.isPending} onClick={submit}>반품 접수</button></div>
-    {register.isError && <p className="inbound-error" role="alert">{register.error.message}</p>}
+    {register.isError && <p className="inbound-error" role="alert">{toDisplayMessage(register.error)}</p>}
   </section>
 }

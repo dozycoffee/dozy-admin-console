@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { OutboundAllocation } from '../model/outboundSchemas'
 import { useOutboundAllocations, useReportPickingShortage, type OutboundItemView } from '../model/useOutbounds'
+import { toDisplayMessage } from '../../../shared/api/displayMessage'
 
 type Props = {
   outboundId: number
@@ -24,7 +25,7 @@ export function OutboundAllocationsPanel({ outboundId, items, canReportShortage,
   const [shortages, setShortages] = useState<Record<number, string>>({})
   const allocations = query.data
   if (query.isLoading) return <p>피킹 계획을 불러오는 중입니다...</p>
-  if (query.isError) return <p className="inbound-error" role="alert">{query.error instanceof Error ? query.error.message : '피킹 계획을 불러오지 못했습니다.'}</p>
+  if (query.isError) return <p className="inbound-error" role="alert">{toDisplayMessage(query.error, '피킹 계획을 불러오지 못했습니다.')}</p>
   if (!allocations || allocations.length === 0) return null
 
   const productName = (itemId: number) => items.find((item) => item.outboundItemId === itemId)?.productName ?? `품목 #${itemId}`
@@ -54,6 +55,6 @@ export function OutboundAllocationsPanel({ outboundId, items, canReportShortage,
     {canReportShortage && <button type="button" className="inbound-action-button" disabled={entries.length === 0 || invalid || report.isPending}
       onClick={() => confirm({ title: '부족 수량을 보고할까요?', description: '보고한 수량은 inventory가 다른 Lot으로 재할당합니다. 대체할 재고가 없으면 거부될 수 있습니다.', confirmLabel: '부족 보고', run: submit })}>부족 보고 · 재할당</button>}
     {invalid && <p className="inbound-error" role="alert">부족 수량은 할당 수량 이하의 정수여야 합니다.</p>}
-    {report.isError && <p className="inbound-error" role="alert">{report.error.message}</p>}
+    {report.isError && <p className="inbound-error" role="alert">{toDisplayMessage(report.error)}</p>}
   </section>
 }

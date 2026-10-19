@@ -9,6 +9,7 @@ import { OutboundStatusBadge } from '../../features/outbound/ui/OutboundStatusBa
 import { OutboundItemsSummary } from '../../features/outbound/ui/OutboundItemsSummary'
 import { OutboundAllocationsPanel } from '../../features/outbound/ui/OutboundAllocationsPanel'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 type WorkGroup = 'ALL' | 'REQUESTED' | 'IN_PROGRESS' | 'CANCEL' | 'COMPLETED'
 // COMPLETED 탭은 작업 큐가 아니라 "최근 완료 건 미리보기"다 — 전체는 /outbounds/history로 보낸다.
@@ -51,7 +52,7 @@ export function OutboundManagementPage() {
     if (moveToQueue) queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   if (outboundsQuery.isLoading) return <section className="panel"><p>출고 관리 정보를 불러오는 중입니다...</p></section>
-  if (outboundsQuery.isError) return <section className="panel"><h1>출고 정보를 불러오지 못했습니다</h1><p>{outboundsQuery.error.message}</p></section>
+  if (outboundsQuery.isError) return <section className="panel"><h1>출고 정보를 불러오지 못했습니다</h1><p>{toDisplayMessage(outboundsQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>OUTBOUND OPERATIONS</p><h1>출고 관리</h1></div><Link className="inbound-history-back" to="/outbounds/history">출고 히스토리</Link></header>
     <section className="inbound-summary-grid" aria-label="출고 작업 요약">
@@ -96,7 +97,7 @@ function OutboundDetail({ outbound, writable, confirm }: { outbound: Outbound; w
   return <section className="panel inbound-detail-panel">
     <div className="panel-heading inbound-detail-heading"><div><p className="eyebrow">OUTBOUND #{outbound.outboundId}</p><h2>출고 #{outbound.outboundId}</h2><div className="inbound-detail-meta"><span><b>품목</b>{items ? `${items.length}개` : '-'}</span>{outbound.channel && <span><b>채널</b>{outbound.channel}</span>}{outbound.externalOrderId && <span><b>주문</b>{outbound.externalOrderId}</span>}{outbound.reservationId != null && <span><b>예약</b>#{outbound.reservationId}</span>}</div></div><OutboundStatusBadge status={outbound.status} /></div>
     {itemsQuery.isLoading && <p>품목을 불러오는 중입니다...</p>}
-    {itemsQuery.isError && <p className="inbound-error" role="alert">{itemsQuery.error instanceof Error ? itemsQuery.error.message : '품목을 불러오지 못했습니다.'}</p>}
+    {itemsQuery.isError && <p className="inbound-error" role="alert">{toDisplayMessage(itemsQuery.error, '품목을 불러오지 못했습니다.')}</p>}
     {items && outbound.status === 'REQUESTED' && <section className="inbound-stage"><h3>출고 요청</h3><p>피킹을 시작하면 예약이 할당한 Lot의 재고가 점유됩니다. 재고가 부족하면 확보 가능한 만큼만 피킹되고 부족 수량이 표시됩니다.</p><OutboundItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '피킹을 시작할까요?', description: '재고가 점유되고 출고장 공간이 사용되며 되돌릴 수 없습니다.', confirmLabel: '피킹 시작', run: () => startPicking.mutate(outbound.outboundId) })}>피킹 시작</ActionButton></section>}
     {items && outbound.status === 'PICKING' && <section className="inbound-stage"><h3>피킹 완료 · 검수 대기</h3><p>피킹 결과를 확인하고 검수를 시작하세요.</p>{hasShortage && <p className="inbound-error" role="alert">재고 부족으로 요청 수량을 모두 피킹하지 못한 품목이 있습니다.</p>}<OutboundItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => startInspecting.mutate(outbound.outboundId)}>검수 시작</ActionButton></section>}
     {items && outbound.status === 'INSPECTING' && <section className="inbound-stage"><h3>출고 검수</h3><p>피킹된 수량을 확인한 뒤 출고를 완료하세요. 완료하면 재고 점유가 확정되고 Location·출고장 공간이 해제됩니다.</p>{hasShortage && <p className="inbound-error" role="alert">부족 수량이 있는 채로 출고됩니다.</p>}<OutboundItemsSummary items={items} /><ActionButton disabled={!writable || busy} onClick={() => confirm({ title: '출고를 완료할까요?', description: '재고가 확정 차감되며 되돌릴 수 없습니다.', confirmLabel: '출고 완료', run: () => complete.mutate(outbound.outboundId) })}>출고 완료</ActionButton></section>}
@@ -107,6 +108,6 @@ function OutboundDetail({ outbound, writable, confirm }: { outbound: Outbound; w
     {items && cancelable && <div className="outbound-cancel"><button type="button" className="outbound-cancel-button" disabled={!writable || busy} onClick={() => confirm(cancelNow
       ? { title: '출고를 취소할까요?', description: '피킹 전이라 바로 취소되고 예약이 해제됩니다. 되돌릴 수 없습니다.', confirmLabel: '출고 취소', run: () => requestCancel.mutate(outbound.outboundId) }
       : { title: '취소를 요청할까요?', description: '피킹이 시작된 출고는 관리자가 상품 원위치를 확인하고 승인해야 취소됩니다. 승인 전까지 재고는 점유된 상태로 유지됩니다.', confirmLabel: '취소 요청', run: () => requestCancel.mutate(outbound.outboundId) })}>{cancelNow ? '출고 취소' : '취소 요청'}</button></div>}
-    {actionError && <p className="inbound-error" role="alert">{actionError.message}</p>}
+    {actionError && <p className="inbound-error" role="alert">{toDisplayMessage(actionError)}</p>}
   </section>
 }

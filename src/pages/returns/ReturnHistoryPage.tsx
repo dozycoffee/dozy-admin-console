@@ -5,6 +5,7 @@ import { useReturnItems, useReturns } from '../../features/return-request/model/
 import { ReturnStatusBadge } from '../../features/return-request/ui/ReturnStatusBadge'
 import { ReturnItemsSummary } from '../../features/return-request/ui/ReturnItemsSummary'
 import type { ReturnRequest } from '../../features/return-request/model/returnSchemas'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 const HISTORY_PAGE_SIZE = 20
 const emptyReturns: ReturnRequest[] = []
@@ -22,7 +23,7 @@ export function ReturnHistoryPage() {
   const itemsQuery = useReturnItems(selected?.returnRequestId)
   const totalPages = Math.max(1, Math.ceil((historyPage?.total ?? 0) / (historyPage?.size ?? HISTORY_PAGE_SIZE)))
   if (historyQuery.isLoading) return <section className="panel"><p>반품 이력을 불러오는 중입니다...</p></section>
-  if (historyQuery.isError) return <section className="panel"><h1>반품 이력을 불러오지 못했습니다</h1><p>{historyQuery.error.message}</p></section>
+  if (historyQuery.isError) return <section className="panel"><h1>반품 이력을 불러오지 못했습니다</h1><p>{toDisplayMessage(historyQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>RETURN OPERATIONS</p><h1>반품 히스토리</h1></div><Link className="inbound-history-back" to="/returns">작업 목록으로</Link></header>
     <section className="inbound-workspace">

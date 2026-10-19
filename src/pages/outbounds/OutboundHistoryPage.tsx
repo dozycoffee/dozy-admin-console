@@ -5,6 +5,7 @@ import { useOutboundItems, useOutbounds } from '../../features/outbound/model/us
 import { OutboundStatusBadge } from '../../features/outbound/ui/OutboundStatusBadge'
 import { OutboundItemsSummary } from '../../features/outbound/ui/OutboundItemsSummary'
 import type { Outbound } from '../../features/outbound/model/outboundSchemas'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 const HISTORY_PAGE_SIZE = 20
 const emptyOutbounds: Outbound[] = []
@@ -22,7 +23,7 @@ export function OutboundHistoryPage() {
   const itemsQuery = useOutboundItems(selected?.outboundId)
   const totalPages = Math.max(1, Math.ceil((historyPage?.total ?? 0) / (historyPage?.size ?? HISTORY_PAGE_SIZE)))
   if (historyQuery.isLoading) return <section className="panel"><p>출고 이력을 불러오는 중입니다...</p></section>
-  if (historyQuery.isError) return <section className="panel"><h1>출고 이력을 불러오지 못했습니다</h1><p>{historyQuery.error.message}</p></section>
+  if (historyQuery.isError) return <section className="panel"><h1>출고 이력을 불러오지 못했습니다</h1><p>{toDisplayMessage(historyQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>OUTBOUND OPERATIONS</p><h1>출고 히스토리</h1></div><Link className="inbound-history-back" to="/outbounds">작업 목록으로</Link></header>
     <section className="inbound-workspace">

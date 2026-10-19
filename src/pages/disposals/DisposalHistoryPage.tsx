@@ -5,6 +5,7 @@ import { useDisposalItems, useDisposals } from '../../features/disposal/model/us
 import { DisposalStatusBadge } from '../../features/disposal/ui/DisposalStatusBadge'
 import { DisposalItemsSummary } from '../../features/disposal/ui/DisposalItemsSummary'
 import type { Disposal } from '../../features/disposal/model/disposalSchemas'
+import { toDisplayMessage } from '../../shared/api/displayMessage'
 
 const HISTORY_PAGE_SIZE = 20
 const emptyDisposals: Disposal[] = []
@@ -22,7 +23,7 @@ export function DisposalHistoryPage() {
   const itemsQuery = useDisposalItems(selected?.disposalId, user.scope.warehouseIds)
   const totalPages = Math.max(1, Math.ceil((historyPage?.total ?? 0) / (historyPage?.size ?? HISTORY_PAGE_SIZE)))
   if (historyQuery.isLoading) return <section className="panel"><p>폐기 이력을 불러오는 중입니다...</p></section>
-  if (historyQuery.isError) return <section className="panel"><h1>폐기 이력을 불러오지 못했습니다</h1><p>{historyQuery.error.message}</p></section>
+  if (historyQuery.isError) return <section className="panel"><h1>폐기 이력을 불러오지 못했습니다</h1><p>{toDisplayMessage(historyQuery.error)}</p></section>
   return <>
     <header className="page-header inbound-page-header"><div><p>DISPOSAL OPERATIONS</p><h1>폐기 히스토리</h1></div><Link className="inbound-history-back" to="/disposals">작업 목록으로</Link></header>
     <section className="inbound-workspace">
