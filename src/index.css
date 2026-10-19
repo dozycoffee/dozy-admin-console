@@ -180,7 +180,7 @@ a { color: inherit; text-decoration: none; }
 .location-product-name { grid-column: 3; padding: 0 13px; }
 .location-product > strong { grid-column: 4; padding: 0 13px; }
 .location-product-rate { grid-column: 5; padding: 0 13px; }
-.location-product > .quality-status { grid-column: 7; justify-self: start; margin-left: 13px; }
+.location-product > .quality-status { grid-column: 6; justify-self: start; margin-left: 13px; white-space: nowrap; }
 .location-product time { grid-column: 8; padding: 0 13px; }
 @keyframes location-detail-open { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 .location-detail-row { animation: location-detail-open .22s ease-out both; }
