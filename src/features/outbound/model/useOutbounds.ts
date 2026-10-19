@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { httpClient } from '../../../shared/api/httpClient'
 import { useProducts } from '../../product/model/useProducts'
 import {
-  outboundItemListSchema, outboundListSchema, outboundRecommendationListSchema, outboundSchema, registerOutboundRequestSchema,
-  type Outbound, type OutboundItem, type OutboundStatus, type OutboundStatusCounts, type PaginatedOutbound, type RegisterOutboundRequest,
+  outboundAllocationListSchema, outboundItemListSchema, outboundListSchema, outboundSchema, reportPickingShortageRequestSchema,
+  type Outbound, type OutboundItem, type OutboundStatus, type OutboundStatusCounts, type PaginatedOutbound, type ReportPickingShortageRequest,
 } from './outboundSchemas'
 
-const emptyCounts = (): OutboundStatusCounts => ({ REQUESTED: 0, PICKING: 0, INSPECTING: 0, COMPLETED: 0 })
+const emptyCounts = (): OutboundStatusCounts => ({ REQUESTED: 0, PICKING: 0, INSPECTING: 0, COMPLETED: 0, CANCEL_REQUESTED: 0, CANCELED: 0 })
 
 // 서버 목록 API(GET /api/outbounds)는 창고 필터·페이지네이션이 없다. 입고와 같은 방식으로 한 번에 받아
 // 창고 범위(AccessScope) 필터, 상태별 건수, 최신순 정렬, 페이지 분할을 클라이언트에서 처리한다.
@@ -43,10 +43,12 @@ export function useOutboundItems(outboundId: number | undefined) {
   return { data, isLoading: items.isLoading, isError: items.isError, error: items.error }
 }
 
-export function useOutboundRecommendations() {
+/** 출고의 피킹 계획(Lot별 할당). 재할당 뒤에는 새 할당으로 바뀐다. */
+export function useOutboundAllocations(outboundId: number | undefined) {
   return useQuery({
-    queryKey: ['lots', 'outbound-recommendations'],
-    queryFn: async () => outboundRecommendationListSchema.parse((await httpClient.get('/api/lots/outbound-recommendations')).data),
+    queryKey: ['outbounds', 'allocations', outboundId],
+    queryFn: async () => outboundAllocationListSchema.parse((await httpClient.get('/api/outbound-allocations', { params: { outboundId } })).data),
+    enabled: outboundId !== undefined,
   })
 }
 
@@ -61,9 +63,6 @@ function useInvalidatingMutation<TVariables>(mutationFn: (variables: TVariables)
   })
 }
 
-export function useRegisterOutbound() {
-  return useInvalidatingMutation(async (body: RegisterOutboundRequest) => outboundSchema.parse((await httpClient.post('/api/outbounds', registerOutboundRequestSchema.parse(body))).data))
-}
 export function useStartOutboundPicking() {
   return useInvalidatingMutation(async (outboundId: number) => outboundSchema.parse((await httpClient.patch(`/api/outbounds/${outboundId}/picking`)).data), ['inventory', 'lots'])
 }
@@ -72,4 +71,13 @@ export function useStartOutboundInspecting() {
 }
 export function useCompleteOutbound() {
   return useInvalidatingMutation(async (outboundId: number) => outboundSchema.parse((await httpClient.patch(`/api/outbounds/${outboundId}/complete`)).data), ['inventory', 'lots'])
+}
+
+// 피킹 전 출고는 바로 취소되고, 피킹·검수 중 출고는 CANCEL_REQUESTED로 관리자 승인을 기다린다.
+export function useRequestOutboundCancel() {
+  return useInvalidatingMutation(async (outboundId: number) => outboundSchema.parse((await httpClient.post(`/api/outbounds/${outboundId}/cancel-requests`)).data), ['inventory'])
+}
+// 부족을 보고하면 inventory가 다른 Lot으로 재할당하고 새 할당 전체를 돌려준다.
+export function useReportPickingShortage() {
+  return useInvalidatingMutation(async ({ outboundId, ...body }: { outboundId: number } & ReportPickingShortageRequest) => outboundAllocationListSchema.parse((await httpClient.post(`/api/outbounds/${outboundId}/reallocation`, reportPickingShortageRequestSchema.parse(body))).data), ['inventory'])
 }

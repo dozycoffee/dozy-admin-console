@@ -9,13 +9,13 @@ import type { Outbound } from '../../features/outbound/model/outboundSchemas'
 const HISTORY_PAGE_SIZE = 20
 const emptyOutbounds: Outbound[] = []
 
-// 출고 관리 화면의 '완료' 탭은 최근 건만 미리보기로 보여주고, 전체 기록은 이 페이지에서 조회한다.
+// 출고 관리 화면의 '완료' 탭은 최근 건만 미리보기로 보여주고, 완료·취소된 전체 기록은 이 페이지에서 조회한다.
 // 조회 전용 이력이라 피킹·검수 같은 액션 버튼은 없다.
 export function OutboundHistoryPage() {
   const user = useCurrentUser()
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const historyQuery = useOutbounds(user.scope.warehouseIds, ['COMPLETED'], page, HISTORY_PAGE_SIZE)
+  const historyQuery = useOutbounds(user.scope.warehouseIds, ['COMPLETED', 'CANCELED'], page, HISTORY_PAGE_SIZE)
   const historyPage = historyQuery.data
   const outbounds = historyPage?.items ?? emptyOutbounds
   const selected = outbounds.find((outbound) => outbound.outboundId === selectedId) ?? outbounds[0]
@@ -26,7 +26,7 @@ export function OutboundHistoryPage() {
   return <>
     <header className="page-header inbound-page-header"><div><p>OUTBOUND OPERATIONS</p><h1>출고 히스토리</h1></div><Link className="inbound-history-back" to="/outbounds">작업 목록으로</Link></header>
     <section className="inbound-workspace">
-      <aside className="panel inbound-list-panel"><div className="panel-heading"><div><p className="eyebrow">OUTBOUND HISTORY</p><h2>완료 이력</h2></div><small>{historyPage?.total ?? 0}건</small></div>
+      <aside className="panel inbound-list-panel"><div className="panel-heading"><div><p className="eyebrow">OUTBOUND HISTORY</p><h2>완료·취소 이력</h2></div><small>{historyPage?.total ?? 0}건</small></div>
         <div className="inbound-list">{outbounds.map((outbound) => <button type="button" key={outbound.outboundId} className={`inbound-list-item ${selected?.outboundId === outbound.outboundId ? 'selected' : ''}`} onClick={() => setSelectedId(outbound.outboundId)}><span><OutboundStatusBadge status={outbound.status} /></span><strong>출고 #{outbound.outboundId}</strong></button>)}{outbounds.length === 0 && <p className="inbound-empty">완료된 출고 이력이 없습니다.</p>}</div>
         {totalPages > 1 && <div className="inbound-pagination"><button type="button" disabled={page === 1} onClick={() => { setPage((current) => current - 1); setSelectedId(null) }}>이전</button><span>{page} / {totalPages}</span><button type="button" disabled={page === totalPages} onClick={() => { setPage((current) => current + 1); setSelectedId(null) }}>다음</button></div>}
       </aside>
