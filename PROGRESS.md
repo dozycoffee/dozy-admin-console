@@ -58,6 +58,17 @@
 - 이슈 #112, `feat/warehouse-mode-rename` 브랜치. 모드 `label`을 '창고 관리자'에서 '창고 관리'로 바꿨다(다른 모드 이름과 형식 통일). 모드 id `warehouse-manager`와 WMS role 이름(`wms:warehouse_manager`의 '창고 관리자')은 바꾸지 않는다. AGENT.md·권한 정책 체크리스트·관련 테스트의 모드 이름도 갱신했다.
 - 검증: build/lint/test 통과. PR #113 머지 전에 브라우저에서 확인했다.
 
+### 2026-10-19 (입고 검수·완료를 WMS 수령 라인 계약에 맞춤)
+
+- 이슈 #121, `fix/inbound-wms-receipts` 브랜치. 로컬 시드로 입고 이력을 열었더니 품목 조회가 `inspectionResult` zod 검증 오류 JSON을 그대로 보여준 데서 시작했다. dozy-wms-api는 입고 검수를 수령 라인(Receipt) 단위로 바꿨는데(ADR-0016) 콘솔은 이전 계약(`inspectionResult`·품목당 실수량 1개·완료 때 `lotAssignments`)에 머물러 있었다.
+- **스키마**: 입고 품목은 `inspectionStatus`(PENDING/INSPECTED), `receipts[]`(Lot 번호·제조일·유통기한·수량·판정·불량 사유), `expectedLotNumber`·`expectedExpirationDate`(공급사 예정값, 선택), `quantityDiscrepancy`(예정 대비 차이)를 가진다. 불량 사유는 `DAMAGED`·`EXPIRED`·`QUALITY`·`OTHER`다.
+- **검수 입력**: 품목마다 수령 라인을 추가·삭제하며 입력하고 한 번에 저장한다(품목당 한 번만 저장 가능, 확인창 안내). 같은 품목이 Lot 여러 개로 오거나 일부만 파손된 경우 라인을 나눈다. 아무것도 도착하지 않았으면 라인을 모두 지우고 "미도착으로 저장"(수령 라인 0건)한다. 서버 규칙을 저장 전에 검증한다(`receiptRules.ts`): Lot 필수·50자 이하, 수량 1 이상 정수와 합계 ≤ 예정 수량, 상품에 유통기한 일수가 있으면 유통기한 필수·없으면 입력 불가(상품 정보를 모르면 서버 판정), 제조일은 오늘 이후 불가·유통기한보다 늦을 수 없음, 유통기한이 지난 라인은 정상 불가, 불량은 사유 필수·정상은 사유 불가, 같은 Lot의 유통기한 일치. 최종 판단은 서버다(기존 Lot과의 유통기한 충돌 등은 서버만 안다).
+- **완료**: "Lot 확정" 단계를 없앴다. 모든 품목을 검수하면 확인창을 거쳐 본문 없이 `PATCH /complete`를 부른다. 검수가 끝난 품목은 수령 라인과 예정 대비 차이를 보여준다.
+- **오류 문구**: zod 검증 오류가 오류 목록 JSON 그대로 보이던 문제를 `toDisplayMessage`(`shared/api/displayMessage.ts`)로 안내 문구("서버 응답의 형식이 화면이 기대하는 것과 달라…")로 바꾸고 원인은 콘솔에 남긴다. 입고·출고·폐기·반품·Location 재고 화면의 오류 표시에 적용했다.
+- **반품**: WMS 계약(검수 `{actualQuantity, inspectionResult}`, 완료 `lotAssignments`)과 같은 것을 확인해 이번에는 바꾸지 않았다.
+- 검증: build/lint/test 통과(1284개). 🔶 브라우저 확인은 아직 하지 못했다(로컬 시드의 처리중 입고 #9003으로 검수·완료 확인 가능).
+- 후속: 입고 등록에 예정 Lot·유통기한 선택 입력 추가(WMS가 받는다), 재고 실사 화면, 창고 운영 관리 모드.
+
 ### 2026-10-19 (출고 관리를 WMS 현행 출고 계약에 맞춤)
 
 - 이슈 #119, `feat/outbound-wms-contract` 브랜치. dozy-wms-api 출고는 inventory 예약 확정(`RESERVATION_CONFIRMED`)으로만 만들어지고 취소 상태(`CANCEL_REQUESTED`·`CANCELED`)와 피킹 부족 재할당이 있는데, 콘솔은 이전 계약(4개 상태, 수동 등록, WMS FIFO)에 머물러 있었다. 취소된 출고가 하나라도 있으면 zod 상태 열거형 파싱이 실패해 출고 관리 화면 전체가 오류가 났을 상황이었다.
@@ -605,5 +616,5 @@
   - 이름 후보: "창고 운영 관리"(id `warehouse-operations`, 짧은 이름 "창고 운영", 대안 "창고 승인·운영"). `roleMapping.ts`에서 `wms:admin`만 이 모드를 가진다. admin은 전 창고를 보므로 `VITE_WAREHOUSE_IDS`가 필요 없다. 두 role(`wms:warehouse_manager`·`wms:admin`)을 한 사람에게 주지 않는 것이 분리의 전제다.
   - 1단계: 승인 대기 화면(출고 취소 승인)과 WMS 호출 큐 화면(`/api/inventory-calls` 목록·상세·재처리·폐기, `DEAD` 호출이 그 창고의 큐를 멈추므로 운영상 중요). 2단계: 직원–창고 배정(`/api/warehouses/{id}/members`)과 창고·Zone·Location·작업 처리장 마스터 관리, `VITE_WAREHOUSE_IDS` 제거. 실사 조정 승인(임계치 초과)은 실사 화면과 함께 정한다.
   - 열린 결정: 모드 이름 확정, 1단계 범위, 요청자≠승인자를 서버(WMS가 요청자를 기록하고 검증)에서 강제할지(지금은 role 분리만).
-- 재고 실사 화면(`/api/stock-audits`)은 WMS API가 있는데 콘솔 화면이 없다. 입고·반품도 출고처럼 WMS 현행 계약과 대조해 보지 않았다.
+- 재고 실사 화면(`/api/stock-audits`)은 WMS API가 있는데 콘솔 화면이 없다. 입고·출고·반품의 WMS 계약 대조는 끝났다(반품은 일치).
 - 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다
