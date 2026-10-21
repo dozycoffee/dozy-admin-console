@@ -41,6 +41,8 @@ export const roleGrants: Readonly<Record<string, RoleGrant>> = {
       permissions.disposalWrite,
       permissions.returnRead,
       permissions.returnWrite,
+      permissions.stockAuditRead,
+      permissions.stockAuditWrite,
     ],
   },
   // 재고 서비스가 WMS에서 분리되어 원자재·재고 관리 모드는 inventory 서비스의 관리자 role(`inventory:admin`)에 매핑한다.
