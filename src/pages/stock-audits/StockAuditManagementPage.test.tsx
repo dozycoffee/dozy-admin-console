@@ -79,6 +79,16 @@ describe('StockAuditManagementPage', () => {
     expect(count).toHaveBeenCalledWith({ stockAuditItemId: 70, countedQuantity: 4 })
   })
 
+  it('이미 저장한 값은 비활성 "저장됨"으로 보이고 값을 고치면 다시 "저장"이 된다', async () => {
+    setup(audit('IN_PROGRESS'), [item({ countedQuantity: 3, discrepancy: -2 })])
+
+    expect(screen.getByRole('button', { name: '저장됨' })).toBeDisabled()
+    await userEvent.clear(screen.getByLabelText('실사 수량'))
+    await userEvent.type(screen.getByLabelText('실사 수량'), '4')
+
+    expect(screen.getByRole('button', { name: '저장' })).toBeEnabled()
+  })
+
   it('모든 항목을 입력하면 확인 후 실사를 완료한다', async () => {
     setup(audit('IN_PROGRESS'), [item({ countedQuantity: 5, discrepancy: 0 })])
 

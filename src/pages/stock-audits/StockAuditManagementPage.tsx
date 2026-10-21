@@ -109,7 +109,8 @@ function AuditItemRow({ item, editable, saving, onCount }: { item: StockAuditIte
   const [value, setValue] = useState(item.countedQuantity === null ? '' : String(item.countedQuantity))
   const parsed = value.trim() === '' ? null : Number(value)
   const valid = parsed !== null && Number.isInteger(parsed) && parsed >= 0
-  return <div className="inspection-row">
+  const saved = parsed !== null && parsed === item.countedQuantity
+  return <div className={`inspection-row ${editable ? 'audit-item-editable' : ''}`}>
     <div>
       <strong>{item.productName ?? `재고 #${item.locationStockId}`}</strong>
       <small>{item.locationCode ?? '-'} · {item.lotNumber ?? '-'} · 스냅샷 {item.snapshotQuantity} ea</small>
@@ -118,7 +119,7 @@ function AuditItemRow({ item, editable, saving, onCount }: { item: StockAuditIte
     {editable
       ? <>
         <label>실사 수량<input type="number" min={0} step={1} value={value} disabled={saving} onChange={(event) => setValue(event.target.value)} /></label>
-        <button type="button" disabled={saving || !valid || parsed === item.countedQuantity} onClick={() => valid && onCount?.(item, parsed)}>저장</button>
+        <button type="button" className={`audit-save-button ${saved ? 'saved' : ''}`} disabled={saving || !valid || saved} onClick={() => valid && onCount?.(item, parsed)}>{saved ? '저장됨' : '저장'}</button>
       </>
       : <>
         <div><small>실사 수량</small><strong>{item.countedQuantity ?? '-'}</strong></div>
