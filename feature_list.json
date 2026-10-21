@@ -453,5 +453,12 @@
     "description": "dozy-wms-api 입고는 검수를 수령 라인(Receipt) 단위로 바꿨다(ADR-0016). 콘솔의 입고 품목 스키마를 inspectionStatus·receipts·예정 Lot·예정 대비 차이 응답에 맞추고, 검수를 수령 라인 입력(Lot·제조일·유통기한·수량·판정·불량 사유)으로 바꾸며 서버 규칙을 저장 전에 검증하고, 입고 완료에서 Lot 확정 단계를 없앤다(본문 없는 complete). 서버 응답 검증 오류(ZodError)가 JSON 그대로 노출되던 문제를 안내 문구로 변환한다. 반품은 WMS 계약과 같아 이번에는 오류 문구 처리만 적용한다. 완료 기준: build·lint·test 통과, 브라우저에서 확인. 이슈 #121.",
     "status": "in_progress",
     "dependencies": ["outbound-wms-contract"]
+  },
+  {
+    "id": "warehouse-stock-audit",
+    "name": "재고 실사 화면(창고 관리)",
+    "description": "창고 관리 모드에 재고 실사 화면 /stock-audits를 추가한다. dozy-wms-api의 /api/stock-audits(등록·배정·완료·확정)와 /api/stock-audit-items(항목 조회·카운트)로 Zone 단위 실사를 SCHEDULED → IN_PROGRESS → COMPLETED → CLOSED 순서로 처리한다. 등록은 Zone 선택, 상세는 항목별 스냅샷·실측·차이·스냅샷 이후 변동 표시와 카운트 입력, 확정은 확인창에서 재고 조정을 안내한다. 조정량이 임계치를 넘으면 wms:admin만 확정할 수 있어(STOCK_AUDIT_APPROVAL_REQUIRED) 콘솔에서는 승인자 확정이 필요하다는 안내만 보여준다. stockAudit.read/write Permission을 wms:warehouse_manager에 매핑한다. 완료 기준: build·lint·test 통과, 브라우저에서 golden path와 권한 분기 확인. 이슈 #123.",
+    "status": "completed",
+    "dependencies": ["warehouse-ui-polish"]
   }
 ]
