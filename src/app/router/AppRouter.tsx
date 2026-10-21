@@ -23,6 +23,7 @@ import { OutboundManagementPage } from '../../pages/outbounds/OutboundManagement
 import { OutboundHistoryPage } from '../../pages/outbounds/OutboundHistoryPage'
 import { DisposalManagementPage } from '../../pages/disposals/DisposalManagementPage'
 import { DisposalHistoryPage } from '../../pages/disposals/DisposalHistoryPage'
+import { StockAuditManagementPage } from '../../pages/stock-audits/StockAuditManagementPage'
 import { EmployeesPage } from '../../pages/employees/EmployeesPage'
 import { RolesPage } from '../../pages/roles/RolesPage'
 import { AccountPage } from '../../pages/account/AccountPage'
@@ -67,6 +68,7 @@ export function AppRouter() {
           <Route path="outbounds/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.outboundRead}><OutboundHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="disposals" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="disposals/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.disposalRead}><DisposalHistoryPage /></RequirePermission></RequireActorMode>} />
+          <Route path="stock-audits" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.stockAuditRead}><StockAuditManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnManagementPage /></RequirePermission></RequireActorMode>} />
           <Route path="returns/history" element={<RequireActorMode allowedModes={warehouseOperationsModes}><RequirePermission permission={permissions.returnRead}><ReturnHistoryPage /></RequirePermission></RequireActorMode>} />
           <Route path="products" element={<RequireActorMode allowedModes={merchandisingModes}><RequirePermission permission={permissions.catalogRead}><ProductsPage /></RequirePermission></RequireActorMode>} />

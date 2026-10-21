@@ -43,7 +43,7 @@ describe('buildCurrentUser', () => {
     expect(user.scope.warehouseIds).toEqual([])
   })
 
-  it('창고 관리자 role은 입출고·폐기·반품 권한과 환경 설정의 창고 범위를 준다', () => {
+  it('창고 관리자 role은 입출고·폐기·반품·재고 실사 권한과 환경 설정의 창고 범위를 준다', () => {
     const user = buildCurrentUser({ ...base, roles: ['wms:warehouse_manager'] }, [1, 2])
 
     expect(user.actorModes).toEqual([actorModeIds.warehouseManager])
@@ -54,6 +54,8 @@ describe('buildCurrentUser', () => {
         permissions.disposalWrite,
         permissions.returnRead,
         permissions.returnWrite,
+        permissions.stockAuditRead,
+        permissions.stockAuditWrite,
         permissions.inventoryRead,
       ]),
     )

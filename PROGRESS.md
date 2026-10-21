@@ -11,7 +11,7 @@
 |---|---|---|
 | 공통 | 로그인(원래 화면 복귀), 초대 수락 `/invitation`, 비밀번호 찾기·재설정 `/password/*`, 내 계정 `/account`(조회·비밀번호 변경), owner 양도 수락 `/owner-transfer` | dozy-auth 실 API |
 | 계정 관리자 | 직원 관리 `/employees`(목록·상세·추가(초대)·정보 수정·정지/해제/비활성화·재설정 메일·role 부여/회수), role·서비스 `/roles`, 시스템 클라이언트 `/system-clients`, owner 양도 `/owner`, 감사 로그 `/audit-logs`(owner 전용) | dozy-auth 실 API |
-| 창고 관리 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), Location 재고 `/inventory`, 창고 평면도, 대시보드 | dozy-wms-api 실 API (`GET /api/location-stocks` 포함) |
+| 창고 관리 | 입고·출고·폐기·반품 작업 큐와 이력(`/inbounds` `/outbounds` `/disposals` `/returns`), 재고 실사 `/stock-audits`, Location 재고 `/inventory`, 창고 평면도, 대시보드 | dozy-wms-api 실 API (`GET /api/location-stocks` 포함) |
 | 원자재·재고 관리 | 대시보드(처리 카드: 대사 보정 대기·발행 실패 이벤트, 주의가 필요한 재고 패널: 만료·임박·불량·보류), 원자재 `/materials`(목록·필터·페이지·등록·사용 중지/재개), 재고 현황 `/stock`(상품별 보기·행 보기, 필터·페이지·상세·수량 변동 이력, 읽기 전용), 대사 보정안 `/reconciliations`(필터·페이지·승인/거절), 발행 실패 이벤트 `/outbox-events`(목록·상세·재발행) | dozy-inventory-api 실 API (`inventory:admin`) |
 | MD | 상품 관리 `/products`(목록·상세·등록·수정·활성화·단종·삭제), 분류 관리 `/taxonomy`(카테고리·태그·상품 그룹), 옵션 그룹 `/option-groups`(목록·검색·등록·변경·삭제), 상품의 옵션 그룹 연결·순서·예외·미리보기(상품 상세), 모드 홈 골격 | dozy-catalog-api 실 API (`catalogHttpClient`) |
 
@@ -52,6 +52,17 @@
 - 권한 정의는 `docs/permission-policy-checklist.md`, 구조는 `docs/architecture-checklist.md`를 따른다.
 
 ## 세션 로그
+
+### 2026-10-21 (재고 실사 화면)
+
+- 이슈 #123, `feat/stock-audit-screen` 브랜치. dozy-wms-api에는 Zone 단위 재고 실사 API(`/api/stock-audits`, `/api/stock-audit-items`)가 있는데 콘솔 화면이 없어 창고 관리 모드에 `/stock-audits`를 추가했다.
+- **흐름**: 등록(Zone 선택, 서버가 Location 재고 행을 스냅샷 항목으로 만든다) → 시작(`assign`, 호출한 사용자가 담당자) → 항목별 실사 수량 입력(`count`, 0 이상 정수) → 완료(`complete`, 전 항목 입력 필요, 스냅샷 이후 재고가 바뀐 항목을 서버가 표시) → 조정 확정(`close`). 확정은 실측과 마감 시점의 실시간 Location 재고의 차이만큼 재고를 조정하고 inventory에도 동기로 반영한다(WMS ADR-0009 결정 3). 확정 때만 inventory 쿼리도 무효화한다.
+- **승인**: 조정량이 임계치(WMS `wms.stock-audit.adjustment-approval-threshold`, 현재 10)를 넘는 항목이 있으면 `wms:admin`만 확정할 수 있고 창고 관리자가 확정하면 409 `STOCK_AUDIT_APPROVAL_REQUIRED`가 난다. 콘솔에는 admin 모드가 없어 이 경우 승인자(admin) 확정이 필요하다는 안내만 보여준다. 승인자용 화면은 "창고 운영 관리" 모드에서 다룬다.
+- **권한**: `stockAudit.read`/`stockAudit.write`를 추가해 `wms:warehouse_manager`에 매핑했다(권한 정책 체크리스트 갱신). 라우트는 read, 등록·시작·저장·완료·확정 버튼은 write로 잠근다.
+- **오류 문구**: `stockAuditErrors.ts`가 code로 분기한다(승인 필요, 전 항목 미입력, 상태 전이 불가, inventory 호출 대기·거부·불가 등).
+- **화면 구성**: 입고·폐기와 같은 큐 + 상세 구조와 `.inbound-*`·`.inspection-row` 스타일을 재사용했다. 목록은 `GET /api/stock-audits`를 한 번 받아 창고 범위·상태·페이지를 클라이언트에서 처리한다(서버 페이지네이션 없음). 항목의 Location·Lot·상품명은 Location 재고(수량 0 포함)와 상품 마스터로 채우고 못 찾으면 재고 번호로 보여준다.
+- 검증: build/lint/test 통과(1312개). 브라우저에서 직접 확인했다.
+- 후속: 실사 이력 화면(확정 완료 건 전용), 임계치 초과 승인은 창고 운영 관리 모드.
 
 ### 2026-10-17 (창고 관리자 모드 이름 변경)
 
@@ -616,5 +627,5 @@
   - 이름 후보: "창고 운영 관리"(id `warehouse-operations`, 짧은 이름 "창고 운영", 대안 "창고 승인·운영"). `roleMapping.ts`에서 `wms:admin`만 이 모드를 가진다. admin은 전 창고를 보므로 `VITE_WAREHOUSE_IDS`가 필요 없다. 두 role(`wms:warehouse_manager`·`wms:admin`)을 한 사람에게 주지 않는 것이 분리의 전제다.
   - 1단계: 승인 대기 화면(출고 취소 승인)과 WMS 호출 큐 화면(`/api/inventory-calls` 목록·상세·재처리·폐기, `DEAD` 호출이 그 창고의 큐를 멈추므로 운영상 중요). 2단계: 직원–창고 배정(`/api/warehouses/{id}/members`)과 창고·Zone·Location·작업 처리장 마스터 관리, `VITE_WAREHOUSE_IDS` 제거. 실사 조정 승인(임계치 초과)은 실사 화면과 함께 정한다.
   - 열린 결정: 모드 이름 확정, 1단계 범위, 요청자≠승인자를 서버(WMS가 요청자를 기록하고 검증)에서 강제할지(지금은 role 분리만).
-- 재고 실사 화면(`/api/stock-audits`)은 WMS API가 있는데 콘솔 화면이 없다. 입고·출고·반품의 WMS 계약 대조는 끝났다(반품은 일치).
+- 재고 실사 화면(`/stock-audits`)은 완료했다. 입고·출고·반품의 WMS 계약 대조는 끝났다(반품은 일치).
 - 새 API 연동에서 로직이 생기면 파일 옆에 테스트를 같이 추가한다
